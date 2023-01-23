@@ -43,7 +43,7 @@ Different shapes need different forms of parameters. A rectangle will need a sta
 
 In the code-block below, you can see some of the different methods in use.
 
-'''
+```
 var parameters = new ParameterCollection();
 parameters.Add("1+1", 2);											// int
 parameters.Add("5+5", 10);											// int
@@ -63,13 +63,13 @@ var hasKeyNight = parameters.HasKey("Night");                       // returns f
 var json = parameters.ToJson();                                     // Convert the collection to a json-string.
 
 var parameters2 = ParameterCollection.FromJson(json);				// Get a new ParameterCollection-object from a json-string.
-'''
+```
 
 ### Add a custom type as a parameter
 
 Below you can see a example for how to define some structures and convert it. The example also show the use of a custom enum, that are supported without any converting.
 
-'''
+```
 public class Example
 	{
 		public void DefineAnExampleSchool()
@@ -122,5 +122,5 @@ public class Example
 		Female,
 		Other
     }
-'''
+```
 
