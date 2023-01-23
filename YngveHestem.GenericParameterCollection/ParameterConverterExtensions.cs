@@ -30,7 +30,8 @@ namespace YngveHestem.GenericParameterCollection
             return new ParameterCollection
             {
                 { "enumType", type.FullName },
-                { "enumValue", Enum.GetName(type, enumValue) }
+                { "enumValue", Enum.GetName(type, enumValue) },
+                { "allPossibleValues", Enum.GetNames(type) }
             };
         }
 
