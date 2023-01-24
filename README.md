@@ -25,6 +25,8 @@ Currently, these C#-types are supported.
 - IEnumerable of ParameterCollection
 - Enum-types
 
+It also supports selecting an entry between different choices. It also support to select multiple choices.
+
 For the possibillity to differentiate if it should be possible to write multiline or not in a string, and if both the date and time is important in a DateTime, this is also possible to differentiate. This can for example be useful if you for example autogenerates input-forms for a gui.
 
 ## When should I use this?

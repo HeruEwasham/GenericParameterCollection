@@ -5,6 +5,7 @@ using System.Linq;
 using System.Xml.Linq;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Converters;
+using Newtonsoft.Json.Linq;
 
 namespace YngveHestem.GenericParameterCollection
 {
@@ -52,9 +53,9 @@ namespace YngveHestem.GenericParameterCollection
         }
 
         /// <summary>
-        /// Checks if a given type is valid for the EffectParameterType.
+        /// Checks if a given type is valid for the ParameterType.
         /// </summary>
-        /// <param name="validType">The EffectParameterType to check if a type is valid against.</param>
+        /// <param name="validType">The ParameterType to check if a type is valid against.</param>
         /// <param name="typeToCheck">The type to check if valid.</param>
         /// <returns></returns>
         public static bool IsValidType(this ParameterType validType, Type typeToCheck)
@@ -105,8 +106,30 @@ namespace YngveHestem.GenericParameterCollection
                     return typeof(IEnumerable<ParameterCollection>).IsAssignableFrom(typeToCheck);
                 case ParameterType.Enum:
                     return typeof(Enum).IsAssignableFrom(typeToCheck);
+                case ParameterType.SelectOne:
+                    return typeToCheck == typeof(string);
+                case ParameterType.SelectMany:
+                    return typeof(IEnumerable<string>).IsAssignableFrom(typeToCheck);
                 default:
                     throw new ArgumentOutOfRangeException();
+            };
+        }
+
+        internal static ParameterCollection SelectOneToParameterCollection(string value, IEnumerable<string> choices)
+        {
+            return new ParameterCollection
+            {
+                { "value", value },
+                { "choices", choices }
+            };
+        }
+
+        internal static ParameterCollection SelectManyToParameterCollection(IEnumerable<string> value, IEnumerable<string> choices)
+        {
+            return new ParameterCollection
+            {
+                { "value", value },
+                { "choices", choices }
             };
         }
     }

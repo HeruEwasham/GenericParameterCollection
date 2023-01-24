@@ -24,7 +24,9 @@ namespace YngveHestem.GenericParameterCollection
         Date_IEnumerable,
         ParameterCollection,
         ParameterCollection_IEnumerable,
-        Enum
+        Enum,
+        SelectOne,
+        SelectMany
     }
 }
 
