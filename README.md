@@ -31,7 +31,7 @@ For the possibillity to differentiate if it should be possible to write multilin
 
 ## When should I use this?
 
-The ParameterCollection was not written to be used instead of classes. This was primarly written to be used with Interfaces or other similar situations where the classes who implements an interface can get nearly any number and different type of response from a user. Since it is relatively easy to create a GUI with usable controls for the user, it will be a better experience for the user.
+The ParameterCollection was not written to be used instead of classes. This was primarly written to be used with Interfaces or other similar situations where the classes who implements an interface can get nearly any number and different type of response from a user. It is also suitable in other situations where much input from a user is required. This as it is relatively easy to create a GUI with usable controls for the user that can be used over and over again, instead of manually define the controls for each parameter/input by hand.
 
 ### Concrete example
 
