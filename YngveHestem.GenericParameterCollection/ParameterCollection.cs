@@ -46,9 +46,10 @@ namespace YngveHestem.GenericParameterCollection
         /// <param name="key">The given key.</param>
         /// <param name="value">The given string value.</param>
         /// <param name="multiline">Is the string meant to be multiline or should it only be a one-liner.</param>
-        public void Add(string key, string value, bool multiline = false)
+        /// <param name="additionalInfo">This is a parameter that can be used to add more information to the parameter. This can for example be used to communicate between the part of the program that wants some parameters, and the part that show the parameters to the user, like tell that it only allow subsets of what the type can deliver. It can also be used the other way, to give more information about the content without needing to have seperate parameters to search for.</param>
+        public void Add(string key, string value, bool multiline = false, ParameterCollection additionalInfo = null)
         {
-            Add(new Parameter(key, value, multiline));
+            Add(new Parameter(key, value, multiline, additionalInfo));
         }
 
         /// <summary>
@@ -56,9 +57,10 @@ namespace YngveHestem.GenericParameterCollection
         /// </summary>
         /// <param name="key">The given key.</param>
         /// <param name="value">The given value.</param>
-        public void Add(string key, int value)
+        /// <param name="additionalInfo">This is a parameter that can be used to add more information to the parameter. This can for example be used to communicate between the part of the program that wants some parameters, and the part that show the parameters to the user, like tell that it only allow subsets of what the type can deliver. It can also be used the other way, to give more information about the content without needing to have seperate parameters to search for.</param>
+        public void Add(string key, int value, ParameterCollection additionalInfo = null)
         {
-            Add(new Parameter(key, value));
+            Add(new Parameter(key, value, additionalInfo));
         }
 
         /// <summary>
@@ -66,9 +68,10 @@ namespace YngveHestem.GenericParameterCollection
         /// </summary>
         /// <param name="key">The given key.</param>
         /// <param name="value">The given value.</param>
-        public void Add(string key, float value)
+        /// <param name="additionalInfo">This is a parameter that can be used to add more information to the parameter. This can for example be used to communicate between the part of the program that wants some parameters, and the part that show the parameters to the user, like tell that it only allow subsets of what the type can deliver. It can also be used the other way, to give more information about the content without needing to have seperate parameters to search for.</param>
+        public void Add(string key, float value, ParameterCollection additionalInfo = null)
         {
-            Add(new Parameter(key, value));
+            Add(new Parameter(key, value, additionalInfo));
         }
 
         /// <summary>
@@ -76,9 +79,10 @@ namespace YngveHestem.GenericParameterCollection
         /// </summary>
         /// <param name="key">The given key.</param>
         /// <param name="value">The given value.</param>
-        public void Add(string key, long value)
+        /// <param name="additionalInfo">This is a parameter that can be used to add more information to the parameter. This can for example be used to communicate between the part of the program that wants some parameters, and the part that show the parameters to the user, like tell that it only allow subsets of what the type can deliver. It can also be used the other way, to give more information about the content without needing to have seperate parameters to search for.</param>
+        public void Add(string key, long value, ParameterCollection additionalInfo = null)
         {
-            Add(new Parameter(key, value));
+            Add(new Parameter(key, value, additionalInfo));
         }
 
         /// <summary>
@@ -86,9 +90,10 @@ namespace YngveHestem.GenericParameterCollection
         /// </summary>
         /// <param name="key">The given key.</param>
         /// <param name="value">The given value.</param>
-        public void Add(string key, double value)
+        /// <param name="additionalInfo">This is a parameter that can be used to add more information to the parameter. This can for example be used to communicate between the part of the program that wants some parameters, and the part that show the parameters to the user, like tell that it only allow subsets of what the type can deliver. It can also be used the other way, to give more information about the content without needing to have seperate parameters to search for.</param>
+        public void Add(string key, double value, ParameterCollection additionalInfo = null)
         {
-            Add(new Parameter(key, value));
+            Add(new Parameter(key, value, additionalInfo));
         }
 
         /// <summary>
@@ -97,9 +102,10 @@ namespace YngveHestem.GenericParameterCollection
         /// <param name="key">The given key.</param>
         /// <param name="value">The given value.</param>
         /// <param name="onlyDate">Is both the date and date part relevant or is it only the date that is relevant.</param>
-        public void Add(string key, DateTime value, bool onlyDate = false)
+        /// <param name="additionalInfo">This is a parameter that can be used to add more information to the parameter. This can for example be used to communicate between the part of the program that wants some parameters, and the part that show the parameters to the user, like tell that it only allow subsets of what the type can deliver. It can also be used the other way, to give more information about the content without needing to have seperate parameters to search for.</param>
+        public void Add(string key, DateTime value, bool onlyDate = false, ParameterCollection additionalInfo = null)
         {
-            Add(new Parameter(key, value, onlyDate));
+            Add(new Parameter(key, value, onlyDate, additionalInfo));
         }
 
         /// <summary>
@@ -107,9 +113,10 @@ namespace YngveHestem.GenericParameterCollection
         /// </summary>
         /// <param name="key">The given key.</param>
         /// <param name="value">The given value.</param>
-        public void Add(string key, byte[] value)
+        /// <param name="additionalInfo">This is a parameter that can be used to add more information to the parameter. This can for example be used to communicate between the part of the program that wants some parameters, and the part that show the parameters to the user, like tell that it only wants the content of an image or video files. It can also be used the other way, to give more information about the content without needing to have seperate parameters to search for.</param>
+        public void Add(string key, byte[] value, ParameterCollection additionalInfo = null)
         {
-            Add(new Parameter(key, value));
+            Add(new Parameter(key, value, additionalInfo));
         }
 
         /// <summary>
@@ -117,9 +124,10 @@ namespace YngveHestem.GenericParameterCollection
         /// </summary>
         /// <param name="key">The given key.</param>
         /// <param name="value">The given value.</param>
-        public void Add(string key, bool value)
+        /// <param name="additionalInfo">This is a parameter that can be used to add more information to the parameter. This can for example be used to communicate between the part of the program that wants some parameters, and the part that show the parameters to the user, like tell that it only allow subsets of what the type can deliver. It can also be used the other way, to give more information about the content without needing to have seperate parameters to search for.</param>
+        public void Add(string key, bool value, ParameterCollection additionalInfo = null)
         {
-            Add(new Parameter(key, value));
+            Add(new Parameter(key, value, additionalInfo));
         }
 
         /// <summary>
@@ -127,9 +135,10 @@ namespace YngveHestem.GenericParameterCollection
         /// </summary>
         /// <param name="key">The given key.</param>
         /// <param name="value">The given value.</param>
-        public void Add(string key, ParameterCollection value)
+        /// <param name="additionalInfo">This is a parameter that can be used to add more information to the parameter. This can for example be used to communicate between the part of the program that wants some parameters, and the part that show the parameters to the user, like tell that it only allow subsets of what the type can deliver. It can also be used the other way, to give more information about the content without needing to have seperate parameters to search for.</param>
+        public void Add(string key, ParameterCollection value, ParameterCollection additionalInfo = null)
         {
-            Add(new Parameter(key, value));
+            Add(new Parameter(key, value, additionalInfo));
         }
 
         /// <summary>
@@ -138,9 +147,10 @@ namespace YngveHestem.GenericParameterCollection
         /// <param name="key">The given key.</param>
         /// <param name="value">The given value.</param>
         /// <param name="multiline">Is the strings meant to be multiline or should it only be one-liners.</param>
-        public void Add(string key, IEnumerable<string> value, bool multiline = false)
+        /// <param name="additionalInfo">This is a parameter that can be used to add more information to the parameter. This can for example be used to communicate between the part of the program that wants some parameters, and the part that show the parameters to the user, like tell that it only allow subsets of what the type can deliver. It can also be used the other way, to give more information about the content without needing to have seperate parameters to search for.</param>
+        public void Add(string key, IEnumerable<string> value, bool multiline = false, ParameterCollection additionalInfo = null)
         {
-            Add(new Parameter(key, value, multiline));
+            Add(new Parameter(key, value, multiline, additionalInfo));
         }
 
         /// <summary>
@@ -148,9 +158,10 @@ namespace YngveHestem.GenericParameterCollection
         /// </summary>
         /// <param name="key">The given key.</param>
         /// <param name="value">The given value.</param>
-        public void Add(string key, IEnumerable<int> value)
+        /// <param name="additionalInfo">This is a parameter that can be used to add more information to the parameter. This can for example be used to communicate between the part of the program that wants some parameters, and the part that show the parameters to the user, like tell that it only allow subsets of what the type can deliver. It can also be used the other way, to give more information about the content without needing to have seperate parameters to search for.</param>
+        public void Add(string key, IEnumerable<int> value, ParameterCollection additionalInfo = null)
         {
-            Add(new Parameter(key, value));
+            Add(new Parameter(key, value, additionalInfo));
         }
 
         /// <summary>
@@ -158,9 +169,10 @@ namespace YngveHestem.GenericParameterCollection
         /// </summary>
         /// <param name="key">The given key.</param>
         /// <param name="value">The given value.</param>
-        public void Add(string key, IEnumerable<float> value)
+        /// <param name="additionalInfo">This is a parameter that can be used to add more information to the parameter. This can for example be used to communicate between the part of the program that wants some parameters, and the part that show the parameters to the user, like tell that it only allow subsets of what the type can deliver. It can also be used the other way, to give more information about the content without needing to have seperate parameters to search for.</param>
+        public void Add(string key, IEnumerable<float> value, ParameterCollection additionalInfo = null)
         {
-            Add(new Parameter(key, value));
+            Add(new Parameter(key, value, additionalInfo));
         }
 
         /// <summary>
@@ -168,9 +180,10 @@ namespace YngveHestem.GenericParameterCollection
         /// </summary>
         /// <param name="key">The given key.</param>
         /// <param name="value">The given value.</param>
-        public void Add(string key, IEnumerable<double> value)
+        /// <param name="additionalInfo">This is a parameter that can be used to add more information to the parameter. This can for example be used to communicate between the part of the program that wants some parameters, and the part that show the parameters to the user, like tell that it only allow subsets of what the type can deliver. It can also be used the other way, to give more information about the content without needing to have seperate parameters to search for.</param>
+        public void Add(string key, IEnumerable<double> value, ParameterCollection additionalInfo = null)
         {
-            Add(new Parameter(key, value));
+            Add(new Parameter(key, value, additionalInfo));
         }
 
         /// <summary>
@@ -178,9 +191,10 @@ namespace YngveHestem.GenericParameterCollection
         /// </summary>
         /// <param name="key">The given key.</param>
         /// <param name="value">The given value.</param>
-        public void Add(string key, IEnumerable<long> value)
+        /// <param name="additionalInfo">This is a parameter that can be used to add more information to the parameter. This can for example be used to communicate between the part of the program that wants some parameters, and the part that show the parameters to the user, like tell that it only allow subsets of what the type can deliver. It can also be used the other way, to give more information about the content without needing to have seperate parameters to search for.</param>
+        public void Add(string key, IEnumerable<long> value, ParameterCollection additionalInfo = null)
         {
-            Add(new Parameter(key, value));
+            Add(new Parameter(key, value, additionalInfo));
         }
 
         /// <summary>
@@ -188,9 +202,10 @@ namespace YngveHestem.GenericParameterCollection
         /// </summary>
         /// <param name="key">The given key.</param>
         /// <param name="value">The given value.</param>
-        public void Add(string key, IEnumerable<bool> value)
+        /// <param name="additionalInfo">This is a parameter that can be used to add more information to the parameter. This can for example be used to communicate between the part of the program that wants some parameters, and the part that show the parameters to the user, like tell that it only allow subsets of what the type can deliver. It can also be used the other way, to give more information about the content without needing to have seperate parameters to search for.</param>
+        public void Add(string key, IEnumerable<bool> value, ParameterCollection additionalInfo = null)
         {
-            Add(new Parameter(key, value));
+            Add(new Parameter(key, value, additionalInfo));
         }
 
         /// <summary>
@@ -199,9 +214,10 @@ namespace YngveHestem.GenericParameterCollection
         /// <param name="key">The given key.</param>
         /// <param name="value">The given value.</param>
         /// <param name="onlyDate">Is both the date and date part relevant in this list or is it only the date that is relevant.</param>
-        public void Add(string key, IEnumerable<DateTime> value, bool onlyDate = false)
+        /// <param name="additionalInfo">This is a parameter that can be used to add more information to the parameter. This can for example be used to communicate between the part of the program that wants some parameters, and the part that show the parameters to the user, like tell that it only allow subsets of what the type can deliver. It can also be used the other way, to give more information about the content without needing to have seperate parameters to search for.</param>
+        public void Add(string key, IEnumerable<DateTime> value, bool onlyDate = false, ParameterCollection additionalInfo = null)
         {
-            Add(new Parameter(key, value, onlyDate));
+            Add(new Parameter(key, value, onlyDate, additionalInfo));
         }
 
         /// <summary>
@@ -209,9 +225,10 @@ namespace YngveHestem.GenericParameterCollection
         /// </summary>
         /// <param name="key">The given key.</param>
         /// <param name="value">The given value.</param>
-        public void Add(string key, IEnumerable<ParameterCollection> value)
+        /// <param name="additionalInfo">This is a parameter that can be used to add more information to the parameter. This can for example be used to communicate between the part of the program that wants some parameters, and the part that show the parameters to the user, like tell that it only allow subsets of what the type can deliver. It can also be used the other way, to give more information about the content without needing to have seperate parameters to search for.</param>
+        public void Add(string key, IEnumerable<ParameterCollection> value, ParameterCollection additionalInfo = null)
         {
-            Add(new Parameter(key, value));
+            Add(new Parameter(key, value, additionalInfo));
         }
 
         /// <summary>
@@ -219,9 +236,10 @@ namespace YngveHestem.GenericParameterCollection
         /// </summary>
         /// <param name="key">The given key.</param>
         /// <param name="value">The given value.</param>
-        public void Add(string key, Enum value)
+        /// <param name="additionalInfo">This is a parameter that can be used to add more information to the parameter. This can for example be used to communicate between the part of the program that wants some parameters, and the part that show the parameters to the user, like tell that it only allow subsets of what the type can deliver. It can also be used the other way, to give more information about the content without needing to have seperate parameters to search for.</param>
+        public void Add(string key, Enum value, ParameterCollection additionalInfo = null)
         {
-            Add(new Parameter(key, value));
+            Add(new Parameter(key, value, additionalInfo));
         }
 
         /// <summary>
@@ -230,9 +248,10 @@ namespace YngveHestem.GenericParameterCollection
         /// <param name="key">The given key.</param>
         /// <param name="value">The given value. This value must be exact the same as one of the choices in the list of choices.</param>
         /// <param name="choices">A list of choices.</param>
-        public void Add(string key, string value, IEnumerable<string> choices)
+        /// <param name="additionalInfo">This is a parameter that can be used to add more information to the parameter. This can for example be used to communicate between the part of the program that wants some parameters, and the part that show the parameters to the user, like tell that it only allow subsets of what the type can deliver. It can also be used the other way, to give more information about the content without needing to have seperate parameters to search for.</param>
+        public void Add(string key, string value, IEnumerable<string> choices, ParameterCollection additionalInfo = null)
         {
-            Add(new Parameter(key, value, choices));
+            Add(new Parameter(key, value, choices, additionalInfo));
         }
 
         /// <summary>
@@ -241,9 +260,10 @@ namespace YngveHestem.GenericParameterCollection
         /// <param name="key">The given key.</param>
         /// <param name="value">The given value(s). Each string must be exact the same as one of the choices in the list of choices.</param>
         /// <param name="choices">A list of choices.</param>
-        public void Add(string key, IEnumerable<string> value, IEnumerable<string> choices)
+        /// <param name="additionalInfo">This is a parameter that can be used to add more information to the parameter. This can for example be used to communicate between the part of the program that wants some parameters, and the part that show the parameters to the user, like tell that it only allow subsets of what the type can deliver. It can also be used the other way, to give more information about the content without needing to have seperate parameters to search for.</param>
+        public void Add(string key, IEnumerable<string> value, IEnumerable<string> choices, ParameterCollection additionalInfo = null)
         {
-            Add(new Parameter(key, value, choices));
+            Add(new Parameter(key, value, choices, additionalInfo));
         }
 
         /// <summary>

@@ -29,6 +29,8 @@ It also supports selecting an entry between different choices. It also support t
 
 For the possibillity to differentiate if it should be possible to write multiline or not in a string, and if both the date and time is important in a DateTime, this is also possible to differentiate. This can for example be useful if you for example autogenerates input-forms for a gui.
 
+It is also possible to add multiple parameters to a parameter, which can be used to send much more information togheter with a parameter, or be used to validate the input the way a backend wants it in GUI-level.
+
 ## When should I use this?
 
 The ParameterCollection was not written to be used instead of classes. This was primarly written to be used with Interfaces or other similar situations where the classes who implements an interface can get nearly any number and different type of response from a user. It is also suitable in other situations where much input from a user is required. This as it is relatively easy to create a GUI with usable controls for the user that can be used over and over again, instead of manually define the controls for each parameter/input by hand.
