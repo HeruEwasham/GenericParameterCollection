@@ -367,6 +367,38 @@ namespace YngveHestem.GenericParameterCollection
         }
 
         /// <summary>
+        /// Get the whole parameter by key.
+        /// </summary>
+        /// <param name="key">The given key.</param>
+        /// <returns>Returns the value as a generic object.</returns>
+        public Parameter GetParameterByKey(string key)
+        {
+            return _parameters.Find(p => p != null && p.Key == key);
+        }
+
+        /// <summary>
+        /// Get the whole parameter by key and type.
+        /// </summary>
+        /// <param name="key">The given key.</param>
+        /// <param name="type">The given type.</param>
+        /// <returns>Returns the value as a generic object.</returns>
+        public Parameter GetParameterByKeyAndType(string key, ParameterType type)
+        {
+            return _parameters.Find(p => p != null && p.Key == key && p.Type == type);
+        }
+
+        /// <summary>
+        /// Get the whole parameter by key and type.
+        /// </summary>
+        /// <param name="key">The given key.</param>
+        /// <param name="type">The given type.</param>
+        /// <returns>Returns the value as a generic object.</returns>
+        public Parameter GetParameterByKeyAndType(string key, Type type)
+        {
+            return _parameters.Find(p => p != null && p.Key == key && p.Type.IsValidType(type));
+        }
+
+        /// <summary>
         /// Do this collection has a parameter with the given key.
         /// </summary>
         /// <param name="key">The given key.</param>
