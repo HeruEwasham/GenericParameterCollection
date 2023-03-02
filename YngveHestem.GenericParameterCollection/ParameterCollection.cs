@@ -312,13 +312,6 @@ namespace YngveHestem.GenericParameterCollection
         }
 
         /// <summary>
-        /// Get the value by key.
-        /// </summary>
-        /// <param name="key">The given key.</param>
-        /// <returns>Returns the value as a generic object.</returns>
-        public object this[string key] => GetByKey(key);
-
-        /// <summary>
         /// Get the value by key and type.
         /// </summary>
         /// <param name="key">The given key.</param>
@@ -332,17 +325,7 @@ namespace YngveHestem.GenericParameterCollection
         /// <param name="key">The given key.</param>
         /// <param name="type">The given type.</param>
         /// <returns>Returns the value as a generic object.</returns>
-        public object this[string key, Type type] => GetByKeyAndType(key, type);
-
-        /// <summary>
-        /// Get the value by key.
-        /// </summary>
-        /// <param name="key">The given key.</param>
-        /// <returns>Returns the value as a generic object.</returns>
-        public object GetByKey(string key)
-        {
-            return _parameters.Find(p => p != null && p.Key == key).GetValue();
-        }
+        public object this[string key, Type type] => GetByKey(key, type);
 
         /// <summary>
         /// Get the value by key.
@@ -352,7 +335,7 @@ namespace YngveHestem.GenericParameterCollection
         /// <returns>Returns the value as the given type.</returns>
         public T GetByKey<T>(string key)
         {
-            return (T)GetByKey(key);
+            return (T)_parameters.Find(p => p != null && p.Key == key).GetValue<T>();
         }
 
         /// <summary>
@@ -363,7 +346,7 @@ namespace YngveHestem.GenericParameterCollection
         /// <returns>Returns the value as a generic object.</returns>
         public object GetByKeyAndType(string key, ParameterType type)
         {
-            return _parameters.Find(p => p != null && p.Key == key && p.Type == type).GetValue();
+            return _parameters.Find(p => p != null && p.Key == key && p.Type == type).GetValue(type.GetDefaultValueType());
         }
 
         /// <summary>
@@ -379,14 +362,14 @@ namespace YngveHestem.GenericParameterCollection
         }
 
         /// <summary>
-        /// Get the value by key and type.
+        /// Get the value by key in type.
         /// </summary>
         /// <param name="key">The given key.</param>
-        /// <param name="type">The given type.</param>
+        /// <param name="type">The wanted type.</param>
         /// <returns>Returns the value as a generic object.</returns>
-        public object GetByKeyAndType(string key, Type type)
+        public object GetByKey(string key, Type type)
         {
-            return _parameters.Find(p => p != null && p.Key == key && p.Type.IsValidType(type)).GetValue();
+            return _parameters.Find(p => p != null && p.Key == key).GetValue(type);
         }
 
         /// <summary>
@@ -433,17 +416,6 @@ namespace YngveHestem.GenericParameterCollection
         }
 
         /// <summary>
-        /// Get the whole parameter by key and type.
-        /// </summary>
-        /// <param name="key">The given key.</param>
-        /// <param name="type">The given type.</param>
-        /// <returns>Returns the value as a generic object.</returns>
-        public Parameter GetParameterByKeyAndType(string key, Type type)
-        {
-            return _parameters.Find(p => p != null && p.Key == key && p.Type.IsValidType(type));
-        }
-
-        /// <summary>
         /// Do this collection has a parameter with the given key.
         /// </summary>
         /// <param name="key">The given key.</param>
@@ -465,14 +437,14 @@ namespace YngveHestem.GenericParameterCollection
         }
 
         /// <summary>
-        /// Do this collection has a parameter with the given key and type.
+        /// Do this collection has a parameter that can be converted to type.
         /// </summary>
         /// <param name="key">The given key.</param>
         /// <param name="type">The given type.</param>
         /// <returns></returns>
-        public bool HasKeyWithType(string key, Type type)
+        public bool HasKeyAndCanConvertTo(string key, Type type)
         {
-            return _parameters.Exists(p => p != null && p.Key == key && p.Type.IsValidType(type));
+            return _parameters.Exists(p => p != null && p.Key == key && p.CanBeConvertedTo(type));
         }
 
         public override string ToString()

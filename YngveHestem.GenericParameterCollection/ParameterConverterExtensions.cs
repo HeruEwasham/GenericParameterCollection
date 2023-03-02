@@ -25,6 +25,82 @@ namespace YngveHestem.GenericParameterCollection
             return null;
         }
 
+        public static Type GetDefaultValueType(this ParameterType type)
+        {
+            if (type == ParameterType.Int)
+            {
+                return typeof(int);
+            }
+            else if (type == ParameterType.String || type == ParameterType.String_Multiline)
+            {
+                return typeof(string);
+            }
+            else if (type == ParameterType.Float)
+            {
+                return typeof(float);
+            }
+            else if (type == ParameterType.Double)
+            {
+                return typeof(double);
+            }
+            else if (type == ParameterType.Long)
+            {
+                return typeof(long);
+            }
+            else if (type == ParameterType.Bool)
+            {
+                return typeof(bool);
+            }
+            else if (type == ParameterType.Bytes)
+            {
+                return typeof(byte[]);
+            }
+            else if (type == ParameterType.Date || type == ParameterType.DateTime)
+            {
+                return typeof(DateTime);
+            }
+            else if (type == ParameterType.ParameterCollection)
+            {
+                return typeof(ParameterCollection);
+            }
+            else if (type == ParameterType.String_IEnumerable || type == ParameterType.String_Multiline_IEnumerable || type == ParameterType.SelectMany)
+            {
+                return typeof(IEnumerable<string>);
+            }
+            else if (type == ParameterType.Int_IEnumerable)
+            {
+                return typeof(IEnumerable<int>);
+            }
+            else if (type == ParameterType.Float_IEnumerable)
+            {
+                return typeof(IEnumerable<float>);
+            }
+            else if (type == ParameterType.Double_IEnumerable)
+            {
+                return typeof(IEnumerable<double>);
+            }
+            else if (type == ParameterType.Long_IEnumerable)
+            {
+                return typeof(IEnumerable<long>);
+            }
+            else if (type == ParameterType.Bool_IEnumerable)
+            {
+                return typeof(IEnumerable<bool>);
+            }
+            else if (type == ParameterType.Date_IEnumerable || type == ParameterType.DateTime_IEnumerable)
+            {
+                return typeof(IEnumerable<DateTime>);
+            }
+            else if (type == ParameterType.ParameterCollection_IEnumerable)
+            {
+                return typeof(IEnumerable<Parameter>);
+            }
+            else
+            {
+                return typeof(string);
+            }
+        }
+
         public static ParameterCollection ToParameterCollection(this Enum enumValue)
         {
             var type = enumValue.GetType();
@@ -50,69 +126,6 @@ namespace YngveHestem.GenericParameterCollection
             return new JsonConverter[] {
                     new StringEnumConverter()
                 };
-        }
-
-        /// <summary>
-        /// Checks if a given type is valid for the ParameterType.
-        /// </summary>
-        /// <param name="validType">The ParameterType to check if a type is valid against.</param>
-        /// <param name="typeToCheck">The type to check if valid.</param>
-        /// <returns></returns>
-        public static bool IsValidType(this ParameterType validType, Type typeToCheck)
-        {
-            switch (validType)
-            {
-                case ParameterType.Int:
-                    return typeToCheck == typeof(int);
-                case ParameterType.String:
-                    return typeToCheck == typeof(string);
-                case ParameterType.String_Multiline:
-                    return typeToCheck == typeof(string);
-                case ParameterType.Float:
-                    return typeToCheck == typeof(float);
-                case ParameterType.Double:
-                    return typeToCheck == typeof(double);
-                case ParameterType.Long:
-                    return typeToCheck == typeof(long);
-                case ParameterType.Bytes:
-                    return typeToCheck == typeof(byte[]);
-                case ParameterType.Bool:
-                    return typeToCheck == typeof(bool);
-                case ParameterType.DateTime:
-                    return typeToCheck == typeof(DateTime);
-                case ParameterType.Date:
-                    return typeToCheck == typeof(DateTime);
-                case ParameterType.ParameterCollection:
-                    return typeToCheck == typeof(ParameterCollection);
-                case ParameterType.String_IEnumerable:
-                    return typeof(IEnumerable<string>).IsAssignableFrom(typeToCheck);
-                case ParameterType.String_Multiline_IEnumerable:
-                    return typeof(IEnumerable<string>).IsAssignableFrom(typeToCheck);
-                case ParameterType.Int_IEnumerable:
-                    return typeof(IEnumerable<int>).IsAssignableFrom(typeToCheck);
-                case ParameterType.Float_IEnumerable:
-                    return typeof(IEnumerable<float>).IsAssignableFrom(typeToCheck);
-                case ParameterType.Double_IEnumerable:
-                    return typeof(IEnumerable<double>).IsAssignableFrom(typeToCheck);
-                case ParameterType.Long_IEnumerable:
-                    return typeof(IEnumerable<long>).IsAssignableFrom(typeToCheck);
-                case ParameterType.Bool_IEnumerable:
-                    return typeof(IEnumerable<bool>).IsAssignableFrom(typeToCheck);
-                case ParameterType.DateTime_IEnumerable:
-                    return typeof(IEnumerable<DateTime>).IsAssignableFrom(typeToCheck);
-                case ParameterType.Date_IEnumerable:
-                    return typeof(IEnumerable<DateTime>).IsAssignableFrom(typeToCheck);
-                case ParameterType.ParameterCollection_IEnumerable:
-                    return typeof(IEnumerable<ParameterCollection>).IsAssignableFrom(typeToCheck);
-                case ParameterType.Enum:
-                    return typeof(Enum).IsAssignableFrom(typeToCheck);
-                case ParameterType.SelectOne:
-                    return typeToCheck == typeof(string);
-                case ParameterType.SelectMany:
-                    return typeof(IEnumerable<string>).IsAssignableFrom(typeToCheck);
-                default:
-                    throw new ArgumentOutOfRangeException();
-            };
         }
 
         internal static ParameterCollection SelectOneToParameterCollection(string value, IEnumerable<string> choices)

@@ -10,6 +10,8 @@
         - Changed how conversion happens, so everything (except Enum, SelectOne and SelectMany), now uses own conversion-classes. This will make it easier to convert to custom types directly.
         - Added possibillity to add any object as a parameter (if it exist a converter).
         - Added possibillity to add custom converters.
+        - As custom converters is added, some functions to get value by a specific type are removed.
+        - Some functions to check if a parameter can convert to a value is added.
 
         Version 1.0.2-beta01:
         - Added the possibillity to get the value of an enum as string.

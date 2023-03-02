@@ -639,6 +639,29 @@ namespace YngveHestem.GenericParameterCollection
                 "\tThe type to convert to is: " + Enum.GetName(typeof(ParameterType), Type) + Environment.NewLine +
                 "\tThe value to convert from is: " + _value.ToString();
         }
+
+        /// <summary>
+        /// Based on the converters, can we convert it to given type.
+        /// </summary>
+        /// <param name="type">The type we want to convert to.</param>
+        /// <returns></returns>
+        public bool CanBeConvertedTo(Type type)
+        {
+            if (_customParameterValueConverters != null)
+            {
+                if (_customParameterValueConverters.FirstOrDefault(c => c.CanConvertFromParameter(Type, type, _value, _jsonSerializer)) != null)
+                {
+                    return true;
+                }
+            }
+
+            if (_defaultParameterValueConverters.FirstOrDefault(c => c.CanConvertFromParameter(Type, type, _value, _jsonSerializer)) != null)
+            {
+                return true;
+            }
+
+            return false;
+        }
     }
 }
 
