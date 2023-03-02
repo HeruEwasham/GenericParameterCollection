@@ -2,6 +2,7 @@
 using System.Collections;
 using System.Collections.Generic;
 using Newtonsoft.Json;
+using YngveHestem.GenericParameterCollection.ParameterValueConverters;
 
 namespace YngveHestem.GenericParameterCollection
 {
@@ -9,6 +10,9 @@ namespace YngveHestem.GenericParameterCollection
     {
         [JsonProperty("parameters")]
         private List<Parameter> _parameters;
+
+        [JsonProperty("customConverters")]
+        private List<IParameterValueConverter> _customParameterValueConverters { get; set; }
 
         public ParameterCollection()
         {
@@ -264,6 +268,47 @@ namespace YngveHestem.GenericParameterCollection
         public void Add(string key, IEnumerable<string> value, IEnumerable<string> choices, ParameterCollection additionalInfo = null)
         {
             Add(new Parameter(key, value, choices, additionalInfo));
+        }
+
+        /// <summary>
+        /// Create and add a new parameter. This will use either one of the default converters or another converter provided.
+        /// </summary>
+        /// <param name="key">The given key.</param>
+        /// <param name="value">The given value.</param>
+        /// <param name="additionalInfo">This is a parameter that can be used to add more information to the parameter. This can for example be used to communicate between the part of the program that wants some parameters, and the part that show the parameters to the user, like tell that it only allow subsets of what the type can deliver. It can also be used the other way, to give more information about the content without needing to have seperate parameters to search for.</param>
+        public void Add(string key, object value, ParameterCollection additionalInfo = null)
+        {
+            Add(new Parameter(key, value, additionalInfo, _customParameterValueConverters));
+        }
+
+        /// <summary>
+        /// Create and add a new parameter. You also decides the parameterType, which define how the parameter is saved. This will use either one of the default converters or another converter provided.
+        /// </summary>
+        /// <param name="key">The given key.</param>
+        /// <param name="value">The given value.</param>
+        /// <param name="parameterType">The wanted type the parameter shall save/consider it as.</param>
+        /// <param name="additionalInfo">This is a parameter that can be used to add more information to the parameter. This can for example be used to communicate between the part of the program that wants some parameters, and the part that show the parameters to the user, like tell that it only allow subsets of what the type can deliver. It can also be used the other way, to give more information about the content without needing to have seperate parameters to search for.</param>
+        public void Add(string key, object value, ParameterType parameterType, ParameterCollection additionalInfo = null)
+        {
+            Add(new Parameter(key, value, parameterType, additionalInfo, _customParameterValueConverters));
+        }
+
+        /// <summary>
+        /// Adds a new converter to the list of custom converters for this ParameterCollection.
+        /// </summary>
+        /// <param name="parameterValueConverter">The converter to add.</param>
+        /// <param name="addToExisting">If set to true, the converter will also be added to all existing parameters in this collection already. If set to false, only parameters added afterwards will get this converter.</param>
+        public void AddCustomConverter(IParameterValueConverter parameterValueConverter, bool addToExisting = false)
+        {
+            _customParameterValueConverters.Add(parameterValueConverter);
+
+            if (addToExisting)
+            {
+                for (var i = 0; i < _parameters.Count; i++)
+                {
+                    _parameters[i].AddCustomConverter(parameterValueConverter);
+                }
+            }
         }
 
         /// <summary>

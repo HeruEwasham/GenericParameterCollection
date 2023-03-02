@@ -2,10 +2,19 @@
 
   <PropertyGroup>
     <TargetFramework>netstandard2.0</TargetFramework>
-    <ReleaseVersion>1.0.1</ReleaseVersion>
-    <Version>1.0.1</Version>
+    <ReleaseVersion>1.0.2-beta02</ReleaseVersion>
+    <Version>1.0.2-beta02</Version>
     <Description>ParameterCollection is a simple to use collection for different parameters and types defined with a key. It supports many of the standard types like int, string, double, float, long, DateTime, bool, byte[], enums and more. It can also support nearly every other objects by easy converting the object to it´s own ParameterCollection, which can be nested togheter as parameters. It also supports many of the parameters as IEnumerables (List, Array, etc.). Methods to convert to and from JSON is also included.</Description>
-    <PackageReleaseNotes>Added the possibillity to have additional parameters connected to a parameter.</PackageReleaseNotes>
+    <PackageReleaseNotes>
+        Version 1.0.2-beta02:
+        - Changed how conversion happens, so everything (except Enum, SelectOne and SelectMany), now uses own conversion-classes. This will make it easier to convert to custom types directly.
+        - Added possibillity to add any object as a parameter (if it exist a converter).
+        - Added possibillity to add custom converters.
+
+        Version 1.0.2-beta01:
+        - Added the possibillity to get the value of an enum as string.
+        - Added the possibillity to set a new value of an existing parameter.
+    </PackageReleaseNotes>
     <Authors>Yngve J. K. Hestem</Authors>
     <Copyright>Copyright (c) Yngve J. K. Hestem 2022</Copyright>
     <PackageLicenseExpression>MIT</PackageLicenseExpression>
@@ -17,8 +26,12 @@
 
   <ItemGroup>
     <None Remove="Newtonsoft.Json" />
+    <None Remove="ParameterValueConverters\" />
   </ItemGroup>
   <ItemGroup>
     <PackageReference Include="Newtonsoft.Json" Version="13.0.2" />
+  </ItemGroup>
+  <ItemGroup>
+    <Folder Include="ParameterValueConverters\" />
   </ItemGroup>
 </Project>

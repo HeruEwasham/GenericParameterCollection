@@ -8,7 +8,7 @@ The easiest way to use the package is to download it from nuget: https://www.nug
 
 ## Supported types
 
-Currently, these C#-types are supported.
+Currently, these C#-types are supported out of the box, with some conversion between themselfs.
 
 - int
 - string
@@ -29,6 +29,8 @@ Currently, these C#-types are supported.
 - IEnumerable of ParameterCollection
 - Enum-types
 
+Converters for other types are easy to implement.
+
 It also supports selecting an entry between different choices. It also support to select multiple choices.
 
 For the possibillity to differentiate if it should be possible to write multiline or not in a string, and if both the date and time is important in a DateTime, this is also possible to differentiate. This can for example be useful if you for example autogenerates input-forms for a gui.
@@ -44,6 +46,14 @@ The ParameterCollection was not written to be used instead of classes. This was 
 A concrete example will be a program that let you create an image. This program uses an interface to define everything you can do with the image. Like creating different shapes or blurring image.
 
 Different shapes need different forms of parameters. A rectangle will need a starting point and some hight and width sizes. A circle will need a position and a radius. They might also need for example colors or brushes (or not). Then something like this is needed.
+
+## Custom converters
+
+While the package has some default converters built in, you can add nearly any value as a parameter by creating custom converters.
+
+The easiest is to save the value as a ParameterCollection. To create a converter for that you can create a class and inherit from the class ParameterCollectionParameterConverter<TValueType>. TValueType will here be the type that should be converted to/from a ParameterCollection.
+
+If you will convert to any other ParameterType or will convert more in same class, you can create a class that implement the IParameterValueConverter.
 
 ## Code-Examples
 
