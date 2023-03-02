@@ -373,18 +373,6 @@ namespace YngveHestem.GenericParameterCollection
         }
 
         /// <summary>
-        /// Get the value by key and type.
-        /// </summary>
-        /// <typeparam name="T">The value-type expected to get back.</typeparam>
-        /// <param name="key">The given key.</param>
-        /// <param name="type">The given type.</param>
-        /// <returns>Returns the value as the given type.</returns>
-        public T GetByKeyAndType<T>(string key, Type type)
-        {
-            return (T)GetByKeyAndType(key, type);
-        }
-
-        /// <summary>
         /// Get the type a given parameter has.
         /// </summary>
         /// <param name="key">The given key.</param>
