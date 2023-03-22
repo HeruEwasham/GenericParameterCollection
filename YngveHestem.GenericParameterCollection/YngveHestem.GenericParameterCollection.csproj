@@ -30,7 +30,8 @@
     <PackageTags>UI, parameter ParameterCollection collection parameters collections multiple-types-in-collection json key-value key-value-pair</PackageTags>
     <SynchReleaseVersion>false</SynchReleaseVersion>
     <RepositoryUrl>https://github.com/HeruEwasham/GenericParameterCollection.git</RepositoryUrl> 
-    <RepositoryType>git</RepositoryType> 
+    <RepositoryType>git</RepositoryType>
+    <PackageReadmeFile>README.md</PackageReadmeFile>
   </PropertyGroup>
 
   <ItemGroup>
@@ -42,5 +43,6 @@
   </ItemGroup>
   <ItemGroup>
     <Folder Include="ParameterValueConverters\" />
+    <None Include="../README.md" Pack="true" PackagePath="\"/>
   </ItemGroup>
 </Project>
