@@ -48,12 +48,16 @@ namespace YngveHestem.GenericParameterCollection
         /// <param name="type">The type this parameter is.</param>
         /// <param name="additionalInfo">This is a parameter that can be used to add more information to the parameter. This can for example be used to communicate between the part of the program that wants some parameters, and the part that show the parameters to the user, like tell that it only allow subsets of what the type can deliver. It can also be used the other way, to give more information about the content without needing to have seperate parameters to search for.</param>
         [JsonConstructor]
-        private Parameter(string key, JToken value, ParameterType type, ParameterCollection additionalInfo)
+        private Parameter(string key, JToken value, ParameterType type, ParameterCollection additionalInfo, IEnumerable<IParameterValueConverter> customConverters)
         {
             Key = key;
             _value = value;
             Type = type;
             _additionalInfo = additionalInfo;
+            if (customConverters != null)
+            {
+                _customParameterValueConverters = customConverters.ToList();
+            }
         }
 
         /// <summary>
@@ -63,7 +67,7 @@ namespace YngveHestem.GenericParameterCollection
         /// <param name="value">The given value as a ParameterCollection.</param>
         /// <param name="type">The type to tell this parameter is.</param>
         /// <param name="additionalInfo">This is a parameter that can be used to add more information to the parameter. This can for example be used to communicate between the part of the program that wants some parameters, and the part that show the parameters to the user, like tell that it only allow subsets of what the type can deliver. It can also be used the other way, to give more information about the content without needing to have seperate parameters to search for.</param>
-        private Parameter(string key, ParameterCollection value, ParameterType type, ParameterCollection additionalInfo) : this(key, JToken.FromObject(value, _jsonSerializer), type, additionalInfo) { }
+        private Parameter(string key, ParameterCollection value, ParameterType type, ParameterCollection additionalInfo, IEnumerable<IParameterValueConverter> customConverters) : this(key, JToken.FromObject(value, _jsonSerializer), type, additionalInfo, customConverters) { }
 
         /// <summary>
         /// Save a new parameter with a specified ParameterType as an ienumerable of ParameterCollection. This is just for internal use when new types are created.
@@ -72,7 +76,7 @@ namespace YngveHestem.GenericParameterCollection
         /// <param name="value">The given value as an ienumerable of ParameterCollection.</param>
         /// <param name="type">The type to tell this parameter is.</param>
         /// <param name="additionalInfo">This is a parameter that can be used to add more information to the parameter. This can for example be used to communicate between the part of the program that wants some parameters, and the part that show the parameters to the user, like tell that it only allow subsets of what the type can deliver. It can also be used the other way, to give more information about the content without needing to have seperate parameters to search for.</param>
-        private Parameter(string key, IEnumerable<ParameterCollection> value, ParameterType type, ParameterCollection additionalInfo) : this(key, JToken.FromObject(value, _jsonSerializer), type, additionalInfo) { }
+        private Parameter(string key, IEnumerable<ParameterCollection> value, ParameterType type, ParameterCollection additionalInfo, IEnumerable<IParameterValueConverter> customConverters) : this(key, JToken.FromObject(value, _jsonSerializer), type, additionalInfo, customConverters) { }
 
         /// <summary>
         /// Save a new parameter with a specified ParameterType as an ienumerable of strings. This is just for internal use when new types are created.
@@ -81,7 +85,7 @@ namespace YngveHestem.GenericParameterCollection
         /// <param name="value">The given value as an ienumerable of strings.</param>
         /// <param name="type">The type to tell this parameter is.</param>
         /// <param name="additionalInfo">This is a parameter that can be used to add more information to the parameter. This can for example be used to communicate between the part of the program that wants some parameters, and the part that show the parameters to the user, like tell that it only allow subsets of what the type can deliver. It can also be used the other way, to give more information about the content without needing to have seperate parameters to search for.</param>
-        private Parameter(string key, IEnumerable<string> value, ParameterType type, ParameterCollection additionalInfo) : this(key, JToken.FromObject(value, _jsonSerializer), type, additionalInfo) { }
+        private Parameter(string key, IEnumerable<string> value, ParameterType type, ParameterCollection additionalInfo, IEnumerable<IParameterValueConverter> customConverters) : this(key, JToken.FromObject(value, _jsonSerializer), type, additionalInfo, customConverters) { }
 
         /// <summary>
         /// Create a new parameter.
@@ -90,7 +94,7 @@ namespace YngveHestem.GenericParameterCollection
         /// <param name="value">The given string value.</param>
         /// <param name="multiline">Is the string meant to be multiline or should it only be a one-liner.</param>
         /// <param name="additionalInfo">This is a parameter that can be used to add more information to the parameter. This can for example be used to communicate between the part of the program that wants some parameters, and the part that show the parameters to the user, like tell that it only allow subsets of what the type can deliver. It can also be used the other way, to give more information about the content without needing to have seperate parameters to search for.</param>
-        public Parameter(string key, string value, bool multiline = false, ParameterCollection additionalInfo = null) : this(key, value, multiline ? ParameterType.String_Multiline : ParameterType.String, additionalInfo) { }
+        public Parameter(string key, string value, bool multiline = false, ParameterCollection additionalInfo = null, IEnumerable<IParameterValueConverter> customConverters = null) : this(key, value, multiline ? ParameterType.String_Multiline : ParameterType.String, additionalInfo, customConverters) { }
 
         /// <summary>
         /// Create a new parameter.
@@ -98,7 +102,7 @@ namespace YngveHestem.GenericParameterCollection
         /// <param name="key">The given key.</param>
         /// <param name="value">The given value.</param>
         /// <param name="additionalInfo">This is a parameter that can be used to add more information to the parameter. This can for example be used to communicate between the part of the program that wants some parameters, and the part that show the parameters to the user, like tell that it only allow subsets of what the type can deliver. It can also be used the other way, to give more information about the content without needing to have seperate parameters to search for.</param>
-        public Parameter(string key, int value, ParameterCollection additionalInfo = null) : this(key, value, ParameterType.Int, additionalInfo) { }
+        public Parameter(string key, int value, ParameterCollection additionalInfo = null, IEnumerable<IParameterValueConverter> customConverters = null) : this(key, value, ParameterType.Int, additionalInfo, customConverters) { }
 
         /// <summary>
         /// Create a new parameter.
@@ -106,7 +110,7 @@ namespace YngveHestem.GenericParameterCollection
         /// <param name="key">The given key.</param>
         /// <param name="value">The given value.</param>
         /// <param name="additionalInfo">This is a parameter that can be used to add more information to the parameter. This can for example be used to communicate between the part of the program that wants some parameters, and the part that show the parameters to the user, like tell that it only allow subsets of what the type can deliver. It can also be used the other way, to give more information about the content without needing to have seperate parameters to search for.</param>
-        public Parameter(string key, float value, ParameterCollection additionalInfo = null) : this(key, value, ParameterType.Float, additionalInfo) { }
+        public Parameter(string key, float value, ParameterCollection additionalInfo = null, IEnumerable<IParameterValueConverter> customConverters = null) : this(key, value, ParameterType.Float, additionalInfo, customConverters) { }
 
         /// <summary>
         /// Create a new parameter.
@@ -114,7 +118,7 @@ namespace YngveHestem.GenericParameterCollection
         /// <param name="key">The given key.</param>
         /// <param name="value">The given value.</param>
         /// <param name="additionalInfo">This is a parameter that can be used to add more information to the parameter. This can for example be used to communicate between the part of the program that wants some parameters, and the part that show the parameters to the user, like tell that it only allow subsets of what the type can deliver. It can also be used the other way, to give more information about the content without needing to have seperate parameters to search for.</param>
-        public Parameter(string key, long value, ParameterCollection additionalInfo = null) : this(key, value, ParameterType.Long, additionalInfo) { }
+        public Parameter(string key, long value, ParameterCollection additionalInfo = null, IEnumerable<IParameterValueConverter> customConverters = null) : this(key, value, ParameterType.Long, additionalInfo, customConverters) { }
 
         /// <summary>
         /// Create a new parameter.
@@ -122,7 +126,7 @@ namespace YngveHestem.GenericParameterCollection
         /// <param name="key">The given key.</param>
         /// <param name="value">The given value.</param>
         /// <param name="additionalInfo">This is a parameter that can be used to add more information to the parameter. This can for example be used to communicate between the part of the program that wants some parameters, and the part that show the parameters to the user, like tell that it only allow subsets of what the type can deliver. It can also be used the other way, to give more information about the content without needing to have seperate parameters to search for.</param>
-        public Parameter(string key, double value, ParameterCollection additionalInfo = null) : this(key, value, ParameterType.Double, additionalInfo) { }
+        public Parameter(string key, double value, ParameterCollection additionalInfo = null, IEnumerable<IParameterValueConverter> customConverters = null) : this(key, value, ParameterType.Double, additionalInfo, customConverters) { }
 
         /// <summary>
         /// Create a new parameter.
@@ -130,7 +134,7 @@ namespace YngveHestem.GenericParameterCollection
         /// <param name="key">The given key.</param>
         /// <param name="value">The given value.</param>
         /// <param name="additionalInfo">This is a parameter that can be used to add more information to the parameter. This can for example be used to communicate between the part of the program that wants some parameters, and the part that show the parameters to the user, like tell that it only wants the content of an image or video files. It can also be used the other way, to give more information about the content without needing to have seperate parameters to search for.</param>
-        public Parameter(string key, byte[] value, ParameterCollection additionalInfo = null) : this(key, Convert.ToBase64String(value), ParameterType.Bytes, additionalInfo) { }
+        public Parameter(string key, byte[] value, ParameterCollection additionalInfo = null, IEnumerable<IParameterValueConverter> customConverters = null) : this(key, Convert.ToBase64String(value), ParameterType.Bytes, additionalInfo, customConverters) { }
 
         /// <summary>
         /// Create a new parameter.
@@ -138,7 +142,7 @@ namespace YngveHestem.GenericParameterCollection
         /// <param name="key">The given key.</param>
         /// <param name="value">The given value.</param>
         /// <param name="additionalInfo">This is a parameter that can be used to add more information to the parameter. This can for example be used to communicate between the part of the program that wants some parameters, and the part that show the parameters to the user, like tell that it only allow subsets of what the type can deliver. It can also be used the other way, to give more information about the content without needing to have seperate parameters to search for.</param>
-        public Parameter(string key, bool value, ParameterCollection additionalInfo = null) : this(key, value, ParameterType.Bool, additionalInfo) { }
+        public Parameter(string key, bool value, ParameterCollection additionalInfo = null, IEnumerable<IParameterValueConverter> customConverters = null) : this(key, value, ParameterType.Bool, additionalInfo, customConverters) { }
 
         /// <summary>
         /// Create a new parameter.
@@ -147,7 +151,7 @@ namespace YngveHestem.GenericParameterCollection
         /// <param name="value">The given value.</param>
         /// <param name="onlyDate">Is both the date and date part relevant or is it only the date that is relevant.</param>
         /// <param name="additionalInfo">This is a parameter that can be used to add more information to the parameter. This can for example be used to communicate between the part of the program that wants some parameters, and the part that show the parameters to the user, like tell that it only allow subsets of what the type can deliver. It can also be used the other way, to give more information about the content without needing to have seperate parameters to search for.</param>
-        public Parameter(string key, DateTime value, bool onlyDate = false, ParameterCollection additionalInfo = null) : this(key, value, onlyDate ? ParameterType.Date : ParameterType.DateTime, additionalInfo) { }
+        public Parameter(string key, DateTime value, bool onlyDate = false, ParameterCollection additionalInfo = null, IEnumerable<IParameterValueConverter> customConverters = null) : this(key, value, onlyDate ? ParameterType.Date : ParameterType.DateTime, additionalInfo, customConverters) { }
 
         /// <summary>
         /// Create a new parameter.
@@ -156,7 +160,7 @@ namespace YngveHestem.GenericParameterCollection
         /// <param name="value">The given value.</param>
         /// <param name="multiline">Is the strings meant to be multiline or should it only be one-liners.</param>
         /// <param name="additionalInfo">This is a parameter that can be used to add more information to the parameter. This can for example be used to communicate between the part of the program that wants some parameters, and the part that show the parameters to the user, like tell that it only allow subsets of what the type can deliver. It can also be used the other way, to give more information about the content without needing to have seperate parameters to search for.</param>
-        public Parameter(string key, IEnumerable<string> value, bool multiline = false, ParameterCollection additionalInfo = null) : this(key, value, multiline ? ParameterType.String_Multiline_IEnumerable : ParameterType.String_IEnumerable, additionalInfo) { }
+        public Parameter(string key, IEnumerable<string> value, bool multiline = false, ParameterCollection additionalInfo = null, IEnumerable<IParameterValueConverter> customConverters = null) : this(key, value, multiline ? ParameterType.String_Multiline_IEnumerable : ParameterType.String_IEnumerable, additionalInfo, customConverters) { }
 
         /// <summary>
         /// Create a new parameter.
@@ -164,7 +168,7 @@ namespace YngveHestem.GenericParameterCollection
         /// <param name="key">The given key.</param>
         /// <param name="value">The given value.</param>
         /// <param name="additionalInfo">This is a parameter that can be used to add more information to the parameter. This can for example be used to communicate between the part of the program that wants some parameters, and the part that show the parameters to the user, like tell that it only allow subsets of what the type can deliver. It can also be used the other way, to give more information about the content without needing to have seperate parameters to search for.</param>
-        public Parameter(string key, IEnumerable<int> value, ParameterCollection additionalInfo = null) : this(key, JToken.FromObject(value), ParameterType.Int_IEnumerable, additionalInfo) { }
+        public Parameter(string key, IEnumerable<int> value, ParameterCollection additionalInfo = null, IEnumerable<IParameterValueConverter> customConverters = null) : this(key, JToken.FromObject(value), ParameterType.Int_IEnumerable, additionalInfo, customConverters) { }
 
         /// <summary>
         /// Create a new parameter.
@@ -172,7 +176,7 @@ namespace YngveHestem.GenericParameterCollection
         /// <param name="key">The given key.</param>
         /// <param name="value">The given value.</param>
         /// <param name="additionalInfo">This is a parameter that can be used to add more information to the parameter. This can for example be used to communicate between the part of the program that wants some parameters, and the part that show the parameters to the user, like tell that it only allow subsets of what the type can deliver. It can also be used the other way, to give more information about the content without needing to have seperate parameters to search for.</param>
-        public Parameter(string key, IEnumerable<float> value, ParameterCollection additionalInfo = null) : this(key, JToken.FromObject(value), ParameterType.Float_IEnumerable, additionalInfo) { }
+        public Parameter(string key, IEnumerable<float> value, ParameterCollection additionalInfo = null, IEnumerable<IParameterValueConverter> customConverters = null) : this(key, JToken.FromObject(value), ParameterType.Float_IEnumerable, additionalInfo, customConverters) { }
 
         /// <summary>
         /// Create a new parameter.
@@ -180,7 +184,7 @@ namespace YngveHestem.GenericParameterCollection
         /// <param name="key">The given key.</param>
         /// <param name="value">The given value.</param>
         /// <param name="additionalInfo">This is a parameter that can be used to add more information to the parameter. This can for example be used to communicate between the part of the program that wants some parameters, and the part that show the parameters to the user, like tell that it only allow subsets of what the type can deliver. It can also be used the other way, to give more information about the content without needing to have seperate parameters to search for.</param>
-        public Parameter(string key, IEnumerable<double> value, ParameterCollection additionalInfo = null) : this(key, JToken.FromObject(value), ParameterType.Double_IEnumerable, additionalInfo) { }
+        public Parameter(string key, IEnumerable<double> value, ParameterCollection additionalInfo = null, IEnumerable<IParameterValueConverter> customConverters = null) : this(key, JToken.FromObject(value), ParameterType.Double_IEnumerable, additionalInfo, customConverters) { }
 
         /// <summary>
         /// Create a new parameter.
@@ -188,7 +192,7 @@ namespace YngveHestem.GenericParameterCollection
         /// <param name="key">The given key.</param>
         /// <param name="value">The given value.</param>
         /// <param name="additionalInfo">This is a parameter that can be used to add more information to the parameter. This can for example be used to communicate between the part of the program that wants some parameters, and the part that show the parameters to the user, like tell that it only allow subsets of what the type can deliver. It can also be used the other way, to give more information about the content without needing to have seperate parameters to search for.</param>
-        public Parameter(string key, IEnumerable<long> value, ParameterCollection additionalInfo = null) : this(key, JToken.FromObject(value), ParameterType.Long_IEnumerable, additionalInfo) { }
+        public Parameter(string key, IEnumerable<long> value, ParameterCollection additionalInfo = null, IEnumerable<IParameterValueConverter> customConverters = null) : this(key, JToken.FromObject(value), ParameterType.Long_IEnumerable, additionalInfo, customConverters) { }
 
         /// <summary>
         /// Create a new parameter.
@@ -196,7 +200,7 @@ namespace YngveHestem.GenericParameterCollection
         /// <param name="key">The given key.</param>
         /// <param name="value">The given value.</param>
         /// <param name="additionalInfo">This is a parameter that can be used to add more information to the parameter. This can for example be used to communicate between the part of the program that wants some parameters, and the part that show the parameters to the user, like tell that it only allow subsets of what the type can deliver. It can also be used the other way, to give more information about the content without needing to have seperate parameters to search for.</param>
-        public Parameter(string key, IEnumerable<bool> value, ParameterCollection additionalInfo = null) : this(key, JToken.FromObject(value), ParameterType.Bool_IEnumerable, additionalInfo) { }
+        public Parameter(string key, IEnumerable<bool> value, ParameterCollection additionalInfo = null, IEnumerable<IParameterValueConverter> customConverters = null) : this(key, JToken.FromObject(value), ParameterType.Bool_IEnumerable, additionalInfo, customConverters) { }
 
         /// <summary>
         /// Create a new parameter.
@@ -205,7 +209,7 @@ namespace YngveHestem.GenericParameterCollection
         /// <param name="value">The given value.</param>
         /// <param name="onlyDate">Is both the date and date part relevant in this list or is it only the date that is relevant.</param>
         /// <param name="additionalInfo">This is a parameter that can be used to add more information to the parameter. This can for example be used to communicate between the part of the program that wants some parameters, and the part that show the parameters to the user, like tell that it only allow subsets of what the type can deliver. It can also be used the other way, to give more information about the content without needing to have seperate parameters to search for.</param>
-        public Parameter(string key, IEnumerable<DateTime> value, bool onlyDate = false, ParameterCollection additionalInfo = null) : this(key, JToken.FromObject(value), onlyDate ? ParameterType.Date_IEnumerable : ParameterType.DateTime_IEnumerable, additionalInfo) { }
+        public Parameter(string key, IEnumerable<DateTime> value, bool onlyDate = false, ParameterCollection additionalInfo = null, IEnumerable<IParameterValueConverter> customConverters = null) : this(key, JToken.FromObject(value), onlyDate ? ParameterType.Date_IEnumerable : ParameterType.DateTime_IEnumerable, additionalInfo, customConverters) { }
 
         /// <summary>
         /// Create a new parameter.
@@ -213,7 +217,7 @@ namespace YngveHestem.GenericParameterCollection
         /// <param name="key">The given key.</param>
         /// <param name="value">The given value.</param>
         /// <param name="additionalInfo">This is a parameter that can be used to add more information to the parameter. This can for example be used to communicate between the part of the program that wants some parameters, and the part that show the parameters to the user, like tell that it only allow subsets of what the type can deliver. It can also be used the other way, to give more information about the content without needing to have seperate parameters to search for.</param>
-        public Parameter(string key, ParameterCollection value, ParameterCollection additionalInfo = null) : this(key, value, ParameterType.ParameterCollection, additionalInfo) { }
+        public Parameter(string key, ParameterCollection value, ParameterCollection additionalInfo = null, IEnumerable<IParameterValueConverter> customConverters = null) : this(key, value, ParameterType.ParameterCollection, additionalInfo, customConverters) { }
 
         /// <summary>
         /// Create a new parameter.
@@ -221,7 +225,7 @@ namespace YngveHestem.GenericParameterCollection
         /// <param name="key">The given key.</param>
         /// <param name="value">The given value.</param>
         /// <param name="additionalInfo">This is a parameter that can be used to add more information to the parameter. This can for example be used to communicate between the part of the program that wants some parameters, and the part that show the parameters to the user, like tell that it only allow subsets of what the type can deliver. It can also be used the other way, to give more information about the content without needing to have seperate parameters to search for.</param>
-        public Parameter(string key, IEnumerable<ParameterCollection> value, ParameterCollection additionalInfo = null) : this(key, value, ParameterType.ParameterCollection_IEnumerable, additionalInfo) { }
+        public Parameter(string key, IEnumerable<ParameterCollection> value, ParameterCollection additionalInfo = null, IEnumerable<IParameterValueConverter> customConverters = null) : this(key, value, ParameterType.ParameterCollection_IEnumerable, additionalInfo, customConverters) { }
 
         /// <summary>
         /// Create a new parameter.
@@ -229,7 +233,7 @@ namespace YngveHestem.GenericParameterCollection
         /// <param name="key">The given key.</param>
         /// <param name="value">The given value.</param>
         /// <param name="additionalInfo">This is a parameter that can be used to add more information to the parameter. This can for example be used to communicate between the part of the program that wants some parameters, and the part that show the parameters to the user, like tell that it only allow subsets of what the type can deliver. It can also be used the other way, to give more information about the content without needing to have seperate parameters to search for.</param>
-        public Parameter(string key, Enum value, ParameterCollection additionalInfo = null) : this(key, value.ToParameterCollection(), ParameterType.Enum, additionalInfo) { }
+        public Parameter(string key, Enum value, ParameterCollection additionalInfo = null, IEnumerable<IParameterValueConverter> customConverters = null) : this(key, value.ToParameterCollection(), ParameterType.Enum, additionalInfo, customConverters) { }
 
         /// <summary>
         /// Create a new parameter where you can choose one value between some given choices.
@@ -238,7 +242,7 @@ namespace YngveHestem.GenericParameterCollection
         /// <param name="value">The given value. This value must be exact the same as one of the choices in the list of choices.</param>
         /// <param name="choices">A list of choices.</param>
         /// <param name="additionalInfo">This is a parameter that can be used to add more information to the parameter. This can for example be used to communicate between the part of the program that wants some parameters, and the part that show the parameters to the user, like tell that it only allow subsets of what the type can deliver. It can also be used the other way, to give more information about the content without needing to have seperate parameters to search for.</param>
-        public Parameter(string key, string value, IEnumerable<string> choices, ParameterCollection additionalInfo = null) : this(key, ParameterConverterExtensions.SelectOneToParameterCollection(value, choices), ParameterType.SelectOne, additionalInfo) { }
+        public Parameter(string key, string value, IEnumerable<string> choices, ParameterCollection additionalInfo = null, IEnumerable<IParameterValueConverter> customConverters = null) : this(key, ParameterConverterExtensions.SelectOneToParameterCollection(value, choices), ParameterType.SelectOne, additionalInfo, customConverters) { }
 
         /// <summary>
         /// Create a new parameter where you can choose one or more values between some given choices.
@@ -247,7 +251,7 @@ namespace YngveHestem.GenericParameterCollection
         /// <param name="value">The given value(s). Each string must be exact the same as one of the choices in the list of choices.</param>
         /// <param name="choices">A list of choices.</param>
         /// <param name="additionalInfo">This is a parameter that can be used to add more information to the parameter. This can for example be used to communicate between the part of the program that wants some parameters, and the part that show the parameters to the user, like tell that it only allow subsets of what the type can deliver. It can also be used the other way, to give more information about the content without needing to have seperate parameters to search for.</param>
-        public Parameter(string key, IEnumerable<string> value, IEnumerable<string> choices, ParameterCollection additionalInfo = null) : this(key, ParameterConverterExtensions.SelectManyToParameterCollection(value, choices), ParameterType.SelectMany, additionalInfo) { }
+        public Parameter(string key, IEnumerable<string> value, IEnumerable<string> choices, ParameterCollection additionalInfo = null, IEnumerable<IParameterValueConverter> customConverters = null) : this(key, ParameterConverterExtensions.SelectManyToParameterCollection(value, choices), ParameterType.SelectMany, additionalInfo, customConverters) { }
 
         /// <summary>
         /// Create a new parameter where you pass an object and the parameter-type you want it saved as. Mark that it needs to be a converter that supports the conversion, so if one of the default converters do not support the conversion, one or more converters that support the conversion must be added.
@@ -287,6 +291,10 @@ namespace YngveHestem.GenericParameterCollection
         /// <param name="parameterValueConverter">The converter to add.</param>
         public void AddCustomConverter(IParameterValueConverter parameterValueConverter)
         {
+            if (_customParameterValueConverters == null)
+            {
+                _customParameterValueConverters = new List<IParameterValueConverter>();
+            }
             _customParameterValueConverters.Add(parameterValueConverter);
         }
 
