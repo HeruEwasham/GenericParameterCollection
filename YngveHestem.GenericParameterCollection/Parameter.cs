@@ -426,7 +426,7 @@ namespace YngveHestem.GenericParameterCollection
                 return converter;
             }
 
-            converter = _defaultParameterValueConverters.FirstOrDefault(c => c.CanConvertFromValue(Type, valueType, value));
+            converter = _defaultParameterValueConverters.FirstOrDefault(c => c.CanConvertFromValue(parameterType, valueType, value));
 
             if (converter != null)
             {
