@@ -23,7 +23,7 @@ namespace YngveHestem.GenericParameterCollection.ParameterValueConverters
             {
                 if (targetType == typeof(string))
                 {
-                    return string.Join(", ", rawValue.ToObject<ParameterCollection>().GetByKey<string[]>("value"));
+                    return rawValue.ToObject<ParameterCollection>().GetByKey<string>("value");
                 }
                 else if (typeof(IEnumerable<string>).IsAssignableFrom(targetType))
                 {
@@ -34,7 +34,7 @@ namespace YngveHestem.GenericParameterCollection.ParameterValueConverters
             {
                 if (targetType == typeof(string))
                 {
-                    return rawValue.ToObject<ParameterCollection>().GetByKey<string>("value");
+                    return string.Join(", ", rawValue.ToObject<ParameterCollection>().GetByKey<string[]>("value"));
                 }
                 else if (typeof(IEnumerable<string>).IsAssignableFrom(targetType))
                 {

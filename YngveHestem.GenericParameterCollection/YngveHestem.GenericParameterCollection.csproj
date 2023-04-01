@@ -2,10 +2,14 @@
 
   <PropertyGroup>
     <TargetFramework>netstandard2.0</TargetFramework>
-    <ReleaseVersion>1.0.2-beta08</ReleaseVersion>
-    <Version>1.0.2-beta08</Version>
+    <ReleaseVersion>1.0.2-beta09</ReleaseVersion>
+    <Version>1.0.2-beta09</Version>
     <Description>ParameterCollection is a simple to use collection for different parameters and types defined with a key. It supports many of the standard types like int, string, double, float, long, DateTime, bool, byte[], enums and more. It can also support nearly every other objects by easy converting the object to it´s own ParameterCollection, which can be nested togheter as parameters. It also supports many of the parameters as IEnumerables (List, Array, etc.). Methods to convert to and from JSON is also included.</Description>
     <PackageReleaseNotes>
+        Version 1.0.2-beta09:
+        - Fixed a small bug that prevented SelectionMany to be converted right.
+        - Added conversion between string and ParameterType.String_IEnumerable and ParameterType.String_Multiline_IEnumerable
+
         Version 1.0.2-beta08:
         - Fixed a small bug that prevented DateTimeParameterConverter to convert from DateTime correctly.
 
