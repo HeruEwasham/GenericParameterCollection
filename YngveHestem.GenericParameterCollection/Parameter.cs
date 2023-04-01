@@ -37,7 +37,9 @@ namespace YngveHestem.GenericParameterCollection
             new BoolParameterConverter(),
             new BytesParameterConverter(),
             new DateTimeParameterConverter(),
-            new ParameterCollectionParameterConverterForParameterCollection()
+            new ParameterCollectionParameterConverterForParameterCollection(),
+            new EnumParameterConverter(),
+            new SelectParameterConverter()
         };
 
         /// <summary>
@@ -298,6 +300,27 @@ namespace YngveHestem.GenericParameterCollection
             _customParameterValueConverters.Add(parameterValueConverter);
         }
 
+        /// <summary>
+        /// Adds one or more custom converters that could be used by parameter.
+        /// </summary>
+        /// <param name="parameterValueConverters">The converter(s) to add.</param>
+        public void AddCustomConverter(IEnumerable<IParameterValueConverter> parameterValueConverters)
+        {
+            foreach(var converter in parameterValueConverters)
+            {
+                AddCustomConverter(converter);
+            }
+        }
+
+        /// <summary>
+        /// Gets all the custom converters added to the given parameter.
+        /// </summary>
+        /// <returns></returns>
+        public List<IParameterValueConverter> GetCustomConverters()
+        {
+            return _customParameterValueConverters;
+        }
+
         private static ParameterType GetBestSuitableParameterType(object value, IEnumerable<IParameterValueConverter> customConverters)
         {
             var valueType = value.GetType();
@@ -445,27 +468,6 @@ namespace YngveHestem.GenericParameterCollection
         {
             try
             {
-                if (Type == ParameterType.Enum)
-                {
-                    var v = _value.ToObject<ParameterCollection>(_jsonSerializer);
-                    if (typeToGet == typeof(string))
-                    {
-                        return v.GetByKeyAndType<string>("enumValue", ParameterType.String);
-                    }
-                    else
-                    {
-                        return Enum.Parse(ParameterConverterExtensions.GetTypeByName(v.GetByKeyAndType<string>("enumType", ParameterType.String)), v.GetByKeyAndType<string>("enumValue", ParameterType.String), true);
-                    }
-                }
-                else if (Type == ParameterType.SelectOne)
-                {
-                    return _value.ToObject<ParameterCollection>(_jsonSerializer).GetByKeyAndType<string>("value", ParameterType.String);
-                }
-                else if (Type == ParameterType.SelectMany)
-                {
-                    return _value.ToObject<ParameterCollection>(_jsonSerializer).GetByKeyAndType<IEnumerable<string>>("value", ParameterType.String);
-                }
-
                 return GetSuitableConverterToValue(typeToGet).ConvertFromParameter(Type, typeToGet, _value, _jsonSerializer);
             }
             catch (Exception e)
@@ -510,18 +512,13 @@ namespace YngveHestem.GenericParameterCollection
         /// <exception cref="NotSupportedException">If this is called for a Parameter with a ParameterType that not support this method. This Exception will be thrown.</exception>
         public IEnumerable<string> GetChoices()
         {
-            if (Type == ParameterType.Enum)
+            var obj = _value.ToObject<ParameterCollection>(_jsonSerializer);
+            if (obj.HasKeyAndCanConvertTo("choices", typeof(IEnumerable<string>)))
             {
-                return _value.ToObject<ParameterCollection>(_jsonSerializer).GetByKeyAndType<IEnumerable<string>>("allPossibleValues", ParameterType.String_IEnumerable);
+                return obj.GetByKey<IEnumerable<string>>("choices");
             }
-            else if (Type == ParameterType.SelectOne || Type == ParameterType.SelectMany)
-            {
-                return _value.ToObject<ParameterCollection>(_jsonSerializer).GetByKeyAndType<IEnumerable<string>>("choices", ParameterType.String_IEnumerable);
-            }
-            else
-            {
-                throw new NotSupportedException("The method " + nameof(GetChoices) + " is currently not supported with the parameter type " + Enum.GetName(typeof(ParameterType), Type) + ". This currently only supports " + ParameterType.Enum.ToString() + ", " + ParameterType.SelectOne.ToString() + " and " + ParameterType.SelectMany.ToString() + ". Other parameters has not an option for this.");
-            }
+
+            throw new NotSupportedException("The method " + nameof(GetChoices) + " is currently not supported with the parameter type " + Enum.GetName(typeof(ParameterType), Type) + ". This currently only supports parameters with the option \"choices\". " + ParameterType.Enum.ToString() + ", " + ParameterType.SelectOne.ToString() + " and " + ParameterType.SelectMany.ToString() + " and possibly some ParameterCollections are supported. Other parameters has not an option for this.");
         }
 
         /// <summary>
@@ -548,79 +545,44 @@ namespace YngveHestem.GenericParameterCollection
             var valueType = newValue.GetType();
             try
             {
-                if (Type == ParameterType.Enum)
+                if (Type == ParameterType.Enum && valueType == typeof(string))
                 {
                     var v = _value.ToObject<ParameterCollection>(_jsonSerializer);
-                    if (typeof(Enum).IsAssignableFrom(newValue.GetType()))
+                    if (v.GetByKeyAndType<List<string>>("choices", ParameterType.String_IEnumerable).Contains((string)newValue))
                     {
-                        var enumType = ParameterConverterExtensions.GetTypeByName(v.GetByKeyAndType<string>("enumType", ParameterType.String));
-                        if (newValue.GetType() == enumType && Enum.IsDefined(enumType, newValue))
+                        if (v.GetParameterByKeyAndType("value", ParameterType.String).SetValue(newValue))
                         {
-                            var valueAsString = Enum.GetName(enumType, newValue);
-                            if (v.GetParameterByKeyAndType("enumValue", ParameterType.String).SetValue(valueAsString))
-                            {
-                                _value = JToken.FromObject(v);
-                                return true;
-                            }
+                            _value = JToken.FromObject(v, _jsonSerializer);
+                            return true;
                         }
-                        return false;
                     }
-                    else if (newValue.GetType() == typeof(string))
-                    {
-                        if (v.GetByKeyAndType<List<string>>("allPossibleValues", ParameterType.String_IEnumerable).Contains((string)newValue))
-                        {
-                            if (v.GetParameterByKeyAndType("enumValue", ParameterType.String).SetValue(newValue))
-                            {
-                                _value = JToken.FromObject(v, _jsonSerializer);
-                                return true;
-                            }
-                        }
-                        return false;
-                    }
-                    else
-                    {
-                        return false;
-                    }
+                    return false;
                 }
-                else if (Type == ParameterType.SelectOne)
+                else if (Type == ParameterType.SelectOne && valueType == typeof(string))
                 {
-                    if (newValue.GetType() == typeof(string))
+                    var va = _value.ToObject<ParameterCollection>(_jsonSerializer);
+                    if (va.GetByKeyAndType<List<string>>("choices", ParameterType.String_IEnumerable).Contains((string)newValue))
                     {
-                        var va = _value.ToObject<ParameterCollection>(_jsonSerializer);
-                        if (va.GetByKeyAndType<List<string>>("choices", ParameterType.String_IEnumerable).Contains((string)newValue))
+                        if (va.GetParameterByKeyAndType("value", ParameterType.String).SetValue(newValue))
                         {
-                            if (va.GetParameterByKeyAndType("value", ParameterType.String).SetValue(newValue))
-                            {
-                                _value = JToken.FromObject(va, _jsonSerializer);
-                                return true;
-                            }
+                            _value = JToken.FromObject(va, _jsonSerializer);
+                            return true;
                         }
-                        return false;
                     }
-                    else
-                    {
-                        return false;
-                    }
+                    return false;
                 }
-                else if (Type == ParameterType.SelectMany)
+                else if (Type == ParameterType.SelectMany && typeof(IEnumerable<string>).IsAssignableFrom(valueType))
                 {
-                    if (newValue.GetType() == typeof(string))
+                    var va = _value.ToObject<ParameterCollection>(_jsonSerializer);
+                    if (va.GetByKeyAndType<List<string>>("choices", ParameterType.String_IEnumerable).Contains((string)newValue))
                     {
-                        var va = _value.ToObject<ParameterCollection>(_jsonSerializer);
-                        if (va.GetByKeyAndType<List<string>>("choices", ParameterType.String_IEnumerable).Contains((string)newValue))
+                        if (va.GetParameterByKeyAndType("value", ParameterType.String_IEnumerable).SetValue(newValue))
                         {
-                            if (va.GetParameterByKeyAndType("value", ParameterType.String).SetValue(newValue))
-                            {
-                                _value = JToken.FromObject(va, _jsonSerializer);
-                                return true;
-                            }
+                            _value = JToken.FromObject(va, _jsonSerializer);
+                            return true;
                         }
-                        return false;
                     }
-                    else
-                    {
-                        return false;
-                    }
+                    return false;
                 }
 
                 try

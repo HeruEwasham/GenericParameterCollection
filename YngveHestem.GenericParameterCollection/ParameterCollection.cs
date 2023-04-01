@@ -316,6 +316,28 @@ namespace YngveHestem.GenericParameterCollection
         }
 
         /// <summary>
+        /// Adds one or more converters to the list of custom converters for this ParameterCollection.
+        /// </summary>
+        /// <param name="parameterValueConverters">The converter(s) to add.</param>
+        /// <param name="addToExisting">If set to true, the converter(s) will also be added to all existing parameters in this collection already. If set to false, only parameters added afterwards will get this converter.</param>
+        public void AddCustomConverter(IEnumerable<IParameterValueConverter> parameterValueConverters, bool addToExisting = false)
+        {
+            foreach(var converter in parameterValueConverters)
+            {
+                AddCustomConverter(converter, addToExisting);
+            }
+        }
+
+        /// <summary>
+        /// Gets all the custom converters added to this ParameterCollection. Mark that it will not check what is in each parameter, only what is added to this ParameterCollection.
+        /// </summary>
+        /// <returns></returns>
+        public List<IParameterValueConverter> GetCustomConverters()
+        {
+            return _customParameterValueConverters;
+        }
+
+        /// <summary>
         /// Get the value by key and type.
         /// </summary>
         /// <param name="key">The given key.</param>

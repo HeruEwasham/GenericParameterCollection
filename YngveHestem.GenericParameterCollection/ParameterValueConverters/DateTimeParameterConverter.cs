@@ -85,7 +85,7 @@ namespace YngveHestem.GenericParameterCollection.ParameterValueConverters
             {
                 if (sourceType == typeof(DateTime))
                 {
-                    JToken.FromObject(value, jsonSerializer);
+                    return JToken.FromObject(value, jsonSerializer);
                 }
                 else if (sourceType == typeof(string))
                 {

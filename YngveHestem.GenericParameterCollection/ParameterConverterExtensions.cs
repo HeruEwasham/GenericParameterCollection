@@ -106,9 +106,9 @@ namespace YngveHestem.GenericParameterCollection
             var type = enumValue.GetType();
             return new ParameterCollection
             {
-                { "enumType", type.FullName },
-                { "enumValue", Enum.GetName(type, enumValue) },
-                { "allPossibleValues", Enum.GetNames(type) }
+                { "type", type.FullName },
+                { "value", Enum.GetName(type, enumValue) },
+                { "choices", Enum.GetNames(type) }
             };
         }
 
