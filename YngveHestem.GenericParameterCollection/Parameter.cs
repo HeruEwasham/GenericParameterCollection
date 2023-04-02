@@ -143,6 +143,14 @@ namespace YngveHestem.GenericParameterCollection
         /// </summary>
         /// <param name="key">The given key.</param>
         /// <param name="value">The given value.</param>
+        /// <param name="additionalInfo">This is a parameter that can be used to add more information to the parameter. This can for example be used to communicate between the part of the program that wants some parameters, and the part that show the parameters to the user, like tell that it only wants the content of an image or video files. It can also be used the other way, to give more information about the content without needing to have seperate parameters to search for.</param>
+        public Parameter(string key, IEnumerable<byte> value, ParameterCollection additionalInfo = null, IEnumerable<IParameterValueConverter> customConverters = null) : this(key, value.ToArray(), additionalInfo, customConverters) { }
+
+        /// <summary>
+        /// Create a new parameter.
+        /// </summary>
+        /// <param name="key">The given key.</param>
+        /// <param name="value">The given value.</param>
         /// <param name="additionalInfo">This is a parameter that can be used to add more information to the parameter. This can for example be used to communicate between the part of the program that wants some parameters, and the part that show the parameters to the user, like tell that it only allow subsets of what the type can deliver. It can also be used the other way, to give more information about the content without needing to have seperate parameters to search for.</param>
         public Parameter(string key, bool value, ParameterCollection additionalInfo = null, IEnumerable<IParameterValueConverter> customConverters = null) : this(key, value, ParameterType.Bool, additionalInfo, customConverters) { }
 
@@ -351,7 +359,7 @@ namespace YngveHestem.GenericParameterCollection
             {
                 return ParameterType.Long;
             }
-            else if (valueType == typeof(byte[]))
+            else if (typeof(IEnumerable<byte>).IsAssignableFrom(valueType))
             {
                 return ParameterType.Bytes;
             }

@@ -1,4 +1,6 @@
 ﻿using System;
+using System.Collections.Generic;
+using System.Linq;
 using System.Text;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
@@ -11,7 +13,7 @@ namespace YngveHestem.GenericParameterCollection.ParameterValueConverters
         {
             if (sourceType == ParameterType.Bytes)
             {
-                return targetType == typeof(byte[]) || targetType == typeof(string);
+                return typeof(IEnumerable<byte>).IsAssignableFrom(targetType) || targetType == typeof(string);
             }
             else
             {
@@ -23,7 +25,7 @@ namespace YngveHestem.GenericParameterCollection.ParameterValueConverters
         {
             if (targetType == ParameterType.Bytes)
             {
-                return sourceType == typeof(byte[]) || sourceType == typeof(string);
+                return typeof(IEnumerable<byte>).IsAssignableFrom(sourceType) || sourceType == typeof(string);
             }
             else
             {
@@ -36,9 +38,9 @@ namespace YngveHestem.GenericParameterCollection.ParameterValueConverters
             if (sourceType == ParameterType.Bytes)
             {
                 var value = Convert.FromBase64String(rawValue.ToObject<string>(jsonSerializer));
-                if (targetType == typeof(byte[]))
+                if (typeof(IEnumerable<byte>).IsAssignableFrom(targetType))
                 {
-                    return value;
+                    return value.ToCorrectIEnumerable(targetType);
                 }
                 else if (targetType == typeof(string))
                 {
@@ -57,9 +59,9 @@ namespace YngveHestem.GenericParameterCollection.ParameterValueConverters
                 {
                     return JToken.FromObject(Convert.ToBase64String(new byte[0]));
                 }
-                else if (sourceType == typeof(byte[]))
+                else if (typeof(IEnumerable<byte>).IsAssignableFrom(sourceType))
                 {
-                    return JToken.FromObject(Convert.ToBase64String((byte[])value));
+                    return JToken.FromObject(Convert.ToBase64String(((IEnumerable<byte>)value).ToArray()));
                 }
                 else if (sourceType == typeof(string))
                 {

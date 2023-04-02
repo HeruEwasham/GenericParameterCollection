@@ -13,7 +13,7 @@ namespace YngveHestem.GenericParameterCollection.ParameterValueConverters
         {
             if (sourceType == ParameterType.DateTime || sourceType == ParameterType.Date)
             {
-                return targetType == typeof(DateTime) || targetType == typeof(string);
+                return targetType == typeof(DateTime) || targetType == typeof(string) || typeof(IEnumerable<DateTime>).IsAssignableFrom(targetType);
             }
             else if (sourceType == ParameterType.DateTime_IEnumerable || sourceType == ParameterType.Date_IEnumerable)
             {
@@ -58,12 +58,16 @@ namespace YngveHestem.GenericParameterCollection.ParameterValueConverters
                     }
                     return rawValue.ToObject<DateTime>(jsonSerializer).ToString(pattern, CultureInfo.CurrentCulture);
                 }
+                else if (typeof(IEnumerable<DateTime>).IsAssignableFrom(targetType))
+                {
+                    return rawValue.ToObject<DateTime>(jsonSerializer).ToIEnumerable().ToCorrectIEnumerable(targetType);
+                }
             }
             else if (sourceType == ParameterType.DateTime_IEnumerable || sourceType == ParameterType.Date_IEnumerable)
             {
                 if (targetType == typeof(IEnumerable<DateTime>))
                 {
-                    return rawValue.ToObject<IEnumerable<DateTime>>(jsonSerializer).ToArray();
+                    return rawValue.ToObject<IEnumerable<DateTime>>(jsonSerializer).ToCorrectIEnumerable(targetType);
                 }
                 else if (targetType == typeof(IEnumerable<string>))
                 {
@@ -72,7 +76,7 @@ namespace YngveHestem.GenericParameterCollection.ParameterValueConverters
                     {
                         pattern = "F";
                     }
-                    return rawValue.ToObject<IEnumerable<DateTime>>(jsonSerializer).Select(v => v.ToString(pattern, CultureInfo.CurrentCulture)).ToArray();
+                    return rawValue.ToObject<IEnumerable<DateTime>>(jsonSerializer).Select(v => v.ToString(pattern, CultureInfo.CurrentCulture)).ToCorrectIEnumerable(targetType);
                 }
             }
 

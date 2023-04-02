@@ -12,7 +12,7 @@ namespace YngveHestem.GenericParameterCollection.ParameterValueConverters
         {
             if (sourceType == ParameterType.Bool)
             {
-                return targetType == typeof(bool) || targetType == typeof(int) || targetType == typeof(string);
+                return targetType == typeof(bool) || targetType == typeof(int) || targetType == typeof(string) || typeof(IEnumerable<bool>).IsAssignableFrom(targetType);
             }
             else if (sourceType == ParameterType.Int && targetType == typeof(bool))
             {
@@ -74,6 +74,10 @@ namespace YngveHestem.GenericParameterCollection.ParameterValueConverters
                 {
                     return value.ToString();
                 }
+                else if (typeof(IEnumerable<bool>).IsAssignableFrom(targetType))
+                {
+                    return value.ToIEnumerable().ToCorrectIEnumerable(targetType);
+                }
             }
             else if (sourceType == ParameterType.Int && targetType == typeof(bool))
             {
@@ -84,20 +88,20 @@ namespace YngveHestem.GenericParameterCollection.ParameterValueConverters
                 var value = rawValue.ToObject<IEnumerable<bool>>(jsonSerializer);
                 if (typeof(IEnumerable<bool>).IsAssignableFrom(targetType))
                 {
-                    return value.ToArray();
+                    return value.ToCorrectIEnumerable(targetType);
                 }
                 else if (typeof(IEnumerable<int>).IsAssignableFrom(targetType))
                 {
-                    value.Select(v => Convert.ToInt32(value)).ToArray();
+                    value.Select(v => Convert.ToInt32(value)).ToCorrectIEnumerable(targetType);
                 }
                 else if (typeof(IEnumerable<string>).IsAssignableFrom(targetType))
                 {
-                    value.Select(v => v.ToString()).ToArray();
+                    value.Select(v => v.ToString()).ToCorrectIEnumerable(targetType);
                 }
             }
             else if (sourceType == ParameterType.Int_IEnumerable && typeof(IEnumerable<bool>).IsAssignableFrom(targetType))
             {
-                return rawValue.ToObject<IEnumerable<int>>(jsonSerializer).Select(v => Convert.ToBoolean(v)).ToArray();
+                return rawValue.ToObject<IEnumerable<int>>(jsonSerializer).Select(v => Convert.ToBoolean(v)).ToCorrectIEnumerable(targetType);
             }
 
             throw new ArgumentException("The values was not supported to be converted by " + nameof(BoolParameterConverter));

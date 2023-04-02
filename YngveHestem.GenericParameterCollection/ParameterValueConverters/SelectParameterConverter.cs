@@ -27,7 +27,7 @@ namespace YngveHestem.GenericParameterCollection.ParameterValueConverters
                 }
                 else if (typeof(IEnumerable<string>).IsAssignableFrom(targetType))
                 {
-                    return rawValue.ToObject<ParameterCollection>().GetByKey("value", targetType);
+                    return rawValue.ToObject<ParameterCollection>().GetByKey<IEnumerable<string>>("value").ToCorrectIEnumerable(targetType);
                 }
             }
             else if (sourceType == ParameterType.SelectMany)
@@ -38,7 +38,7 @@ namespace YngveHestem.GenericParameterCollection.ParameterValueConverters
                 }
                 else if (typeof(IEnumerable<string>).IsAssignableFrom(targetType))
                 {
-                    return new string[] { rawValue.ToObject<ParameterCollection>().GetByKey<string>("value") };
+                    return rawValue.ToObject<ParameterCollection>().GetByKey<IEnumerable<string>>("value").ToCorrectIEnumerable(targetType);
                 }
             }
 

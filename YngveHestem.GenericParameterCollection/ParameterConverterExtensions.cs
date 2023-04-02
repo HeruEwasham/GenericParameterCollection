@@ -25,6 +25,30 @@ namespace YngveHestem.GenericParameterCollection
             return null;
         }
 
+        public static IEnumerable<T> ToCorrectIEnumerable<T>(this IEnumerable<T> value, Type returnType)
+        {
+            if (!typeof(IEnumerable<T>).IsAssignableFrom(returnType))
+            {
+                throw new ArgumentException("Method " + nameof(ToCorrectIEnumerable) + " can only handle values where " + nameof(returnType) + " inherits " + nameof(IEnumerable<T>) + ". Here " + nameof(T) + " is " + typeof(T) + "and " + nameof(returnType) + " is " + returnType.FullName);
+            }
+
+            if (returnType.IsArray)
+            {
+                return value.ToArray();
+            }
+            else if (typeof(IList<T>).IsAssignableFrom(returnType))
+            {
+                return value.ToList();
+            }
+
+            return value;
+        }
+
+        public static IEnumerable<T> ToIEnumerable<T>(this T value)
+        {
+            return JToken.FromObject(new T[] { value }).ToObject<IEnumerable<T>>();
+        }
+
         public static Type GetDefaultValueType(this ParameterType type)
         {
             if (type == ParameterType.Int)

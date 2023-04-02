@@ -128,6 +128,17 @@ namespace YngveHestem.GenericParameterCollection
         /// </summary>
         /// <param name="key">The given key.</param>
         /// <param name="value">The given value.</param>
+        /// <param name="additionalInfo">This is a parameter that can be used to add more information to the parameter. This can for example be used to communicate between the part of the program that wants some parameters, and the part that show the parameters to the user, like tell that it only wants the content of an image or video files. It can also be used the other way, to give more information about the content without needing to have seperate parameters to search for.</param>
+        public void Add(string key, IEnumerable<byte> value, ParameterCollection additionalInfo = null)
+        {
+            Add(new Parameter(key, value, additionalInfo, _customParameterValueConverters));
+        }
+
+        /// <summary>
+        /// Create and add a new parameter.
+        /// </summary>
+        /// <param name="key">The given key.</param>
+        /// <param name="value">The given value.</param>
         /// <param name="additionalInfo">This is a parameter that can be used to add more information to the parameter. This can for example be used to communicate between the part of the program that wants some parameters, and the part that show the parameters to the user, like tell that it only allow subsets of what the type can deliver. It can also be used the other way, to give more information about the content without needing to have seperate parameters to search for.</param>
         public void Add(string key, bool value, ParameterCollection additionalInfo = null)
         {

@@ -56,7 +56,7 @@ namespace YngveHestem.GenericParameterCollection.ParameterValueConverters
             {
                 try
                 {
-                    return ConvertFromListOfParameterCollection(rawValue.ToObject<IEnumerable<ParameterCollection>>());
+                    return ConvertFromListOfParameterCollection(rawValue.ToObject<IEnumerable<ParameterCollection>>()).ToCorrectIEnumerable(targetType);
                 }
                 catch (Exception e)
                 {

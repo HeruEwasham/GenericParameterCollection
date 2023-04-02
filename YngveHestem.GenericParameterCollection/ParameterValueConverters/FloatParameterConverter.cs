@@ -71,23 +71,23 @@ namespace YngveHestem.GenericParameterCollection.ParameterValueConverters
                 var value = rawValue.ToObject<IEnumerable<float>>(jsonSerializer);
                 if (typeof(IEnumerable<float>).IsAssignableFrom(targetType))
                 {
-                    return value.ToArray();
+                    return value.ToCorrectIEnumerable(targetType);
                 }
                 else if (typeof(IEnumerable<int>).IsAssignableFrom(targetType))
                 {
-                    return value.Select(v => (int)v).ToArray();
+                    return value.Select(v => (int)v).ToCorrectIEnumerable(targetType);
                 }
                 else if (typeof(IEnumerable<double>).IsAssignableFrom(targetType))
                 {
-                    return value.Select(v => (double)v).ToArray();
+                    return value.Select(v => (double)v).ToCorrectIEnumerable(targetType);
                 }
                 else if (typeof(IEnumerable<long>).IsAssignableFrom(targetType))
                 {
-                    return value.Select(v => (long)v).ToArray();
+                    return value.Select(v => (long)v).ToCorrectIEnumerable(targetType);
                 }
                 else if (typeof(IEnumerable<string>).IsAssignableFrom(targetType))
                 {
-                    return value.Select(v => v.ToString()).ToArray();
+                    return value.Select(v => v.ToString()).ToCorrectIEnumerable(targetType);
                 }
             }
 
