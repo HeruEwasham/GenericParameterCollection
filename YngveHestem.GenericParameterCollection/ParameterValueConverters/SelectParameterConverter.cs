@@ -14,7 +14,7 @@ namespace YngveHestem.GenericParameterCollection.ParameterValueConverters
 
         public bool CanConvertFromValue(ParameterType targetType, Type sourceType, object value)
         {
-            return (targetType == ParameterType.SelectOne || targetType == ParameterType.SelectMany) && sourceType == typeof(ParameterCollection) && (((ParameterCollection)value).HasKeyAndCanConvertTo("value", typeof(string)) || ((ParameterCollection)value).HasKeyAndCanConvertTo("value", typeof(List<string>))) && ((ParameterCollection)value).HasKeyAndCanConvertTo("type", typeof(string)) && ((ParameterCollection)value).HasKeyAndCanConvertTo("choices", typeof(List<string>));
+            return (targetType == ParameterType.SelectOne || targetType == ParameterType.SelectMany) && sourceType == typeof(ParameterCollection) && (((ParameterCollection)value).HasKeyAndCanConvertTo("value", typeof(string)) || ((ParameterCollection)value).HasKeyAndCanConvertTo("value", typeof(List<string>))) && ((ParameterCollection)value).HasKeyAndCanConvertTo("choices", typeof(List<string>));
         }
 
         public object ConvertFromParameter(ParameterType sourceType, Type targetType, JToken rawValue, JsonSerializer jsonSerializer)
