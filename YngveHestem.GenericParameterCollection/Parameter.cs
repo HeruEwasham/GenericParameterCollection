@@ -19,10 +19,10 @@ namespace YngveHestem.GenericParameterCollection
         [JsonProperty("value")]
         private JToken _value { get; set; }
 
-        [JsonProperty("info")]
+        [JsonProperty("info", NullValueHandling = NullValueHandling.Ignore)]
         private ParameterCollection _additionalInfo { get; set; }
 
-        [JsonProperty("customConverters")]
+        [JsonProperty("customConverters", NullValueHandling = NullValueHandling.Ignore)]
         private List<IParameterValueConverter> _customParameterValueConverters { get; set; }
 
         private static JsonSerializer _jsonSerializer = JsonSerializer.CreateDefault(ParameterConverterExtensions.GetJsonSerializerSettings());

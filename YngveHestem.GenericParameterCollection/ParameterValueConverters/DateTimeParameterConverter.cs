@@ -17,7 +17,7 @@ namespace YngveHestem.GenericParameterCollection.ParameterValueConverters
             }
             else if (sourceType == ParameterType.DateTime_IEnumerable || sourceType == ParameterType.Date_IEnumerable)
             {
-                return targetType == typeof(IEnumerable<DateTime>) || targetType == typeof(IEnumerable<string>);
+                return typeof(IEnumerable<DateTime>).IsAssignableFrom(targetType) || typeof(IEnumerable<string>).IsAssignableFrom(targetType);
             }
             else
             {
@@ -33,7 +33,7 @@ namespace YngveHestem.GenericParameterCollection.ParameterValueConverters
             }
             else if (targetType == ParameterType.DateTime_IEnumerable || targetType == ParameterType.Date_IEnumerable)
             {
-                return sourceType == typeof(IEnumerable<DateTime>) || (sourceType == typeof(IEnumerable<string>) && ((IEnumerable<string>)value).All(v => DateTime.TryParse(v, out _)));
+                return typeof(IEnumerable<DateTime>).IsAssignableFrom(sourceType) || (typeof(IEnumerable<string>).IsAssignableFrom(sourceType) && ((IEnumerable<string>)value).All(v => DateTime.TryParse(v, out _)));
             }
             else
             {
@@ -65,11 +65,11 @@ namespace YngveHestem.GenericParameterCollection.ParameterValueConverters
             }
             else if (sourceType == ParameterType.DateTime_IEnumerable || sourceType == ParameterType.Date_IEnumerable)
             {
-                if (targetType == typeof(IEnumerable<DateTime>))
+                if (typeof(IEnumerable<DateTime>).IsAssignableFrom(targetType))
                 {
                     return rawValue.ToObject<IEnumerable<DateTime>>(jsonSerializer).ToCorrectIEnumerable(targetType);
                 }
-                else if (targetType == typeof(IEnumerable<string>))
+                else if (typeof(IEnumerable<string>).IsAssignableFrom(targetType))
                 {
                     var pattern = "D";
                     if (sourceType == ParameterType.DateTime_IEnumerable)
@@ -98,11 +98,11 @@ namespace YngveHestem.GenericParameterCollection.ParameterValueConverters
             }
             else if (targetType == ParameterType.DateTime_IEnumerable || targetType == ParameterType.Date_IEnumerable)
             {
-                if (sourceType == typeof(IEnumerable<DateTime>))
+                if (typeof(IEnumerable<DateTime>).IsAssignableFrom(sourceType))
                 {
                     return JToken.FromObject(value, jsonSerializer);
                 }
-                else if (sourceType == typeof(IEnumerable<string>))
+                else if (typeof(IEnumerable<string>).IsAssignableFrom(sourceType))
                 {
                     return JToken.FromObject(((IEnumerable<string>)value).Select(v => DateTime.Parse(v)), jsonSerializer);
                 }

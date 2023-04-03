@@ -29,8 +29,25 @@ var parameterSelectValue = c.GetByKey<string>("selectOne");
 var parameterSelectFull = c.GetByKey<ParameterCollection>("selectOne");
 var paraFull = c.GetByKey<string>("selectOne 2");
 
+var c2 = new ParameterCollection();
+c2.AddCustomConverter(c.GetCustomConverters());
+c2.AddCustomConverter(new YngveHestem.GenericParameterCollection.ParameterValueConverters.StringParameterConverter());
+c2.Add("Testparameter", true);
+
+var c3 = new ParameterCollection();
+
 var json = c.ToJson();
+var json2 = c2.ToJson();
+var json3 = c3.ToJson();
 
 Console.WriteLine(json);
+Console.WriteLine(Environment.NewLine);
+Console.WriteLine(json2);
+Console.WriteLine(Environment.NewLine);
+Console.WriteLine(json3);
+
+var cCopy = ParameterCollection.FromJson(json);
+var c2Copy = ParameterCollection.FromJson(json2);
+var c3Copy = ParameterCollection.FromJson(json3);
 
 Console.ReadLine();

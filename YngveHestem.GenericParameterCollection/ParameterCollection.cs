@@ -6,12 +6,13 @@ using YngveHestem.GenericParameterCollection.ParameterValueConverters;
 
 namespace YngveHestem.GenericParameterCollection
 {
+    [JsonObject]
     public class ParameterCollection : IEnumerable<Parameter>
     {
         [JsonProperty("parameters")]
         private List<Parameter> _parameters;
 
-        [JsonProperty("customConverters")]
+        [JsonProperty("customConverters", NullValueHandling = NullValueHandling.Ignore)]
         private List<IParameterValueConverter> _customParameterValueConverters { get; set; }
 
         public ParameterCollection()
@@ -20,9 +21,13 @@ namespace YngveHestem.GenericParameterCollection
         }
 
         [JsonConstructor]
-        public ParameterCollection(IEnumerable<Parameter> parameters)
+        public ParameterCollection(IEnumerable<Parameter> parameters, IEnumerable<IParameterValueConverter> customConverters)
         {
             _parameters = new List<Parameter>(parameters);
+            if (customConverters != null)
+            {
+                _customParameterValueConverters = new List<IParameterValueConverter>(customConverters);
+            }
         }
 
         public IEnumerator<Parameter> GetEnumerator()
@@ -311,10 +316,16 @@ namespace YngveHestem.GenericParameterCollection
         /// <param name="addToExisting">If set to true, the converter will also be added to all existing parameters in this collection already. If set to false, only parameters added afterwards will get this converter.</param>
         public void AddCustomConverter(IParameterValueConverter parameterValueConverter, bool addToExisting = false)
         {
+            if (parameterValueConverter == null)
+            {
+                return;
+            }
+
             if (_customParameterValueConverters == null)
             {
                 _customParameterValueConverters = new List<IParameterValueConverter>();
             }
+            
             _customParameterValueConverters.Add(parameterValueConverter);
 
             if (addToExisting)
@@ -333,6 +344,11 @@ namespace YngveHestem.GenericParameterCollection
         /// <param name="addToExisting">If set to true, the converter(s) will also be added to all existing parameters in this collection already. If set to false, only parameters added afterwards will get this converter.</param>
         public void AddCustomConverter(IEnumerable<IParameterValueConverter> parameterValueConverters, bool addToExisting = false)
         {
+            if (parameterValueConverters == null)
+            {
+                return;
+            }
+
             foreach(var converter in parameterValueConverters)
             {
                 AddCustomConverter(converter, addToExisting);
