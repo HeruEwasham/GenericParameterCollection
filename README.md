@@ -55,6 +55,14 @@ The easiest is to save the value as a ParameterCollection. To create a converter
 
 If you will convert to any other ParameterType or will convert more in same class, you can create a class that implement the IParameterValueConverter.
 
+## GUI-frontends
+
+Here is a list of known packages that will provide an editor for a given framework:
+
+- [GenericParameterCollection.EtoForms](https://github.com/HeruEwasham/GenericParameterCollection.EtoForms)
+
+Have you made a package that will fit here? Create an issue with link or create a PR.
+
 ## Code-Examples
 
 ### Simple use
@@ -83,7 +91,7 @@ var json = parameters.ToJson();                                     // Convert t
 var parameters2 = ParameterCollection.FromJson(json);				// Get a new ParameterCollection-object from a json-string.
 ```
 
-### Add a custom type as a parameter
+### Add a custom type as a parameter without using custom converters
 
 Below you can see a example for how to define some structures and convert it. The example also show the use of a custom enum, that are supported without any converting.
 

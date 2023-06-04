@@ -392,6 +392,18 @@ namespace YngveHestem.GenericParameterCollection
         }
 
         /// <summary>
+        /// Get the value by key.
+        /// </summary>
+        /// <typeparam name="T">The value-type expected to get back.</typeparam>
+        /// <param name="key">The given key.</param>
+        /// <param name="parameterValueConverters">Some converters. The function will try these converters first before it will check the other converters.</param>
+        /// <returns>Returns the value as the given type.</returns>
+        public T GetByKey<T>(string key, IEnumerable<IParameterValueConverter> parameterValueConverters)
+        {
+            return (T)_parameters.Find(p => p != null && p.Key == key).GetValue<T>(parameterValueConverters);
+        }
+
+        /// <summary>
         /// Get the value by key and type.
         /// </summary>
         /// <param name="key">The given key.</param>
@@ -405,13 +417,38 @@ namespace YngveHestem.GenericParameterCollection
         /// <summary>
         /// Get the value by key and type.
         /// </summary>
+        /// <param name="key">The given key.</param>
+        /// <param name="type">The given type.</param>
+        /// <param name="parameterValueConverters">Some converters. The function will try these converters first before it will check the other converters.</param>
+        /// <returns>Returns the value as a generic object.</returns>
+        public object GetByKeyAndType(string key, ParameterType type, IEnumerable<IParameterValueConverter> parameterValueConverters)
+        {
+            return _parameters.Find(p => p != null && p.Key == key && p.Type == type).GetValue(type.GetDefaultValueType(), parameterValueConverters);
+        }
+
+        /// <summary>
+        /// Get the value by key and type.
+        /// </summary>
         /// <typeparam name="T">The value-type expected to get back.</typeparam>
         /// <param name="key">The given key.</param>
         /// <param name="type">The given type.</param>
         /// <returns>Returns the value as the given type.</returns>
         public T GetByKeyAndType<T>(string key, ParameterType type)
         {
-            return (T)GetByKeyAndType(key, type);
+            return _parameters.Find(p => p != null && p.Key == key && p.Type == type).GetValue<T>();
+        }
+
+        /// <summary>
+        /// Get the value by key and type.
+        /// </summary>
+        /// <typeparam name="T">The value-type expected to get back.</typeparam>
+        /// <param name="key">The given key.</param>
+        /// <param name="type">The given type.</param>
+        /// <param name="parameterValueConverters">Some converters. The function will try these converters first before it will check the other converters.</param>
+        /// <returns>Returns the value as the given type.</returns>
+        public T GetByKeyAndType<T>(string key, ParameterType type, IEnumerable<IParameterValueConverter> parameterValueConverters)
+        {
+            return _parameters.Find(p => p != null && p.Key == key && p.Type == type).GetValue<T>(parameterValueConverters);
         }
 
         /// <summary>
@@ -423,6 +460,18 @@ namespace YngveHestem.GenericParameterCollection
         public object GetByKey(string key, Type type)
         {
             return _parameters.Find(p => p != null && p.Key == key).GetValue(type);
+        }
+
+        /// <summary>
+        /// Get the value by key in type.
+        /// </summary>
+        /// <param name="key">The given key.</param>
+        /// <param name="type">The wanted type.</param>
+        /// <param name="parameterValueConverters">Some converters. The function will try these converters first before it will check the other converters.</param>
+        /// <returns>Returns the value as a generic object.</returns>
+        public object GetByKey(string key, Type type, IEnumerable<IParameterValueConverter> parameterValueConverters)
+        {
+            return _parameters.Find(p => p != null && p.Key == key).GetValue(type, parameterValueConverters);
         }
 
         /// <summary>

@@ -468,7 +468,7 @@ namespace YngveHestem.GenericParameterCollection
         }
 
         /// <summary>
-        /// Gets the value converted to correct value as object
+        /// Gets the value converted to correct value as object.
         /// </summary>
         /// <param name="typeToGet">The specified type to get.</param>
         /// <returns></returns>
@@ -482,6 +482,34 @@ namespace YngveHestem.GenericParameterCollection
             {
                 throw new Exception("Got exception when getting a parameter value. Message on exception: " + e.Message + Environment.NewLine + ToString(), e);
             }
+        }
+
+        /// <summary>
+        /// Gets the value converted to correct value as object. Here you can provide your own converters to check first.
+        /// </summary>
+        /// <param name="typeToGet">The specified type to get.</param>
+        /// <param name="parameterValueConverters">Some converters. The function will try these converters first before it will check the other converters.</param>
+        /// <returns></returns>
+        public object GetValue(Type typeToGet, IEnumerable<IParameterValueConverter> parameterValueConverters)
+        {
+            try
+            {
+                if (parameterValueConverters != null)
+                {
+                    var converter = parameterValueConverters.FirstOrDefault(c => c.CanConvertFromParameter(Type, typeToGet, _value, _jsonSerializer));
+
+                    if (converter != null)
+                    {
+                        return converter.ConvertFromParameter(Type, typeToGet, _value, _jsonSerializer);
+                    }
+                }
+            }
+            catch (Exception e)
+            {
+                throw new Exception("Got exception when getting a parameter value from one of the provided converters. Message on exception: " + e.Message + Environment.NewLine + ToString(), e);
+            }
+
+            return GetValue(typeToGet);
         }
 
         private IParameterValueConverter GetSuitableConverterToValue(Type typeToGet)
@@ -511,6 +539,17 @@ namespace YngveHestem.GenericParameterCollection
         public T GetValue<T>()
         {
             return (T)GetValue(typeof(T));
+        }
+
+        /// <summary>
+        /// Tries to convert the value to correct type and return it as this type. Here you can provide your own converters to check first.
+        /// </summary>
+        /// <typeparam name="T"></typeparam>
+        /// <param name="parameterValueConverters">Some converters. The function will try these converters first before it will check the other converters.</param>
+        /// <returns></returns>
+        public T GetValue<T>(IEnumerable<IParameterValueConverter> parameterValueConverters)
+        {
+            return (T)GetValue(typeof(T), parameterValueConverters);
         }
 
         /// <summary>
@@ -608,6 +647,31 @@ namespace YngveHestem.GenericParameterCollection
             {
                 throw new Exception("Got exception when setting a new parameter value. Message on exception: " + e.Message + Environment.NewLine + ToString(), e);
             }
+        }
+
+        public bool SetValue(object newValue, IEnumerable<IParameterValueConverter> parameterValueConverters)
+        {
+            try
+            {
+                if (parameterValueConverters != null)
+                {
+                    var valueType = newValue.GetType();
+                    var converter = parameterValueConverters.FirstOrDefault(c => c.CanConvertFromValue(Type, valueType, newValue));
+
+                    if (converter != null)
+                    {
+                        _value = converter.ConvertFromValue(Type, valueType, newValue, _jsonSerializer);
+                        return true;
+                    }
+                }
+
+            }
+            catch (Exception e)
+            {
+                throw new Exception("Got exception when setting a new parameter value based on inputted converter. Message on exception: " + e.Message + Environment.NewLine + ToString(), e);
+            }
+
+            return SetValue(newValue);
         }
 
         public override string ToString()

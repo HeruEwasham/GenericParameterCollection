@@ -2,10 +2,15 @@
 
   <PropertyGroup>
     <TargetFramework>netstandard2.0</TargetFramework>
-    <ReleaseVersion>1.0.2-beta15</ReleaseVersion>
-    <Version>1.0.2-beta15</Version>
+    <Version>1.0.2-beta17</Version>
     <Description>ParameterCollection is a simple to use collection for different parameters and types defined with a key. It supports many of the standard types like int, string, double, float, long, DateTime, bool, byte[], enums and more. It can also support nearly every other objects by easy converting the object to it´s own ParameterCollection, which can be nested togheter as parameters. It also supports many of the parameters as IEnumerables (List, Array, etc.). Methods to convert to and from JSON is also included.</Description>
     <PackageReleaseNotes>
+        Version 1.0.2-beta17:
+        - You can now send custom converters with the GetValue- and SetValue-methods to use custom converters without needing to add them to the parameters.
+
+        Version 1.0.2-beta16:
+        - Fixed a bug in ParameterCollections generic version of method GetByKeyAndType, which made conversions not work as intended.
+
         Version 1.0.2-beta15:
         - You can now send in null-value in AddCustomConverter without it crash or being added if value is null.
         - Changed some in json-implementation, so ParameterCollection is added as an object instead of directly as an array. This was needed as the earlier implementation did not allow for sending references to custom converters that was added to the ParameterCollection. At the same time we fixed so properties that is null, will not be added to the actual json. This should make the json smaller if few parameters has extra parameters or custom converters.
@@ -66,7 +71,7 @@
         - Added the possibillity to set a new value of an existing parameter.
     </PackageReleaseNotes>
     <Authors>Yngve J. K. Hestem</Authors>
-    <Copyright>Copyright (c) Yngve J. K. Hestem 2022</Copyright>
+    <Copyright>Copyright (c) Yngve J. K. Hestem 2023</Copyright>
     <PackageLicenseExpression>MIT</PackageLicenseExpression>
     <PackageTags>UI, parameter ParameterCollection collection parameters collections multiple-types-in-collection json key-value key-value-pair</PackageTags>
     <SynchReleaseVersion>false</SynchReleaseVersion>
