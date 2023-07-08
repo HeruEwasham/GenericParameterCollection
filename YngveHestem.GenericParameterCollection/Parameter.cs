@@ -318,14 +318,14 @@ namespace YngveHestem.GenericParameterCollection
         private IParameterValueConverter GetSuitableConverterFromValue(object value, ParameterType parameterType, IEnumerable<IParameterValueConverter> parameterValueConverters)
         {
             var valueType = value.GetType();
-            var converter = parameterValueConverters != null ? parameterValueConverters.FirstOrDefault(c => c.CanConvertFromValue(Type, valueType, value)) : null;
+            var converter = parameterValueConverters != null ? parameterValueConverters.FirstOrDefault(c => c.CanConvertFromValue(parameterType, valueType, value)) : null;
 
             if (converter != null)
             {
                 return converter;
             }
 
-            converter = _customParameterValueConverters != null ? _customParameterValueConverters.FirstOrDefault(c => c.CanConvertFromValue(Type, valueType, value)) : null;
+            converter = _customParameterValueConverters != null ? _customParameterValueConverters.FirstOrDefault(c => c.CanConvertFromValue(parameterType, valueType, value)) : null;
 
             if (converter != null)
             {
