@@ -2,9 +2,20 @@
 
   <PropertyGroup>
     <TargetFramework>netstandard2.0</TargetFramework>
-    <Version>1.0.2-beta17</Version>
+    <Version>1.0.2-beta20</Version>
     <Description>ParameterCollection is a simple to use collection for different parameters and types defined with a key. It supports many of the standard types like int, string, double, float, long, DateTime, bool, byte[], enums and more. It can also support nearly every other objects by easy converting the object to it´s own ParameterCollection, which can be nested togheter as parameters. It also supports many of the parameters as IEnumerables (List, Array, etc.). Methods to convert to and from JSON is also included.</Description>
     <PackageReleaseNotes>
+        Version 1.0.2-beta20:
+        - The Parameter-constructors now take in a second customConverter-list, so it is one list that should be saved to the parameter, while the other will only be used when the parameter is created to convert from the value and to the parameter.
+        - Removed a lot of the uneccessary constructors for Parameter and add-methods in ParameterCollection. Now, if it has not any special inputs like multiline, choices or similar, it uses the constructor/add-method that takes a object as value. This will make it a little bit easier to manage changes.
+        - Remapped all remaining constructors in the Parameter-class to use converters instead of converting directly to JToken.
+
+        Version 1.0.2-beta19:
+        - The abstract class ParameterCollectionParameterConverter now has the abstract list-converters as virtual and has default implementations that should fit most scenarios for the list-versions. The default list-check will return true if the list itself is not null (each element is in itself not automatically checked for null), and each element goes through the element-check (the abstract method). If at least one element fails the check it will return false. For the conversion of list the default implementation just creates a list and converts each element (via the abstract method) before returning the resulting list.
+
+        Version 1.0.2-beta18:
+        - You can now use the HasKeyCanConvertTo- and CanBeConvertedTo-methods to check against custom converters without adding them to the parameters. 
+
         Version 1.0.2-beta17:
         - You can now send custom converters with the GetValue- and SetValue-methods to use custom converters without needing to add them to the parameters.
 

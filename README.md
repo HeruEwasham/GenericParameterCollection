@@ -8,7 +8,7 @@ The easiest way to use the package is to download it from nuget: https://www.nug
 
 ## Supported types
 
-Currently, these C#-types are supported out of the box, with some conversion between themselfs.
+Currently, these C#-types are supported out of the box, with some conversion between themselves.
 
 - int
 - string

@@ -56,53 +56,10 @@ namespace YngveHestem.GenericParameterCollection
         /// <param name="value">The given string value.</param>
         /// <param name="multiline">Is the string meant to be multiline or should it only be a one-liner.</param>
         /// <param name="additionalInfo">This is a parameter that can be used to add more information to the parameter. This can for example be used to communicate between the part of the program that wants some parameters, and the part that show the parameters to the user, like tell that it only allow subsets of what the type can deliver. It can also be used the other way, to give more information about the content without needing to have seperate parameters to search for.</param>
-        public void Add(string key, string value, bool multiline = false, ParameterCollection additionalInfo = null)
+        /// <param name="customConverters">Here you can put custom converters if you want the value saved differently than the default converters save it as. The converters added here will not be saved to the parameter, but only be used to convert the inputted value to the parameter. If you want to save a custom converter to the parameter(s), use AddCustomConverter(..)-method before calling the add-method instead.</param>
+        public void Add(string key, string value, bool multiline = false, ParameterCollection additionalInfo = null, IEnumerable<IParameterValueConverter> customConverters = null)
         {
-            Add(new Parameter(key, value, multiline, additionalInfo, _customParameterValueConverters));
-        }
-
-        /// <summary>
-        /// Create and add a new parameter.
-        /// </summary>
-        /// <param name="key">The given key.</param>
-        /// <param name="value">The given value.</param>
-        /// <param name="additionalInfo">This is a parameter that can be used to add more information to the parameter. This can for example be used to communicate between the part of the program that wants some parameters, and the part that show the parameters to the user, like tell that it only allow subsets of what the type can deliver. It can also be used the other way, to give more information about the content without needing to have seperate parameters to search for.</param>
-        public void Add(string key, int value, ParameterCollection additionalInfo = null)
-        {
-            Add(new Parameter(key, value, additionalInfo, _customParameterValueConverters));
-        }
-
-        /// <summary>
-        /// Create and add a new parameter.
-        /// </summary>
-        /// <param name="key">The given key.</param>
-        /// <param name="value">The given value.</param>
-        /// <param name="additionalInfo">This is a parameter that can be used to add more information to the parameter. This can for example be used to communicate between the part of the program that wants some parameters, and the part that show the parameters to the user, like tell that it only allow subsets of what the type can deliver. It can also be used the other way, to give more information about the content without needing to have seperate parameters to search for.</param>
-        public void Add(string key, float value, ParameterCollection additionalInfo = null)
-        {
-            Add(new Parameter(key, value, additionalInfo, _customParameterValueConverters));
-        }
-
-        /// <summary>
-        /// Create and add a new parameter.
-        /// </summary>
-        /// <param name="key">The given key.</param>
-        /// <param name="value">The given value.</param>
-        /// <param name="additionalInfo">This is a parameter that can be used to add more information to the parameter. This can for example be used to communicate between the part of the program that wants some parameters, and the part that show the parameters to the user, like tell that it only allow subsets of what the type can deliver. It can also be used the other way, to give more information about the content without needing to have seperate parameters to search for.</param>
-        public void Add(string key, long value, ParameterCollection additionalInfo = null)
-        {
-            Add(new Parameter(key, value, additionalInfo, _customParameterValueConverters));
-        }
-
-        /// <summary>
-        /// Create and add a new parameter.
-        /// </summary>
-        /// <param name="key">The given key.</param>
-        /// <param name="value">The given value.</param>
-        /// <param name="additionalInfo">This is a parameter that can be used to add more information to the parameter. This can for example be used to communicate between the part of the program that wants some parameters, and the part that show the parameters to the user, like tell that it only allow subsets of what the type can deliver. It can also be used the other way, to give more information about the content without needing to have seperate parameters to search for.</param>
-        public void Add(string key, double value, ParameterCollection additionalInfo = null)
-        {
-            Add(new Parameter(key, value, additionalInfo, _customParameterValueConverters));
+            Add(new Parameter(key, value, multiline, additionalInfo, _customParameterValueConverters, customConverters));
         }
 
         /// <summary>
@@ -112,53 +69,10 @@ namespace YngveHestem.GenericParameterCollection
         /// <param name="value">The given value.</param>
         /// <param name="onlyDate">Is both the date and date part relevant or is it only the date that is relevant.</param>
         /// <param name="additionalInfo">This is a parameter that can be used to add more information to the parameter. This can for example be used to communicate between the part of the program that wants some parameters, and the part that show the parameters to the user, like tell that it only allow subsets of what the type can deliver. It can also be used the other way, to give more information about the content without needing to have seperate parameters to search for.</param>
-        public void Add(string key, DateTime value, bool onlyDate = false, ParameterCollection additionalInfo = null)
+        /// <param name="customConverters">Here you can put custom converters if you want the value saved differently than the default converters save it as. The converters added here will not be saved to the parameter, but only be used to convert the inputted value to the parameter. If you want to save a custom converter to the parameter(s), use AddCustomConverter(..)-method before calling the add-method instead.</param>
+        public void Add(string key, DateTime value, bool onlyDate = false, ParameterCollection additionalInfo = null, IEnumerable<IParameterValueConverter> customConverters = null)
         {
-            Add(new Parameter(key, value, onlyDate, additionalInfo, _customParameterValueConverters));
-        }
-
-        /// <summary>
-        /// Create and add a new parameter.
-        /// </summary>
-        /// <param name="key">The given key.</param>
-        /// <param name="value">The given value.</param>
-        /// <param name="additionalInfo">This is a parameter that can be used to add more information to the parameter. This can for example be used to communicate between the part of the program that wants some parameters, and the part that show the parameters to the user, like tell that it only wants the content of an image or video files. It can also be used the other way, to give more information about the content without needing to have seperate parameters to search for.</param>
-        public void Add(string key, byte[] value, ParameterCollection additionalInfo = null)
-        {
-            Add(new Parameter(key, value, additionalInfo, _customParameterValueConverters));
-        }
-
-        /// <summary>
-        /// Create and add a new parameter.
-        /// </summary>
-        /// <param name="key">The given key.</param>
-        /// <param name="value">The given value.</param>
-        /// <param name="additionalInfo">This is a parameter that can be used to add more information to the parameter. This can for example be used to communicate between the part of the program that wants some parameters, and the part that show the parameters to the user, like tell that it only wants the content of an image or video files. It can also be used the other way, to give more information about the content without needing to have seperate parameters to search for.</param>
-        public void Add(string key, IEnumerable<byte> value, ParameterCollection additionalInfo = null)
-        {
-            Add(new Parameter(key, value, additionalInfo, _customParameterValueConverters));
-        }
-
-        /// <summary>
-        /// Create and add a new parameter.
-        /// </summary>
-        /// <param name="key">The given key.</param>
-        /// <param name="value">The given value.</param>
-        /// <param name="additionalInfo">This is a parameter that can be used to add more information to the parameter. This can for example be used to communicate between the part of the program that wants some parameters, and the part that show the parameters to the user, like tell that it only allow subsets of what the type can deliver. It can also be used the other way, to give more information about the content without needing to have seperate parameters to search for.</param>
-        public void Add(string key, bool value, ParameterCollection additionalInfo = null)
-        {
-            Add(new Parameter(key, value, additionalInfo, _customParameterValueConverters));
-        }
-
-        /// <summary>
-        /// Create and add a new parameter.
-        /// </summary>
-        /// <param name="key">The given key.</param>
-        /// <param name="value">The given value.</param>
-        /// <param name="additionalInfo">This is a parameter that can be used to add more information to the parameter. This can for example be used to communicate between the part of the program that wants some parameters, and the part that show the parameters to the user, like tell that it only allow subsets of what the type can deliver. It can also be used the other way, to give more information about the content without needing to have seperate parameters to search for.</param>
-        public void Add(string key, ParameterCollection value, ParameterCollection additionalInfo = null)
-        {
-            Add(new Parameter(key, value, additionalInfo, _customParameterValueConverters));
+            Add(new Parameter(key, value, onlyDate, additionalInfo, _customParameterValueConverters, customConverters));
         }
 
         /// <summary>
@@ -168,64 +82,10 @@ namespace YngveHestem.GenericParameterCollection
         /// <param name="value">The given value.</param>
         /// <param name="multiline">Is the strings meant to be multiline or should it only be one-liners.</param>
         /// <param name="additionalInfo">This is a parameter that can be used to add more information to the parameter. This can for example be used to communicate between the part of the program that wants some parameters, and the part that show the parameters to the user, like tell that it only allow subsets of what the type can deliver. It can also be used the other way, to give more information about the content without needing to have seperate parameters to search for.</param>
-        public void Add(string key, IEnumerable<string> value, bool multiline = false, ParameterCollection additionalInfo = null)
+        /// <param name="customConverters">Here you can put custom converters if you want the value saved differently than the default converters save it as. The converters added here will not be saved to the parameter, but only be used to convert the inputted value to the parameter. If you want to save a custom converter to the parameter(s), use AddCustomConverter(..)-method before calling the add-method instead.</param>
+        public void Add(string key, IEnumerable<string> value, bool multiline = false, ParameterCollection additionalInfo = null, IEnumerable<IParameterValueConverter> customConverters = null)
         {
-            Add(new Parameter(key, value, multiline, additionalInfo, _customParameterValueConverters));
-        }
-
-        /// <summary>
-        /// Create and add a new parameter.
-        /// </summary>
-        /// <param name="key">The given key.</param>
-        /// <param name="value">The given value.</param>
-        /// <param name="additionalInfo">This is a parameter that can be used to add more information to the parameter. This can for example be used to communicate between the part of the program that wants some parameters, and the part that show the parameters to the user, like tell that it only allow subsets of what the type can deliver. It can also be used the other way, to give more information about the content without needing to have seperate parameters to search for.</param>
-        public void Add(string key, IEnumerable<int> value, ParameterCollection additionalInfo = null)
-        {
-            Add(new Parameter(key, value, additionalInfo, _customParameterValueConverters));
-        }
-
-        /// <summary>
-        /// Create and add a new parameter.
-        /// </summary>
-        /// <param name="key">The given key.</param>
-        /// <param name="value">The given value.</param>
-        /// <param name="additionalInfo">This is a parameter that can be used to add more information to the parameter. This can for example be used to communicate between the part of the program that wants some parameters, and the part that show the parameters to the user, like tell that it only allow subsets of what the type can deliver. It can also be used the other way, to give more information about the content without needing to have seperate parameters to search for.</param>
-        public void Add(string key, IEnumerable<float> value, ParameterCollection additionalInfo = null)
-        {
-            Add(new Parameter(key, value, additionalInfo, _customParameterValueConverters));
-        }
-
-        /// <summary>
-        /// Create and add a new parameter.
-        /// </summary>
-        /// <param name="key">The given key.</param>
-        /// <param name="value">The given value.</param>
-        /// <param name="additionalInfo">This is a parameter that can be used to add more information to the parameter. This can for example be used to communicate between the part of the program that wants some parameters, and the part that show the parameters to the user, like tell that it only allow subsets of what the type can deliver. It can also be used the other way, to give more information about the content without needing to have seperate parameters to search for.</param>
-        public void Add(string key, IEnumerable<double> value, ParameterCollection additionalInfo = null)
-        {
-            Add(new Parameter(key, value, additionalInfo, _customParameterValueConverters));
-        }
-
-        /// <summary>
-        /// Create and add a new parameter.
-        /// </summary>
-        /// <param name="key">The given key.</param>
-        /// <param name="value">The given value.</param>
-        /// <param name="additionalInfo">This is a parameter that can be used to add more information to the parameter. This can for example be used to communicate between the part of the program that wants some parameters, and the part that show the parameters to the user, like tell that it only allow subsets of what the type can deliver. It can also be used the other way, to give more information about the content without needing to have seperate parameters to search for.</param>
-        public void Add(string key, IEnumerable<long> value, ParameterCollection additionalInfo = null)
-        {
-            Add(new Parameter(key, value, additionalInfo, _customParameterValueConverters));
-        }
-
-        /// <summary>
-        /// Create and add a new parameter.
-        /// </summary>
-        /// <param name="key">The given key.</param>
-        /// <param name="value">The given value.</param>
-        /// <param name="additionalInfo">This is a parameter that can be used to add more information to the parameter. This can for example be used to communicate between the part of the program that wants some parameters, and the part that show the parameters to the user, like tell that it only allow subsets of what the type can deliver. It can also be used the other way, to give more information about the content without needing to have seperate parameters to search for.</param>
-        public void Add(string key, IEnumerable<bool> value, ParameterCollection additionalInfo = null)
-        {
-            Add(new Parameter(key, value, additionalInfo, _customParameterValueConverters));
+            Add(new Parameter(key, value, multiline, additionalInfo, _customParameterValueConverters, customConverters));
         }
 
         /// <summary>
@@ -235,31 +95,10 @@ namespace YngveHestem.GenericParameterCollection
         /// <param name="value">The given value.</param>
         /// <param name="onlyDate">Is both the date and date part relevant in this list or is it only the date that is relevant.</param>
         /// <param name="additionalInfo">This is a parameter that can be used to add more information to the parameter. This can for example be used to communicate between the part of the program that wants some parameters, and the part that show the parameters to the user, like tell that it only allow subsets of what the type can deliver. It can also be used the other way, to give more information about the content without needing to have seperate parameters to search for.</param>
-        public void Add(string key, IEnumerable<DateTime> value, bool onlyDate = false, ParameterCollection additionalInfo = null)
+        /// <param name="customConverters">Here you can put custom converters if you want the value saved differently than the default converters save it as. The converters added here will not be saved to the parameter, but only be used to convert the inputted value to the parameter. If you want to save a custom converter to the parameter(s), use AddCustomConverter(..)-method before calling the add-method instead.</param>
+        public void Add(string key, IEnumerable<DateTime> value, bool onlyDate = false, ParameterCollection additionalInfo = null, IEnumerable<IParameterValueConverter> customConverters = null)
         {
-            Add(new Parameter(key, value, onlyDate, additionalInfo, _customParameterValueConverters));
-        }
-
-        /// <summary>
-        /// Create and add a new parameter.
-        /// </summary>
-        /// <param name="key">The given key.</param>
-        /// <param name="value">The given value.</param>
-        /// <param name="additionalInfo">This is a parameter that can be used to add more information to the parameter. This can for example be used to communicate between the part of the program that wants some parameters, and the part that show the parameters to the user, like tell that it only allow subsets of what the type can deliver. It can also be used the other way, to give more information about the content without needing to have seperate parameters to search for.</param>
-        public void Add(string key, IEnumerable<ParameterCollection> value, ParameterCollection additionalInfo = null)
-        {
-            Add(new Parameter(key, value, additionalInfo, _customParameterValueConverters));
-        }
-
-        /// <summary>
-        /// Create and add a new parameter.
-        /// </summary>
-        /// <param name="key">The given key.</param>
-        /// <param name="value">The given value.</param>
-        /// <param name="additionalInfo">This is a parameter that can be used to add more information to the parameter. This can for example be used to communicate between the part of the program that wants some parameters, and the part that show the parameters to the user, like tell that it only allow subsets of what the type can deliver. It can also be used the other way, to give more information about the content without needing to have seperate parameters to search for.</param>
-        public void Add(string key, Enum value, ParameterCollection additionalInfo = null)
-        {
-            Add(new Parameter(key, value, additionalInfo, _customParameterValueConverters));
+            Add(new Parameter(key, value, onlyDate, additionalInfo, _customParameterValueConverters, customConverters));
         }
 
         /// <summary>
@@ -269,9 +108,10 @@ namespace YngveHestem.GenericParameterCollection
         /// <param name="value">The given value. This value must be exact the same as one of the choices in the list of choices.</param>
         /// <param name="choices">A list of choices.</param>
         /// <param name="additionalInfo">This is a parameter that can be used to add more information to the parameter. This can for example be used to communicate between the part of the program that wants some parameters, and the part that show the parameters to the user, like tell that it only allow subsets of what the type can deliver. It can also be used the other way, to give more information about the content without needing to have seperate parameters to search for.</param>
-        public void Add(string key, string value, IEnumerable<string> choices, ParameterCollection additionalInfo = null)
+        /// <param name="customConverters">Here you can put custom converters if you want the value saved differently than the default converters save it as. The converters added here will not be saved to the parameter, but only be used to convert the inputted value to the parameter. If you want to save a custom converter to the parameter(s), use AddCustomConverter(..)-method before calling the add-method instead.</param>
+        public void Add(string key, string value, IEnumerable<string> choices, ParameterCollection additionalInfo = null, IEnumerable<IParameterValueConverter> customConverters = null)
         {
-            Add(new Parameter(key, value, choices, additionalInfo, _customParameterValueConverters));
+            Add(new Parameter(key, value, choices, additionalInfo, _customParameterValueConverters, customConverters));
         }
 
         /// <summary>
@@ -281,9 +121,10 @@ namespace YngveHestem.GenericParameterCollection
         /// <param name="value">The given value(s). Each string must be exact the same as one of the choices in the list of choices.</param>
         /// <param name="choices">A list of choices.</param>
         /// <param name="additionalInfo">This is a parameter that can be used to add more information to the parameter. This can for example be used to communicate between the part of the program that wants some parameters, and the part that show the parameters to the user, like tell that it only allow subsets of what the type can deliver. It can also be used the other way, to give more information about the content without needing to have seperate parameters to search for.</param>
-        public void Add(string key, IEnumerable<string> value, IEnumerable<string> choices, ParameterCollection additionalInfo = null)
+        /// <param name="customConverters">Here you can put custom converters if you want the value saved differently than the default converters save it as. The converters added here will not be saved to the parameter, but only be used to convert the inputted value to the parameter. If you want to save a custom converter to the parameter(s), use AddCustomConverter(..)-method before calling the add-method instead.</param>
+        public void Add(string key, IEnumerable<string> value, IEnumerable<string> choices, ParameterCollection additionalInfo = null, IEnumerable<IParameterValueConverter> customConverters = null)
         {
-            Add(new Parameter(key, value, choices, additionalInfo, _customParameterValueConverters));
+            Add(new Parameter(key, value, choices, additionalInfo, _customParameterValueConverters, customConverters));
         }
 
         /// <summary>
@@ -292,9 +133,10 @@ namespace YngveHestem.GenericParameterCollection
         /// <param name="key">The given key.</param>
         /// <param name="value">The given value.</param>
         /// <param name="additionalInfo">This is a parameter that can be used to add more information to the parameter. This can for example be used to communicate between the part of the program that wants some parameters, and the part that show the parameters to the user, like tell that it only allow subsets of what the type can deliver. It can also be used the other way, to give more information about the content without needing to have seperate parameters to search for.</param>
-        public void Add(string key, object value, ParameterCollection additionalInfo = null)
+        /// <param name="customConverters">Here goes custom converters needed to convert value (if default converters don't support it, or you want it saved differently). The converters added here will not be saved to the parameter, but only be used to convert the inputted value to the parameter. If you want to save a custom converter to the parameter(s), use AddCustomConverter(..)-method before calling the add-method instead.</param>
+        public void Add(string key, object value, ParameterCollection additionalInfo = null, IEnumerable<IParameterValueConverter> customConverters = null)
         {
-            Add(new Parameter(key, value, additionalInfo, _customParameterValueConverters));
+            Add(new Parameter(key, value, additionalInfo, _customParameterValueConverters, customConverters));
         }
 
         /// <summary>
@@ -304,9 +146,10 @@ namespace YngveHestem.GenericParameterCollection
         /// <param name="value">The given value.</param>
         /// <param name="parameterType">The wanted type the parameter shall save/consider it as.</param>
         /// <param name="additionalInfo">This is a parameter that can be used to add more information to the parameter. This can for example be used to communicate between the part of the program that wants some parameters, and the part that show the parameters to the user, like tell that it only allow subsets of what the type can deliver. It can also be used the other way, to give more information about the content without needing to have seperate parameters to search for.</param>
-        public void Add(string key, object value, ParameterType parameterType, ParameterCollection additionalInfo = null)
+        /// <param name="customConverters">Here goes custom converters needed to convert value (if default converters don't support it, or you want it saved differently). The converters added here will not be saved to the parameter, but only be used to convert the inputted value to the parameter. If you want to save a custom converter to the parameter(s), use AddCustomConverter(..)-method before calling the add-method instead.</param>
+        public void Add(string key, object value, ParameterType parameterType, ParameterCollection additionalInfo = null, IEnumerable<IParameterValueConverter> customConverters = null)
         {
-            Add(new Parameter(key, value, parameterType, additionalInfo, _customParameterValueConverters));
+            Add(new Parameter(key, value, parameterType, additionalInfo, _customParameterValueConverters, customConverters));
         }
 
         /// <summary>
@@ -535,6 +378,18 @@ namespace YngveHestem.GenericParameterCollection
         public bool HasKeyAndCanConvertTo(string key, Type type)
         {
             return _parameters.Exists(p => p != null && p.Key == key && p.CanBeConvertedTo(type));
+        }
+
+        /// <summary>
+        /// Do this collection has a parameter that can be converted to type.
+        /// </summary>
+        /// <param name="key">The given key.</param>
+        /// <param name="type">The given type.</param>
+        /// <param name="parameterValueConverters">Some converters. The method will try these converters first before it will check the other converters.</param>
+        /// <returns></returns>
+        public bool HasKeyAndCanConvertTo(string key, Type type, IEnumerable<IParameterValueConverter> parameterValueConverters)
+        {
+            return _parameters.Exists(p => p != null && p.Key == key && p.CanBeConvertedTo(type, parameterValueConverters));
         }
 
         public override string ToString()

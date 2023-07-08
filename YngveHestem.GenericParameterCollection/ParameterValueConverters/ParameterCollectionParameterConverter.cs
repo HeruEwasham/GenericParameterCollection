@@ -103,11 +103,27 @@ namespace YngveHestem.GenericParameterCollection.ParameterValueConverters
         protected abstract bool CanConvertFromParameterCollection(ParameterCollection value);
 
         /// <summary>
-        /// Can this converter convert this list of ParameterCollection.
+        /// Can this converter convert this list of ParameterCollection. The default implementation checks that all list-items validates sucessfully and that the list itself is not null.
         /// </summary>
         /// <param name="value">The list of ParameterCollection to possibly convert later.</param>
         /// <returns></returns>
-        protected abstract bool CanConvertFromListOfParameterCollection(IEnumerable<ParameterCollection> value);
+        protected virtual bool CanConvertFromListOfParameterCollection(IEnumerable<ParameterCollection> value)
+        {
+            if (value == null)
+            {
+                return false;
+            }
+
+            foreach(var item in value)
+            {
+                if (!CanConvertFromParameterCollection(item))
+                {
+                    return false;
+                }
+            }
+
+            return true;
+        }
 
         /// <summary>
         /// Can this value be converted to a ParameterCollection by this converter.
@@ -117,11 +133,27 @@ namespace YngveHestem.GenericParameterCollection.ParameterValueConverters
         protected abstract bool CanConvertToParameterCollection(TValueType value);
 
         /// <summary>
-        /// Can this value be converted to a list of ParameterCollection by this converter.
+        /// Can this value be converted to a list of ParameterCollection by this converter. The default implementation checks that all list-items validates sucessfully and that the list itself is not null.
         /// </summary>
         /// <param name="value">The list of values to possibly convert later.</param>
         /// <returns></returns>
-        protected abstract bool CanConvertToListOfParameterCollection(IEnumerable<TValueType> value);
+        protected virtual bool CanConvertToListOfParameterCollection(IEnumerable<TValueType> value)
+        {
+            if (value == null)
+            {
+                return false;
+            }
+
+            foreach (var item in value)
+            {
+                if (!CanConvertToParameterCollection(item))
+                {
+                    return false;
+                }
+            }
+
+            return true;
+        }
 
         /// <summary>
         /// Convert ParameterCollection to wanted type.
@@ -131,11 +163,21 @@ namespace YngveHestem.GenericParameterCollection.ParameterValueConverters
         protected abstract TValueType ConvertFromParameterCollection(ParameterCollection value);
 
         /// <summary>
-        /// Convert list of ParameterCollection to a list of wanted type.
+        /// Convert list of ParameterCollection to a list of wanted type. The default implementation goes through each element in the list and converts each element before returning the result as a list.
         /// </summary>
         /// <param name="value">The list of ParameterCollection to convert.</param>
         /// <returns></returns>
-        protected abstract IEnumerable<TValueType> ConvertFromListOfParameterCollection(IEnumerable<ParameterCollection> value);
+        protected virtual IEnumerable<TValueType> ConvertFromListOfParameterCollection(IEnumerable<ParameterCollection> value)
+        {
+            var result = new List<TValueType>();
+
+            foreach(var item in value)
+            {
+                result.Add(ConvertFromParameterCollection(item));
+            }
+
+            return result;
+        }
 
         /// <summary>
         /// Convert value to ParameterCollection.
@@ -145,11 +187,21 @@ namespace YngveHestem.GenericParameterCollection.ParameterValueConverters
         protected abstract ParameterCollection ConvertToParameterCollection(TValueType value);
 
         /// <summary>
-        /// Convert list of values to list of ParameterCollection.
+        /// Convert list of values to list of ParameterCollection. The default implementation goes through each element in the list and converts each element before returning the result as a list.
         /// </summary>
         /// <param name="value">The list of values to convert.</param>
         /// <returns></returns>
-        protected abstract IEnumerable<ParameterCollection> ConvertToListOfParameterCollection(IEnumerable<TValueType> value);
+        protected virtual IEnumerable<ParameterCollection> ConvertToListOfParameterCollection(IEnumerable<TValueType> value)
+        {
+            var result = new List<ParameterCollection>();
+
+            foreach (var item in value)
+            {
+                result.Add(ConvertToParameterCollection(item));
+            }
+
+            return result;
+        }
     }
 }
 
