@@ -59,17 +59,9 @@ namespace YngveHestem.GenericParameterCollection
             {
                 return typeof(string);
             }
-            else if (type == ParameterType.Float)
+            else if (type == ParameterType.Decimal)
             {
-                return typeof(float);
-            }
-            else if (type == ParameterType.Double)
-            {
-                return typeof(double);
-            }
-            else if (type == ParameterType.Long)
-            {
-                return typeof(long);
+                return typeof(decimal);
             }
             else if (type == ParameterType.Bool)
             {
@@ -95,17 +87,9 @@ namespace YngveHestem.GenericParameterCollection
             {
                 return typeof(IEnumerable<int>);
             }
-            else if (type == ParameterType.Float_IEnumerable)
+            else if (type == ParameterType.Decimal_IEnumerable)
             {
-                return typeof(IEnumerable<float>);
-            }
-            else if (type == ParameterType.Double_IEnumerable)
-            {
-                return typeof(IEnumerable<double>);
-            }
-            else if (type == ParameterType.Long_IEnumerable)
-            {
-                return typeof(IEnumerable<long>);
+                return typeof(IEnumerable<decimal>);
             }
             else if (type == ParameterType.Bool_IEnumerable)
             {
@@ -169,6 +153,8 @@ namespace YngveHestem.GenericParameterCollection
                 { "choices", choices }
             };
         }
+
+        internal static JsonSerializer JsonSerializer = JsonSerializer.CreateDefault(ParameterConverterExtensions.GetJsonSerializerSettings());
     }
 }
 

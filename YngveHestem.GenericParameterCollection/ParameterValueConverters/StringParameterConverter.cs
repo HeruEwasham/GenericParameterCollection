@@ -1,12 +1,11 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Linq;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
 
 namespace YngveHestem.GenericParameterCollection.ParameterValueConverters
 {
-	public class StringParameterConverter : IParameterValueConverter
+    public class StringParameterConverter : IParameterValueConverter
 	{
         public bool CanConvertFromParameter(ParameterType sourceType, Type targetType, JToken rawValue, JsonSerializer jsonSerializer)
         {

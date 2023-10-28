@@ -25,15 +25,11 @@ namespace YngveHestem.GenericParameterCollection
         [JsonProperty("customConverters", NullValueHandling = NullValueHandling.Ignore)]
         private List<IParameterValueConverter> _customParameterValueConverters { get; set; }
 
-        private static JsonSerializer _jsonSerializer = JsonSerializer.CreateDefault(ParameterConverterExtensions.GetJsonSerializerSettings());
-
-        private static IParameterValueConverter[] _defaultParameterValueConverters = new IParameterValueConverter[]
+        internal static IParameterValueConverter[] DefaultParameterValueConverters = new IParameterValueConverter[]
         {
             new IntParameterConverter(),
             new StringParameterConverter(),
-            new FloatParameterConverter(),
-            new DoubleParameterConverter(),
-            new LongParameterConverter(),
+            new DecimalParameterConverter(),
             new BoolParameterConverter(),
             new BytesParameterConverter(),
             new DateTimeParameterConverter(),
@@ -148,7 +144,7 @@ namespace YngveHestem.GenericParameterCollection
             var converter = GetSuitableConverterFromValue(value, parameterType, customConvertersToOnlyUseNow);
 
             Key = key;
-            _value = converter.ConvertFromValue(parameterType, value.GetType(), value, _jsonSerializer);
+            _value = converter.ConvertFromValue(parameterType, value.GetType(), value, ParameterConverterExtensions.JsonSerializer);
             Type = parameterType;
             _additionalInfo = additionalInfo;
         }
@@ -198,7 +194,7 @@ namespace YngveHestem.GenericParameterCollection
 
         private static ParameterType GetBestSuitableParameterType(object value, IEnumerable<IParameterValueConverter> customConverters1, IEnumerable<IParameterValueConverter> customConverters2 = null)
         {
-            var customConverters = (customConverters1 ?? Enumerable.Empty<IParameterValueConverter>()).Concat(customConverters2 ?? Enumerable.Empty<IParameterValueConverter>());
+            var customConverters = (customConverters1 ?? Enumerable.Empty<IParameterValueConverter>()).Concat(customConverters2 ?? Enumerable.Empty<IParameterValueConverter>()).ToArray();
             var valueType = value.GetType();
             if (valueType == typeof(string))
             {
@@ -211,21 +207,13 @@ namespace YngveHestem.GenericParameterCollection
                     return ParameterType.String;
                 }
             }
-            else if (valueType == typeof(int))
+            else if (valueType == typeof(int) || valueType == typeof(long))
             {
                 return ParameterType.Int;
             }
-            else if (valueType == typeof(float))
+            else if (valueType == typeof(float) || valueType == typeof(double) || valueType == typeof(decimal))
             {
-                return ParameterType.Float;
-            }
-            else if (valueType == typeof(double))
-            {
-                return ParameterType.Double;
-            }
-            else if (valueType == typeof(long))
-            {
-                return ParameterType.Long;
+                return ParameterType.Decimal;
             }
             else if (typeof(IEnumerable<byte>).IsAssignableFrom(valueType))
             {
@@ -261,21 +249,13 @@ namespace YngveHestem.GenericParameterCollection
                     return ParameterType.String_IEnumerable;
                 }
             }
-            else if (typeof(IEnumerable<int>).IsAssignableFrom(valueType))
+            else if (typeof(IEnumerable<int>).IsAssignableFrom(valueType) || typeof(IEnumerable<long>).IsAssignableFrom(valueType))
             {
                 return ParameterType.Int_IEnumerable;
             }
-            else if (typeof(IEnumerable<float>).IsAssignableFrom(valueType))
+            else if (typeof(IEnumerable<float>).IsAssignableFrom(valueType) || typeof(IEnumerable<double>).IsAssignableFrom(valueType) || typeof(IEnumerable<decimal>).IsAssignableFrom(valueType))
             {
-                return ParameterType.Float_IEnumerable;
-            }
-            else if (typeof(IEnumerable<double>).IsAssignableFrom(valueType))
-            {
-                return ParameterType.Double_IEnumerable;
-            }
-            else if (typeof(IEnumerable<long>).IsAssignableFrom(valueType))
-            {
-                return ParameterType.Long_IEnumerable;
+                return ParameterType.Decimal_IEnumerable;
             }
             else if (typeof(IEnumerable<bool>).IsAssignableFrom(valueType))
             {
@@ -332,7 +312,7 @@ namespace YngveHestem.GenericParameterCollection
                 return converter;
             }
 
-            converter = _defaultParameterValueConverters.FirstOrDefault(c => c.CanConvertFromValue(parameterType, valueType, value));
+            converter = DefaultParameterValueConverters.FirstOrDefault(c => c.CanConvertFromValue(parameterType, valueType, value));
 
             if (converter != null)
             {
@@ -351,7 +331,7 @@ namespace YngveHestem.GenericParameterCollection
         {
             try
             {
-                return GetSuitableConverterToValue(typeToGet).ConvertFromParameter(Type, typeToGet, _value, _jsonSerializer);
+                return GetSuitableConverterToValue(typeToGet).ConvertFromParameter(Type, typeToGet, _value, ParameterConverterExtensions.JsonSerializer);
             }
             catch (Exception e)
             {
@@ -371,11 +351,11 @@ namespace YngveHestem.GenericParameterCollection
             {
                 if (parameterValueConverters != null)
                 {
-                    var converter = parameterValueConverters.FirstOrDefault(c => c.CanConvertFromParameter(Type, typeToGet, _value, _jsonSerializer));
+                    var converter = parameterValueConverters.FirstOrDefault(c => c.CanConvertFromParameter(Type, typeToGet, _value, ParameterConverterExtensions.JsonSerializer));
 
                     if (converter != null)
                     {
-                        return converter.ConvertFromParameter(Type, typeToGet, _value, _jsonSerializer);
+                        return converter.ConvertFromParameter(Type, typeToGet, _value, ParameterConverterExtensions.JsonSerializer);
                     }
                 }
             }
@@ -389,14 +369,14 @@ namespace YngveHestem.GenericParameterCollection
 
         private IParameterValueConverter GetSuitableConverterToValue(Type typeToGet)
         {
-            var converter = _customParameterValueConverters != null ? _customParameterValueConverters.FirstOrDefault(c => c.CanConvertFromParameter(Type, typeToGet, _value, _jsonSerializer)) : null;
+            var converter = _customParameterValueConverters != null ? _customParameterValueConverters.FirstOrDefault(c => c.CanConvertFromParameter(Type, typeToGet, _value, ParameterConverterExtensions.JsonSerializer)) : null;
 
             if (converter != null)
             {
                 return converter;
             }
 
-            converter = _defaultParameterValueConverters.FirstOrDefault(c => c.CanConvertFromParameter(Type, typeToGet, _value, _jsonSerializer));
+            converter = DefaultParameterValueConverters.FirstOrDefault(c => c.CanConvertFromParameter(Type, typeToGet, _value, ParameterConverterExtensions.JsonSerializer));
 
             if (converter != null)
             {
@@ -434,7 +414,7 @@ namespace YngveHestem.GenericParameterCollection
         /// <exception cref="NotSupportedException">If this is called for a Parameter with a ParameterType that not support this method. This Exception will be thrown.</exception>
         public IEnumerable<string> GetChoices()
         {
-            var obj = _value.ToObject<ParameterCollection>(_jsonSerializer);
+            var obj = _value.ToObject<ParameterCollection>(ParameterConverterExtensions.JsonSerializer);
             if (obj.HasKeyAndCanConvertTo("choices", typeof(IEnumerable<string>)))
             {
                 return obj.GetByKey<IEnumerable<string>>("choices");
@@ -474,12 +454,12 @@ namespace YngveHestem.GenericParameterCollection
             {
                 if (Type == ParameterType.Enum && valueType == typeof(string))
                 {
-                    var v = _value.ToObject<ParameterCollection>(_jsonSerializer);
+                    var v = _value.ToObject<ParameterCollection>(ParameterConverterExtensions.JsonSerializer);
                     if (v.GetByKeyAndType<List<string>>("choices", ParameterType.String_IEnumerable).Contains((string)newValue))
                     {
                         if (v.GetParameterByKeyAndType("value", ParameterType.String).SetValue(newValue))
                         {
-                            _value = JToken.FromObject(v, _jsonSerializer);
+                            _value = JToken.FromObject(v, ParameterConverterExtensions.JsonSerializer);
                             return true;
                         }
                     }
@@ -487,12 +467,12 @@ namespace YngveHestem.GenericParameterCollection
                 }
                 else if (Type == ParameterType.SelectOne && valueType == typeof(string))
                 {
-                    var va = _value.ToObject<ParameterCollection>(_jsonSerializer);
+                    var va = _value.ToObject<ParameterCollection>(ParameterConverterExtensions.JsonSerializer);
                     if (va.GetByKeyAndType<List<string>>("choices", ParameterType.String_IEnumerable).Contains((string)newValue))
                     {
                         if (va.GetParameterByKeyAndType("value", ParameterType.String).SetValue(newValue))
                         {
-                            _value = JToken.FromObject(va, _jsonSerializer);
+                            _value = JToken.FromObject(va, ParameterConverterExtensions.JsonSerializer);
                             return true;
                         }
                     }
@@ -500,12 +480,12 @@ namespace YngveHestem.GenericParameterCollection
                 }
                 else if (Type == ParameterType.SelectMany && typeof(IEnumerable<string>).IsAssignableFrom(valueType))
                 {
-                    var va = _value.ToObject<ParameterCollection>(_jsonSerializer);
+                    var va = _value.ToObject<ParameterCollection>(ParameterConverterExtensions.JsonSerializer);
                     if (va.GetByKeyAndType<List<string>>("choices", ParameterType.String_IEnumerable).Contains((string)newValue))
                     {
                         if (va.GetParameterByKeyAndType("value", ParameterType.String_IEnumerable).SetValue(newValue))
                         {
-                            _value = JToken.FromObject(va, _jsonSerializer);
+                            _value = JToken.FromObject(va, ParameterConverterExtensions.JsonSerializer);
                             return true;
                         }
                     }
@@ -514,7 +494,7 @@ namespace YngveHestem.GenericParameterCollection
 
                 try
                 {
-                    _value = GetSuitableConverterFromValue(newValue, Type, null).ConvertFromValue(Type, valueType, newValue, _jsonSerializer);
+                    _value = GetSuitableConverterFromValue(newValue, Type, null).ConvertFromValue(Type, valueType, newValue, ParameterConverterExtensions.JsonSerializer);
                     return true;
                 }
                 catch (ArgumentOutOfRangeException)
@@ -547,7 +527,7 @@ namespace YngveHestem.GenericParameterCollection
 
                     if (converter != null)
                     {
-                        _value = converter.ConvertFromValue(Type, valueType, newValue, _jsonSerializer);
+                        _value = converter.ConvertFromValue(Type, valueType, newValue, ParameterConverterExtensions.JsonSerializer);
                         return true;
                     }
                 }
@@ -578,13 +558,13 @@ namespace YngveHestem.GenericParameterCollection
         {
             if (_customParameterValueConverters != null)
             {
-                if (_customParameterValueConverters.FirstOrDefault(c => c.CanConvertFromParameter(Type, type, _value, _jsonSerializer)) != null)
+                if (_customParameterValueConverters.FirstOrDefault(c => c.CanConvertFromParameter(Type, type, _value, ParameterConverterExtensions.JsonSerializer)) != null)
                 {
                     return true;
                 }
             }
 
-            if (_defaultParameterValueConverters.FirstOrDefault(c => c.CanConvertFromParameter(Type, type, _value, _jsonSerializer)) != null)
+            if (DefaultParameterValueConverters.FirstOrDefault(c => c.CanConvertFromParameter(Type, type, _value, ParameterConverterExtensions.JsonSerializer)) != null)
             {
                 return true;
             }
@@ -600,7 +580,7 @@ namespace YngveHestem.GenericParameterCollection
         /// <returns></returns>
         public bool CanBeConvertedTo(Type type, IEnumerable<IParameterValueConverter> parameterValueConverters)
         {
-            if (parameterValueConverters != null && parameterValueConverters.FirstOrDefault(c => c.CanConvertFromParameter(Type, type, _value, _jsonSerializer)) != null)
+            if (parameterValueConverters != null && parameterValueConverters.FirstOrDefault(c => c.CanConvertFromParameter(Type, type, _value, ParameterConverterExtensions.JsonSerializer)) != null)
             {
                 return true;
             }

@@ -1,7 +1,9 @@
 ﻿using System;
 using System.Collections;
 using System.Collections.Generic;
+using System.Linq;
 using Newtonsoft.Json;
+using Newtonsoft.Json.Linq;
 using YngveHestem.GenericParameterCollection.ParameterValueConverters;
 
 namespace YngveHestem.GenericParameterCollection
@@ -420,6 +422,78 @@ namespace YngveHestem.GenericParameterCollection
         }
 
         /// <summary>
+        /// Converting the whole ParameterConverter to the given object.
+        /// </summary>
+        /// <typeparam name="T">The type to convert to.</typeparam>
+        /// <param name="customConverters">Any custom converters to use when creating the object.</param>
+        /// <returns></returns>
+        public T ToObject<T>(IEnumerable<IParameterValueConverter> customConverters = null)
+        {
+            return (T)ToObject(typeof(T), customConverters);
+        }
+
+        public object ToObject(Type type, IEnumerable<IParameterValueConverter> customConverters = null)
+        {
+            try
+            {
+                if (customConverters != null)
+                {
+                    var converter = customConverters.FirstOrDefault(c => c.CanConvertFromParameter(ParameterType.ParameterCollection, type, JToken.FromObject(this), ParameterConverterExtensions.JsonSerializer));
+
+                    if (converter != null)
+                    {
+                        return converter.ConvertFromParameter(ParameterType.ParameterCollection, type, JToken.FromObject(this), ParameterConverterExtensions.JsonSerializer);
+                    }
+                }
+
+                return GetSuitableConverterToValue(type).ConvertFromParameter(ParameterType.ParameterCollection, type, JToken.FromObject(this), ParameterConverterExtensions.JsonSerializer);
+            }
+            catch (Exception e)
+            {
+                throw new Exception("Got exception when getting a parameter value from one of the provided converters. Message on exception: " + e.Message + Environment.NewLine + ToString(), e);
+            }
+        }
+
+        private IParameterValueConverter GetSuitableConverterToValue(Type typeToGet)
+        {
+            var converter = _customParameterValueConverters != null ? _customParameterValueConverters.FirstOrDefault(c => c.CanConvertFromParameter(ParameterType.ParameterCollection, typeToGet, JToken.FromObject(this), ParameterConverterExtensions.JsonSerializer)) : null;
+
+            if (converter != null)
+            {
+                return converter;
+            }
+
+            converter = Parameter.DefaultParameterValueConverters.FirstOrDefault(c => c.CanConvertFromParameter(ParameterType.ParameterCollection, typeToGet, JToken.FromObject(this), ParameterConverterExtensions.JsonSerializer));
+
+            if (converter != null)
+            {
+                return converter;
+            }
+
+            throw new ArgumentOutOfRangeException("Converter to support this conversion between this value in type " + typeToGet.Name + " from parameter type " + ParameterType.ParameterCollection + " was not found.");
+        }
+
+        private static IParameterValueConverter GetSuitableConverterFromValue(object value, ParameterType parameterType, IEnumerable<IParameterValueConverter> parameterValueConverters)
+        {
+            var valueType = value.GetType();
+            var converter = parameterValueConverters != null ? parameterValueConverters.FirstOrDefault(c => c.CanConvertFromValue(parameterType, valueType, value)) : null;
+
+            if (converter != null)
+            {
+                return converter;
+            }
+
+            converter = Parameter.DefaultParameterValueConverters.FirstOrDefault(c => c.CanConvertFromValue(parameterType, valueType, value));
+
+            if (converter != null)
+            {
+                return converter;
+            }
+
+            throw new ArgumentOutOfRangeException("Converter to support this conversion between this value in type " + valueType.Name + " to parameter type " + parameterType + " was not found.");
+        }
+
+        /// <summary>
         /// Get a parameter collection from json.
         /// </summary>
         /// <param name="json">The json representation of the parameter collection.</param>
@@ -427,6 +501,18 @@ namespace YngveHestem.GenericParameterCollection
         public static ParameterCollection FromJson(string json)
         {
             return JsonConvert.DeserializeObject<ParameterCollection>(json, ParameterConverterExtensions.GetJsonSerializerSettings());
+        }
+
+        /// <summary>
+        /// Create a new ParameterCollection 
+        /// </summary>
+        /// <param name="value"></param>
+        /// <param name="customConverters"></param>
+        /// <returns></returns>
+        public static ParameterCollection FromObject(object value, IEnumerable<IParameterValueConverter> customConverters = null)
+        {
+            var converter = GetSuitableConverterFromValue(value, ParameterType.ParameterCollection, customConverters);
+            return converter.ConvertFromValue(ParameterType.ParameterCollection, value.GetType(), value, ParameterConverterExtensions.JsonSerializer).ToObject<ParameterCollection>();
         }
     }
 }
