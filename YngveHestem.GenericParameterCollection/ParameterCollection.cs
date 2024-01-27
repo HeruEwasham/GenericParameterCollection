@@ -432,6 +432,12 @@ namespace YngveHestem.GenericParameterCollection
             return (T)ToObject(typeof(T), customConverters);
         }
 
+        /// <summary>
+        /// Converting the whole ParameterConverter to the given object.
+        /// </summary>
+        /// <param name="type">The type to convert to.</typeparam>
+        /// <param name="customConverters">Any custom converters to use when creating the object.</param>
+        /// <returns></returns>
         public object ToObject(Type type, IEnumerable<IParameterValueConverter> customConverters = null)
         {
             try
