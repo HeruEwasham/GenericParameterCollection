@@ -460,6 +460,37 @@ namespace YngveHestem.GenericParameterCollection
             }
         }
 
+        /// <summary>
+        /// Can this parameterCollection be converted to the given object.
+        /// </summary>
+        /// <typeparam name="T">The type to convert to.</typeparam>
+        /// <param name="customConverters">Any custom converters to use when creating the object.</param>
+        /// <returns></returns>
+        public bool CanConvertToObject<T>(IEnumerable<IParameterValueConverter> customConverters = null)
+        {
+            return CanConvertToObject(typeof(T), customConverters);
+        }
+
+        public bool CanConvertToObject(Type type, IEnumerable<IParameterValueConverter> customConverters = null)
+        {
+            try
+            {
+                if (customConverters != null)
+                {
+                    if (customConverters.Any(c => c.CanConvertFromParameter(ParameterType.ParameterCollection, type, JToken.FromObject(this), ParameterConverterExtensions.JsonSerializer)))
+                    {
+                        return true;
+                    }
+                }
+
+                return GetSuitableConverterToValue(type).CanConvertFromParameter(ParameterType.ParameterCollection, type, JToken.FromObject(this), ParameterConverterExtensions.JsonSerializer);
+            }
+            catch (Exception e)
+            {
+                throw new Exception("Got exception when getting a parameter value from one of the provided converters. Message on exception: " + e.Message + Environment.NewLine + ToString(), e);
+            }
+        }
+
         private IParameterValueConverter GetSuitableConverterToValue(Type typeToGet)
         {
             var converter = _customParameterValueConverters != null ? _customParameterValueConverters.FirstOrDefault(c => c.CanConvertFromParameter(ParameterType.ParameterCollection, typeToGet, JToken.FromObject(this), ParameterConverterExtensions.JsonSerializer)) : null;
