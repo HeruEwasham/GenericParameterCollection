@@ -41,7 +41,7 @@ It is also possible to add multiple parameters to a parameter, which can be used
 
 ## When should I use this?
 
-The ParameterCollection was not written to be used instead of classes. This was primarly written to be used with Interfaces or other similar situations where the classes who implements an interface can get nearly any number and different type of response from a user. It is also suitable in other situations where much input from a user is required. This as it is relatively easy to create a GUI with usable controls for the user that can be used over and over again, instead of manually define the controls for each parameter/input by hand.
+The ParameterCollection was not written to be used instead of classes. This was primarly written to be used with Interfaces or other similar situations where the classes who implements an interface can get nearly any number and different type of response from a user. It is also suitable in other situations where much input from a user is required. This as it is relatively easy to create a GUI with reusable controls for the user that can be used over and over again, instead of manually define the controls for each parameter/input by hand.
 
 ### Concrete example
 
@@ -59,9 +59,11 @@ If you will convert to any other ParameterType or will convert more in same clas
 
 ## GUI-frontends
 
-Here is a list of known packages that will provide an editor for a given framework:
+Here is a list of known packages that will provide an editor for a given framework (mark that some may be more finished, updated and in better shape than others):
 
 - [GenericParameterCollection.EtoForms](https://github.com/HeruEwasham/GenericParameterCollection.EtoForms)
+- [GenericParameterCollection.Maui](https://github.com/HeruEwasham/GenericParameterCollection.Maui)
+- [GenericParameterCollection.Console](https://github.com/HeruEwasham/GenericParameterCollection.Console)
 
 Have you made a package that will fit here? Create an issue with link or create a PR.
 
