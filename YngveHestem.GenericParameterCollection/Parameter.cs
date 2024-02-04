@@ -1,8 +1,10 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Drawing;
+using System.Linq;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
+using YngveHestem.GenericParameterCollection.ParameterValueConverters;
 
 namespace YngveHestem.GenericParameterCollection
 {
@@ -17,11 +19,25 @@ namespace YngveHestem.GenericParameterCollection
         [JsonProperty("value")]
         private JToken _value { get; set; }
 
-        [JsonProperty("info")]
+        [JsonProperty("info", NullValueHandling = NullValueHandling.Ignore)]
         private ParameterCollection _additionalInfo { get; set; }
 
-        private static JsonSerializer _jsonSerializer = JsonSerializer.CreateDefault(ParameterConverterExtensions.GetJsonSerializerSettings());
+        [JsonProperty("customConverters", NullValueHandling = NullValueHandling.Ignore)]
+        private List<IParameterValueConverter> _customParameterValueConverters { get; set; }
 
+        internal static IParameterValueConverter[] DefaultParameterValueConverters = new IParameterValueConverter[]
+        {
+            new IntParameterConverter(),
+            new StringParameterConverter(),
+            new DecimalParameterConverter(),
+            new BoolParameterConverter(),
+            new BytesParameterConverter(),
+            new DateTimeParameterConverter(),
+            new ParameterCollectionParameterConverterForParameterCollection(),
+            new EnumParameterConverter(),
+            new SelectParameterConverter()
+        };
+        
         /// <summary>
         /// Save a new parameter with the given values. The value are converted to the raw JToken that is stored.
         /// </summary>
@@ -30,40 +46,18 @@ namespace YngveHestem.GenericParameterCollection
         /// <param name="type">The type this parameter is.</param>
         /// <param name="additionalInfo">This is a parameter that can be used to add more information to the parameter. This can for example be used to communicate between the part of the program that wants some parameters, and the part that show the parameters to the user, like tell that it only allow subsets of what the type can deliver. It can also be used the other way, to give more information about the content without needing to have seperate parameters to search for.</param>
         [JsonConstructor]
-        private Parameter(string key, JToken value, ParameterType type, ParameterCollection additionalInfo)
+        private Parameter(string key, JToken value, ParameterType type, ParameterCollection additionalInfo, IEnumerable<IParameterValueConverter> customConverters)
         {
             Key = key;
             _value = value;
             Type = type;
             _additionalInfo = additionalInfo;
+            if (customConverters != null)
+            {
+                _customParameterValueConverters = customConverters.ToList();
+            }
         }
 
-        /// <summary>
-        /// Save a new parameter with a specified ParameterType as a ParameterCollection. This is just for internal use when new types are created.
-        /// </summary>
-        /// <param name="key">The given key.</param>
-        /// <param name="value">The given value as a ParameterCollection.</param>
-        /// <param name="type">The type to tell this parameter is.</param>
-        /// <param name="additionalInfo">This is a parameter that can be used to add more information to the parameter. This can for example be used to communicate between the part of the program that wants some parameters, and the part that show the parameters to the user, like tell that it only allow subsets of what the type can deliver. It can also be used the other way, to give more information about the content without needing to have seperate parameters to search for.</param>
-        private Parameter(string key, ParameterCollection value, ParameterType type, ParameterCollection additionalInfo) : this(key, JToken.FromObject(value, _jsonSerializer), type, additionalInfo) { }
-
-        /// <summary>
-        /// Save a new parameter with a specified ParameterType as an ienumerable of ParameterCollection. This is just for internal use when new types are created.
-        /// </summary>
-        /// <param name="key">The given key.</param>
-        /// <param name="value">The given value as an ienumerable of ParameterCollection.</param>
-        /// <param name="type">The type to tell this parameter is.</param>
-        /// <param name="additionalInfo">This is a parameter that can be used to add more information to the parameter. This can for example be used to communicate between the part of the program that wants some parameters, and the part that show the parameters to the user, like tell that it only allow subsets of what the type can deliver. It can also be used the other way, to give more information about the content without needing to have seperate parameters to search for.</param>
-        private Parameter(string key, IEnumerable<ParameterCollection> value, ParameterType type, ParameterCollection additionalInfo) : this(key, JToken.FromObject(value, _jsonSerializer), type, additionalInfo) { }
-
-        /// <summary>
-        /// Save a new parameter with a specified ParameterType as an ienumerable of strings. This is just for internal use when new types are created.
-        /// </summary>
-        /// <param name="key">The given key.</param>
-        /// <param name="value">The given value as an ienumerable of strings.</param>
-        /// <param name="type">The type to tell this parameter is.</param>
-        /// <param name="additionalInfo">This is a parameter that can be used to add more information to the parameter. This can for example be used to communicate between the part of the program that wants some parameters, and the part that show the parameters to the user, like tell that it only allow subsets of what the type can deliver. It can also be used the other way, to give more information about the content without needing to have seperate parameters to search for.</param>
-        private Parameter(string key, IEnumerable<string> value, ParameterType type, ParameterCollection additionalInfo) : this(key, JToken.FromObject(value, _jsonSerializer), type, additionalInfo) { }
 
         /// <summary>
         /// Create a new parameter.
@@ -72,55 +66,9 @@ namespace YngveHestem.GenericParameterCollection
         /// <param name="value">The given string value.</param>
         /// <param name="multiline">Is the string meant to be multiline or should it only be a one-liner.</param>
         /// <param name="additionalInfo">This is a parameter that can be used to add more information to the parameter. This can for example be used to communicate between the part of the program that wants some parameters, and the part that show the parameters to the user, like tell that it only allow subsets of what the type can deliver. It can also be used the other way, to give more information about the content without needing to have seperate parameters to search for.</param>
-        public Parameter(string key, string value, bool multiline = false, ParameterCollection additionalInfo = null) : this(key, value, multiline ? ParameterType.String_Multiline : ParameterType.String, additionalInfo) { }
-
-        /// <summary>
-        /// Create a new parameter.
-        /// </summary>
-        /// <param name="key">The given key.</param>
-        /// <param name="value">The given value.</param>
-        /// <param name="additionalInfo">This is a parameter that can be used to add more information to the parameter. This can for example be used to communicate between the part of the program that wants some parameters, and the part that show the parameters to the user, like tell that it only allow subsets of what the type can deliver. It can also be used the other way, to give more information about the content without needing to have seperate parameters to search for.</param>
-        public Parameter(string key, int value, ParameterCollection additionalInfo = null) : this(key, value.ToString(), ParameterType.Int, additionalInfo) { }
-
-        /// <summary>
-        /// Create a new parameter.
-        /// </summary>
-        /// <param name="key">The given key.</param>
-        /// <param name="value">The given value.</param>
-        /// <param name="additionalInfo">This is a parameter that can be used to add more information to the parameter. This can for example be used to communicate between the part of the program that wants some parameters, and the part that show the parameters to the user, like tell that it only allow subsets of what the type can deliver. It can also be used the other way, to give more information about the content without needing to have seperate parameters to search for.</param>
-        public Parameter(string key, float value, ParameterCollection additionalInfo = null) : this(key, value, ParameterType.Float, additionalInfo) { }
-
-        /// <summary>
-        /// Create a new parameter.
-        /// </summary>
-        /// <param name="key">The given key.</param>
-        /// <param name="value">The given value.</param>
-        /// <param name="additionalInfo">This is a parameter that can be used to add more information to the parameter. This can for example be used to communicate between the part of the program that wants some parameters, and the part that show the parameters to the user, like tell that it only allow subsets of what the type can deliver. It can also be used the other way, to give more information about the content without needing to have seperate parameters to search for.</param>
-        public Parameter(string key, long value, ParameterCollection additionalInfo = null) : this(key, value, ParameterType.Long, additionalInfo) { }
-
-        /// <summary>
-        /// Create a new parameter.
-        /// </summary>
-        /// <param name="key">The given key.</param>
-        /// <param name="value">The given value.</param>
-        /// <param name="additionalInfo">This is a parameter that can be used to add more information to the parameter. This can for example be used to communicate between the part of the program that wants some parameters, and the part that show the parameters to the user, like tell that it only allow subsets of what the type can deliver. It can also be used the other way, to give more information about the content without needing to have seperate parameters to search for.</param>
-        public Parameter(string key, double value, ParameterCollection additionalInfo = null) : this(key, value, ParameterType.Double, additionalInfo) { }
-
-        /// <summary>
-        /// Create a new parameter.
-        /// </summary>
-        /// <param name="key">The given key.</param>
-        /// <param name="value">The given value.</param>
-        /// <param name="additionalInfo">This is a parameter that can be used to add more information to the parameter. This can for example be used to communicate between the part of the program that wants some parameters, and the part that show the parameters to the user, like tell that it only wants the content of an image or video files. It can also be used the other way, to give more information about the content without needing to have seperate parameters to search for.</param>
-        public Parameter(string key, byte[] value, ParameterCollection additionalInfo = null) : this(key, Convert.ToBase64String(value), ParameterType.Bytes, additionalInfo) { }
-
-        /// <summary>
-        /// Create a new parameter.
-        /// </summary>
-        /// <param name="key">The given key.</param>
-        /// <param name="value">The given value.</param>
-        /// <param name="additionalInfo">This is a parameter that can be used to add more information to the parameter. This can for example be used to communicate between the part of the program that wants some parameters, and the part that show the parameters to the user, like tell that it only allow subsets of what the type can deliver. It can also be used the other way, to give more information about the content without needing to have seperate parameters to search for.</param>
-        public Parameter(string key, bool value, ParameterCollection additionalInfo = null) : this(key, value, ParameterType.Bool, additionalInfo) { }
+        /// <param name="customConvertersToSave">Here goes custom converters needed to convert value (if default converters don't support it, or you want it saved differently). The converters added here will be saved to the parameter. More converters can also be added later.</param>
+        /// <param name="customConvertersToOnlyUseNow">Here goes custom converters needed to convert value (if default converters don't support it, or you want it saved differently). The converters added here will not be saved to the parameter, but only be used to convert the inputted value to the parameter.</param>
+        public Parameter(string key, string value, bool multiline = false, ParameterCollection additionalInfo = null, IEnumerable<IParameterValueConverter> customConvertersToSave = null, IEnumerable<IParameterValueConverter> customConvertersToOnlyUseNow = null) : this(key, value, multiline ? ParameterType.String_Multiline : ParameterType.String, additionalInfo, customConvertersToSave, customConvertersToOnlyUseNow) { }
 
         /// <summary>
         /// Create a new parameter.
@@ -129,7 +77,9 @@ namespace YngveHestem.GenericParameterCollection
         /// <param name="value">The given value.</param>
         /// <param name="onlyDate">Is both the date and date part relevant or is it only the date that is relevant.</param>
         /// <param name="additionalInfo">This is a parameter that can be used to add more information to the parameter. This can for example be used to communicate between the part of the program that wants some parameters, and the part that show the parameters to the user, like tell that it only allow subsets of what the type can deliver. It can also be used the other way, to give more information about the content without needing to have seperate parameters to search for.</param>
-        public Parameter(string key, DateTime value, bool onlyDate = false, ParameterCollection additionalInfo = null) : this(key, value, onlyDate ? ParameterType.Date : ParameterType.DateTime, additionalInfo) { }
+        /// <param name="customConvertersToSave">Here goes custom converters needed to convert value (if default converters don't support it, or you want it saved differently). The converters added here will be saved to the parameter. More converters can also be added later.</param>
+        /// <param name="customConvertersToOnlyUseNow">Here goes custom converters needed to convert value (if default converters don't support it, or you want it saved differently). The converters added here will not be saved to the parameter, but only be used to convert the inputted value to the parameter.</param>
+        public Parameter(string key, DateTime value, bool onlyDate = false, ParameterCollection additionalInfo = null, IEnumerable<IParameterValueConverter> customConvertersToSave = null, IEnumerable<IParameterValueConverter> customConvertersToOnlyUseNow = null) : this(key, value, onlyDate ? ParameterType.Date : ParameterType.DateTime, additionalInfo, customConvertersToSave, customConvertersToOnlyUseNow) { }
 
         /// <summary>
         /// Create a new parameter.
@@ -138,47 +88,9 @@ namespace YngveHestem.GenericParameterCollection
         /// <param name="value">The given value.</param>
         /// <param name="multiline">Is the strings meant to be multiline or should it only be one-liners.</param>
         /// <param name="additionalInfo">This is a parameter that can be used to add more information to the parameter. This can for example be used to communicate between the part of the program that wants some parameters, and the part that show the parameters to the user, like tell that it only allow subsets of what the type can deliver. It can also be used the other way, to give more information about the content without needing to have seperate parameters to search for.</param>
-        public Parameter(string key, IEnumerable<string> value, bool multiline = false, ParameterCollection additionalInfo = null) : this(key, value, multiline ? ParameterType.String_Multiline_IEnumerable : ParameterType.String_IEnumerable, additionalInfo) { }
-
-        /// <summary>
-        /// Create a new parameter.
-        /// </summary>
-        /// <param name="key">The given key.</param>
-        /// <param name="value">The given value.</param>
-        /// <param name="additionalInfo">This is a parameter that can be used to add more information to the parameter. This can for example be used to communicate between the part of the program that wants some parameters, and the part that show the parameters to the user, like tell that it only allow subsets of what the type can deliver. It can also be used the other way, to give more information about the content without needing to have seperate parameters to search for.</param>
-        public Parameter(string key, IEnumerable<int> value, ParameterCollection additionalInfo = null) : this(key, JToken.FromObject(value), ParameterType.Int_IEnumerable, additionalInfo) { }
-
-        /// <summary>
-        /// Create a new parameter.
-        /// </summary>
-        /// <param name="key">The given key.</param>
-        /// <param name="value">The given value.</param>
-        /// <param name="additionalInfo">This is a parameter that can be used to add more information to the parameter. This can for example be used to communicate between the part of the program that wants some parameters, and the part that show the parameters to the user, like tell that it only allow subsets of what the type can deliver. It can also be used the other way, to give more information about the content without needing to have seperate parameters to search for.</param>
-        public Parameter(string key, IEnumerable<float> value, ParameterCollection additionalInfo = null) : this(key, JToken.FromObject(value), ParameterType.Float_IEnumerable, additionalInfo) { }
-
-        /// <summary>
-        /// Create a new parameter.
-        /// </summary>
-        /// <param name="key">The given key.</param>
-        /// <param name="value">The given value.</param>
-        /// <param name="additionalInfo">This is a parameter that can be used to add more information to the parameter. This can for example be used to communicate between the part of the program that wants some parameters, and the part that show the parameters to the user, like tell that it only allow subsets of what the type can deliver. It can also be used the other way, to give more information about the content without needing to have seperate parameters to search for.</param>
-        public Parameter(string key, IEnumerable<double> value, ParameterCollection additionalInfo = null) : this(key, JToken.FromObject(value), ParameterType.Double_IEnumerable, additionalInfo) { }
-
-        /// <summary>
-        /// Create a new parameter.
-        /// </summary>
-        /// <param name="key">The given key.</param>
-        /// <param name="value">The given value.</param>
-        /// <param name="additionalInfo">This is a parameter that can be used to add more information to the parameter. This can for example be used to communicate between the part of the program that wants some parameters, and the part that show the parameters to the user, like tell that it only allow subsets of what the type can deliver. It can also be used the other way, to give more information about the content without needing to have seperate parameters to search for.</param>
-        public Parameter(string key, IEnumerable<long> value, ParameterCollection additionalInfo = null) : this(key, JToken.FromObject(value), ParameterType.Long_IEnumerable, additionalInfo) { }
-
-        /// <summary>
-        /// Create a new parameter.
-        /// </summary>
-        /// <param name="key">The given key.</param>
-        /// <param name="value">The given value.</param>
-        /// <param name="additionalInfo">This is a parameter that can be used to add more information to the parameter. This can for example be used to communicate between the part of the program that wants some parameters, and the part that show the parameters to the user, like tell that it only allow subsets of what the type can deliver. It can also be used the other way, to give more information about the content without needing to have seperate parameters to search for.</param>
-        public Parameter(string key, IEnumerable<bool> value, ParameterCollection additionalInfo = null) : this(key, JToken.FromObject(value), ParameterType.Bool_IEnumerable, additionalInfo) { }
+        /// <param name="customConvertersToSave">Here goes custom converters needed to convert value (if default converters don't support it, or you want it saved differently). The converters added here will be saved to the parameter. More converters can also be added later.</param>
+        /// <param name="customConvertersToOnlyUseNow">Here goes custom converters needed to convert value (if default converters don't support it, or you want it saved differently). The converters added here will not be saved to the parameter, but only be used to convert the inputted value to the parameter.</param>
+        public Parameter(string key, IEnumerable<string> value, bool multiline = false, ParameterCollection additionalInfo = null, IEnumerable<IParameterValueConverter> customConvertersToSave = null, IEnumerable<IParameterValueConverter> customConvertersToOnlyUseNow = null) : this(key, value, multiline ? ParameterType.String_Multiline_IEnumerable : ParameterType.String_IEnumerable, additionalInfo, customConvertersToSave, customConvertersToOnlyUseNow) { }
 
         /// <summary>
         /// Create a new parameter.
@@ -187,31 +99,9 @@ namespace YngveHestem.GenericParameterCollection
         /// <param name="value">The given value.</param>
         /// <param name="onlyDate">Is both the date and date part relevant in this list or is it only the date that is relevant.</param>
         /// <param name="additionalInfo">This is a parameter that can be used to add more information to the parameter. This can for example be used to communicate between the part of the program that wants some parameters, and the part that show the parameters to the user, like tell that it only allow subsets of what the type can deliver. It can also be used the other way, to give more information about the content without needing to have seperate parameters to search for.</param>
-        public Parameter(string key, IEnumerable<DateTime> value, bool onlyDate = false, ParameterCollection additionalInfo = null) : this(key, JToken.FromObject(value), onlyDate ? ParameterType.Date_IEnumerable : ParameterType.DateTime_IEnumerable, additionalInfo) { }
-
-        /// <summary>
-        /// Create a new parameter.
-        /// </summary>
-        /// <param name="key">The given key.</param>
-        /// <param name="value">The given value.</param>
-        /// <param name="additionalInfo">This is a parameter that can be used to add more information to the parameter. This can for example be used to communicate between the part of the program that wants some parameters, and the part that show the parameters to the user, like tell that it only allow subsets of what the type can deliver. It can also be used the other way, to give more information about the content without needing to have seperate parameters to search for.</param>
-        public Parameter(string key, ParameterCollection value, ParameterCollection additionalInfo = null) : this(key, value, ParameterType.ParameterCollection, additionalInfo) { }
-
-        /// <summary>
-        /// Create a new parameter.
-        /// </summary>
-        /// <param name="key">The given key.</param>
-        /// <param name="value">The given value.</param>
-        /// <param name="additionalInfo">This is a parameter that can be used to add more information to the parameter. This can for example be used to communicate between the part of the program that wants some parameters, and the part that show the parameters to the user, like tell that it only allow subsets of what the type can deliver. It can also be used the other way, to give more information about the content without needing to have seperate parameters to search for.</param>
-        public Parameter(string key, IEnumerable<ParameterCollection> value, ParameterCollection additionalInfo = null) : this(key, value, ParameterType.ParameterCollection_IEnumerable, additionalInfo) { }
-
-        /// <summary>
-        /// Create a new parameter.
-        /// </summary>
-        /// <param name="key">The given key.</param>
-        /// <param name="value">The given value.</param>
-        /// <param name="additionalInfo">This is a parameter that can be used to add more information to the parameter. This can for example be used to communicate between the part of the program that wants some parameters, and the part that show the parameters to the user, like tell that it only allow subsets of what the type can deliver. It can also be used the other way, to give more information about the content without needing to have seperate parameters to search for.</param>
-        public Parameter(string key, Enum value, ParameterCollection additionalInfo = null) : this(key, value.ToParameterCollection(), ParameterType.Enum, additionalInfo) { }
+        /// <param name="customConvertersToSave">Here goes custom converters needed to convert value (if default converters don't support it, or you want it saved differently). The converters added here will be saved to the parameter. More converters can also be added later.</param>
+        /// <param name="customConvertersToOnlyUseNow">Here goes custom converters needed to convert value (if default converters don't support it, or you want it saved differently). The converters added here will not be saved to the parameter, but only be used to convert the inputted value to the parameter.</param>
+        public Parameter(string key, IEnumerable<DateTime> value, bool onlyDate = false, ParameterCollection additionalInfo = null, IEnumerable<IParameterValueConverter> customConvertersToSave = null, IEnumerable<IParameterValueConverter> customConvertersToOnlyUseNow = null) : this(key, value, onlyDate ? ParameterType.Date_IEnumerable : ParameterType.DateTime_IEnumerable, additionalInfo, customConvertersToSave, customConvertersToOnlyUseNow) { }
 
         /// <summary>
         /// Create a new parameter where you can choose one value between some given choices.
@@ -220,7 +110,9 @@ namespace YngveHestem.GenericParameterCollection
         /// <param name="value">The given value. This value must be exact the same as one of the choices in the list of choices.</param>
         /// <param name="choices">A list of choices.</param>
         /// <param name="additionalInfo">This is a parameter that can be used to add more information to the parameter. This can for example be used to communicate between the part of the program that wants some parameters, and the part that show the parameters to the user, like tell that it only allow subsets of what the type can deliver. It can also be used the other way, to give more information about the content without needing to have seperate parameters to search for.</param>
-        public Parameter(string key, string value, IEnumerable<string> choices, ParameterCollection additionalInfo = null) : this(key, ParameterConverterExtensions.SelectOneToParameterCollection(value, choices), ParameterType.SelectOne, additionalInfo) { }
+        /// <param name="customConvertersToSave">Here goes custom converters needed to convert value (if default converters don't support it, or you want it saved differently). The converters added here will be saved to the parameter. More converters can also be added later.</param>
+        /// <param name="customConvertersToOnlyUseNow">Here goes custom converters needed to convert value (if default converters don't support it, or you want it saved differently). The converters added here will not be saved to the parameter, but only be used to convert the inputted value to the parameter.</param>
+        public Parameter(string key, string value, IEnumerable<string> choices, ParameterCollection additionalInfo = null, IEnumerable<IParameterValueConverter> customConvertersToSave = null, IEnumerable<IParameterValueConverter> customConvertersToOnlyUseNow = null) : this(key, ParameterConverterExtensions.SelectOneToParameterCollection(value, choices), ParameterType.SelectOne, additionalInfo, customConvertersToSave, customConvertersToOnlyUseNow) { }
 
         /// <summary>
         /// Create a new parameter where you can choose one or more values between some given choices.
@@ -229,75 +121,269 @@ namespace YngveHestem.GenericParameterCollection
         /// <param name="value">The given value(s). Each string must be exact the same as one of the choices in the list of choices.</param>
         /// <param name="choices">A list of choices.</param>
         /// <param name="additionalInfo">This is a parameter that can be used to add more information to the parameter. This can for example be used to communicate between the part of the program that wants some parameters, and the part that show the parameters to the user, like tell that it only allow subsets of what the type can deliver. It can also be used the other way, to give more information about the content without needing to have seperate parameters to search for.</param>
-        public Parameter(string key, IEnumerable<string> value, IEnumerable<string> choices, ParameterCollection additionalInfo = null) : this(key, ParameterConverterExtensions.SelectManyToParameterCollection(value, choices), ParameterType.SelectMany, additionalInfo) { }
+        /// <param name="customConvertersToSave">Here goes custom converters needed to convert value (if default converters don't support it, or you want it saved differently). The converters added here will be saved to the parameter. More converters can also be added later.</param>
+        /// <param name="customConvertersToOnlyUseNow">Here goes custom converters needed to convert value (if default converters don't support it, or you want it saved differently). The converters added here will not be saved to the parameter, but only be used to convert the inputted value to the parameter.</param>
+        public Parameter(string key, IEnumerable<string> value, IEnumerable<string> choices, ParameterCollection additionalInfo = null, IEnumerable<IParameterValueConverter> customConvertersToSave = null, IEnumerable<IParameterValueConverter> customConvertersToOnlyUseNow = null) : this(key, ParameterConverterExtensions.SelectManyToParameterCollection(value, choices), ParameterType.SelectMany, additionalInfo, customConvertersToSave, customConvertersToOnlyUseNow) { }
 
         /// <summary>
-        /// Gets the value converted to correct value as object
+        /// Create a new parameter where you pass an object and the parameter-type you want it saved as. Mark that it needs to be a converter that supports the conversion, so if one of the default converters do not support the conversion, one or more converters that support the conversion must be added.
+        /// </summary>
+        /// <param name="key">The given key.</param>
+        /// <param name="value">The given value.</param>
+        /// <param name="parameterType">The wanted type the parameter shall save/consider it as.</param>
+        /// <param name="additionalInfo">This is a parameter that can be used to add more information to the parameter. This can for example be used to communicate between the part of the program that wants some parameters, and the part that show the parameters to the user, like tell that it only allow subsets of what the type can deliver. It can also be used the other way, to give more information about the content without needing to have seperate parameters to search for.</param>
+        /// <param name="customConvertersToSave">Here goes custom converters needed to convert value (if default converters don't support it, or you want it saved differently). The converters added here will be saved to the parameter. More converters can also be added later.</param>
+        /// <param name="customConvertersToOnlyUseNow">Here goes custom converters needed to convert value (if default converters don't support it, or you want it saved differently). The converters added here will not be saved to the parameter, but only be used to convert the inputted value to the parameter.</param>
+        public Parameter(string key, object value, ParameterType parameterType, ParameterCollection additionalInfo = null, IEnumerable<IParameterValueConverter> customConvertersToSave = null, IEnumerable<IParameterValueConverter> customConvertersToOnlyUseNow = null)
+        {
+            if (customConvertersToSave != null)
+            {
+                _customParameterValueConverters = customConvertersToSave.ToList();
+            }
+
+            var converter = GetSuitableConverterFromValue(value, parameterType, customConvertersToOnlyUseNow);
+
+            Key = key;
+            _value = converter.ConvertFromValue(parameterType, value.GetType(), value, ParameterConverterExtensions.JsonSerializer);
+            Type = parameterType;
+            _additionalInfo = additionalInfo;
+        }
+
+        /// <summary>
+        /// Create a new parameter where you pass an object. How the parameter should be converted to one of the parameter-types is decided automatically based on the values type. Mark that it needs to be a converter that supports the conversion, so if one of the default converters do not support the conversion, one or more converters that support the conversion must be added.
+        /// </summary>
+        /// <param name="key">he given key.</param>
+        /// <param name="value">The given value.</param>
+        /// <param name="additionalInfo">This is a parameter that can be used to add more information to the parameter. This can for example be used to communicate between the part of the program that wants some parameters, and the part that show the parameters to the user, like tell that it only allow subsets of what the type can deliver. It can also be used the other way, to give more information about the content without needing to have seperate parameters to search for.</param>
+        /// <param name="customConverters">Here can custom converters needed to convert value (if default converters don't support it, or you want it saved differently). More converters can also be added later.</param>
+        public Parameter(string key, object value, ParameterCollection additionalInfo = null, IEnumerable<IParameterValueConverter> customConvertersToSave = null, IEnumerable<IParameterValueConverter> customConvertersToOnlyUseNow = null) : this(key, value, GetBestSuitableParameterType(value, customConvertersToSave, customConvertersToOnlyUseNow), additionalInfo, customConvertersToSave, customConvertersToOnlyUseNow) { }
+
+        /// <summary>
+        /// Adds a new custom converter that could be used by parameter.
+        /// </summary>
+        /// <param name="parameterValueConverter">The converter to add.</param>
+        public void AddCustomConverter(IParameterValueConverter parameterValueConverter)
+        {
+            if (_customParameterValueConverters == null)
+            {
+                _customParameterValueConverters = new List<IParameterValueConverter>();
+            }
+            _customParameterValueConverters.Add(parameterValueConverter);
+        }
+
+        /// <summary>
+        /// Adds one or more custom converters that could be used by parameter.
+        /// </summary>
+        /// <param name="parameterValueConverters">The converter(s) to add.</param>
+        public void AddCustomConverter(IEnumerable<IParameterValueConverter> parameterValueConverters)
+        {
+            foreach(var converter in parameterValueConverters)
+            {
+                AddCustomConverter(converter);
+            }
+        }
+
+        /// <summary>
+        /// Gets all the custom converters added to the given parameter.
         /// </summary>
         /// <returns></returns>
-        public object GetValue()
+        public List<IParameterValueConverter> GetCustomConverters()
+        {
+            return _customParameterValueConverters;
+        }
+
+        private static ParameterType GetBestSuitableParameterType(object value, IEnumerable<IParameterValueConverter> customConverters1, IEnumerable<IParameterValueConverter> customConverters2 = null)
+        {
+            var customConverters = (customConverters1 ?? Enumerable.Empty<IParameterValueConverter>()).Concat(customConverters2 ?? Enumerable.Empty<IParameterValueConverter>()).ToArray();
+            var valueType = value.GetType();
+            if (valueType == typeof(string))
+            {
+                if (((string)value).Contains('\n'))
+                {
+                    return ParameterType.String_Multiline;
+                }
+                else
+                {
+                    return ParameterType.String;
+                }
+            }
+            else if (valueType == typeof(int) || valueType == typeof(long))
+            {
+                return ParameterType.Int;
+            }
+            else if (valueType == typeof(float) || valueType == typeof(double) || valueType == typeof(decimal))
+            {
+                return ParameterType.Decimal;
+            }
+            else if (typeof(IEnumerable<byte>).IsAssignableFrom(valueType))
+            {
+                return ParameterType.Bytes;
+            }
+            else if (valueType == typeof(bool))
+            {
+                return ParameterType.Bool;
+            }
+            else if (valueType == typeof(DateTime))
+            {
+                if (((DateTime)value).TimeOfDay == TimeSpan.Zero)
+                {
+                    return ParameterType.Date;
+                }
+                else
+                {
+                    return ParameterType.DateTime;
+                }
+            }
+            else if (valueType == typeof(ParameterCollection))
+            {
+                return ParameterType.ParameterCollection;
+            }
+            else if (typeof(IEnumerable<string>).IsAssignableFrom(valueType))
+            {
+                if (((IEnumerable<string>)value).Any(s => s.Contains('\n')))
+                {
+                    return ParameterType.String_Multiline_IEnumerable;
+                }
+                else
+                {
+                    return ParameterType.String_IEnumerable;
+                }
+            }
+            else if (typeof(IEnumerable<int>).IsAssignableFrom(valueType) || typeof(IEnumerable<long>).IsAssignableFrom(valueType))
+            {
+                return ParameterType.Int_IEnumerable;
+            }
+            else if (typeof(IEnumerable<float>).IsAssignableFrom(valueType) || typeof(IEnumerable<double>).IsAssignableFrom(valueType) || typeof(IEnumerable<decimal>).IsAssignableFrom(valueType))
+            {
+                return ParameterType.Decimal_IEnumerable;
+            }
+            else if (typeof(IEnumerable<bool>).IsAssignableFrom(valueType))
+            {
+                return ParameterType.Bool_IEnumerable;
+            }
+            else if (typeof(IEnumerable<DateTime>).IsAssignableFrom(valueType))
+            {
+                if (((IEnumerable<DateTime>)value).All(v => v.TimeOfDay == TimeSpan.Zero))
+                {
+                    return ParameterType.Date_IEnumerable;
+                }
+                else
+                {
+                    return ParameterType.DateTime_IEnumerable;
+                }
+            }
+            else if (typeof(IEnumerable<ParameterCollection>).IsAssignableFrom(valueType))
+            {
+                return ParameterType.ParameterCollection_IEnumerable;
+            }
+            else if (typeof(Enum).IsAssignableFrom(valueType))
+            {
+                return ParameterType.Enum;
+            }
+            else if (customConverters != null)
+            {
+                foreach (var type in (IEnumerable<ParameterType>)Enum.GetValues(typeof(ParameterType)))
+                {
+                    var converter = customConverters.FirstOrDefault(c => c.CanConvertFromValue(type, valueType, value));
+                    if (converter != null)
+                    {
+                        return type;
+                    }
+                }
+            }
+
+            throw new ArgumentException("Did not find any suitable ParameterType for the valuetype " + valueType);
+        }
+
+        private IParameterValueConverter GetSuitableConverterFromValue(object value, ParameterType parameterType, IEnumerable<IParameterValueConverter> parameterValueConverters)
+        {
+            var valueType = value.GetType();
+            var converter = parameterValueConverters != null ? parameterValueConverters.FirstOrDefault(c => c.CanConvertFromValue(parameterType, valueType, value)) : null;
+
+            if (converter != null)
+            {
+                return converter;
+            }
+
+            converter = _customParameterValueConverters != null ? _customParameterValueConverters.FirstOrDefault(c => c.CanConvertFromValue(parameterType, valueType, value)) : null;
+
+            if (converter != null)
+            {
+                return converter;
+            }
+
+            converter = DefaultParameterValueConverters.FirstOrDefault(c => c.CanConvertFromValue(parameterType, valueType, value));
+
+            if (converter != null)
+            {
+                return converter;
+            }
+
+            throw new ArgumentOutOfRangeException("Converter to support this conversion between this value in type " + valueType.Name + " to parameter type " + parameterType + " was not found.");
+        }
+
+        /// <summary>
+        /// Gets the value converted to correct value as object.
+        /// </summary>
+        /// <param name="typeToGet">The specified type to get.</param>
+        /// <returns></returns>
+        public object GetValue(Type typeToGet)
         {
             try
             {
-                switch (Type)
-                {
-                    case ParameterType.Int:
-                        return _value.ToObject<int>(_jsonSerializer);
-                    case ParameterType.String:
-                        return _value.ToObject<string>(_jsonSerializer);
-                    case ParameterType.String_Multiline:
-                        return _value.ToObject<string>(_jsonSerializer);
-                    case ParameterType.Float:
-                        return _value.ToObject<float>(_jsonSerializer);
-                    case ParameterType.Double:
-                        return _value.ToObject<double>(_jsonSerializer);
-                    case ParameterType.Long:
-                        return _value.ToObject<long>(_jsonSerializer);
-                    case ParameterType.Bytes:
-                        return Convert.FromBase64String(_value.ToObject<string>(_jsonSerializer));
-                    case ParameterType.Bool:
-                        return _value.ToObject<bool>();
-                    case ParameterType.DateTime:
-                        return _value.ToObject<DateTime>();
-                    case ParameterType.Date:
-                        return _value.ToObject<DateTime>();
-                    case ParameterType.ParameterCollection:
-                        return _value.ToObject<ParameterCollection>(_jsonSerializer);
-                    case ParameterType.String_IEnumerable:
-                        return _value.ToObject<IEnumerable<string>>(_jsonSerializer);
-                    case ParameterType.String_Multiline_IEnumerable:
-                        return _value.ToObject<IEnumerable<string>>(_jsonSerializer);
-                    case ParameterType.Int_IEnumerable:
-                        return _value.ToObject<IEnumerable<int>>(_jsonSerializer);
-                    case ParameterType.Float_IEnumerable:
-                        return _value.ToObject<IEnumerable<float>>(_jsonSerializer);
-                    case ParameterType.Double_IEnumerable:
-                        return _value.ToObject<IEnumerable<double>>(_jsonSerializer);
-                    case ParameterType.Long_IEnumerable:
-                        return _value.ToObject<IEnumerable<long>>(_jsonSerializer);
-                    case ParameterType.Bool_IEnumerable:
-                        return _value.ToObject<IEnumerable<bool>>(_jsonSerializer);
-                    case ParameterType.DateTime_IEnumerable:
-                        return _value.ToObject<IEnumerable<DateTime>>(_jsonSerializer);
-                    case ParameterType.Date_IEnumerable:
-                        return _value.ToObject<IEnumerable<DateTime>>(_jsonSerializer);
-                    case ParameterType.ParameterCollection_IEnumerable:
-                        return _value.ToObject<IEnumerable<ParameterCollection>>(_jsonSerializer);
-                    case ParameterType.Enum:
-                        var v = _value.ToObject<ParameterCollection>(_jsonSerializer);
-                        return Enum.Parse(ParameterConverterExtensions.GetTypeByName(v.GetByKeyAndType<string>("enumType", ParameterType.String)), v.GetByKeyAndType<string>("enumValue", ParameterType.String), true);
-                    case ParameterType.SelectOne:
-                        return _value.ToObject<ParameterCollection>(_jsonSerializer).GetByKeyAndType<string>("value", ParameterType.String);
-                    case ParameterType.SelectMany:
-                        return _value.ToObject<ParameterCollection>(_jsonSerializer).GetByKeyAndType<string>("value", ParameterType.String);
-                    default:
-                        throw new ArgumentOutOfRangeException();
-                };
+                return GetSuitableConverterToValue(typeToGet).ConvertFromParameter(Type, typeToGet, _value, ParameterConverterExtensions.JsonSerializer);
             }
             catch (Exception e)
             {
-                throw new Exception("Got exception when getting a parameter value. " + Environment.NewLine + ToString(), e);
+                throw new Exception("Got exception when getting a parameter value. Message on exception: " + e.Message + Environment.NewLine + ToString(), e);
             }
+        }
+
+        /// <summary>
+        /// Gets the value converted to correct value as object. Here you can provide your own converters to check first.
+        /// </summary>
+        /// <param name="typeToGet">The specified type to get.</param>
+        /// <param name="parameterValueConverters">Some converters. The function will try these converters first before it will check the other converters.</param>
+        /// <returns></returns>
+        public object GetValue(Type typeToGet, IEnumerable<IParameterValueConverter> parameterValueConverters)
+        {
+            try
+            {
+                if (parameterValueConverters != null)
+                {
+                    var converter = parameterValueConverters.FirstOrDefault(c => c.CanConvertFromParameter(Type, typeToGet, _value, ParameterConverterExtensions.JsonSerializer));
+
+                    if (converter != null)
+                    {
+                        return converter.ConvertFromParameter(Type, typeToGet, _value, ParameterConverterExtensions.JsonSerializer);
+                    }
+                }
+            }
+            catch (Exception e)
+            {
+                throw new Exception("Got exception when getting a parameter value from one of the provided converters. Message on exception: " + e.Message + Environment.NewLine + ToString(), e);
+            }
+
+            return GetValue(typeToGet);
+        }
+
+        private IParameterValueConverter GetSuitableConverterToValue(Type typeToGet)
+        {
+            var converter = _customParameterValueConverters != null ? _customParameterValueConverters.FirstOrDefault(c => c.CanConvertFromParameter(Type, typeToGet, _value, ParameterConverterExtensions.JsonSerializer)) : null;
+
+            if (converter != null)
+            {
+                return converter;
+            }
+
+            converter = DefaultParameterValueConverters.FirstOrDefault(c => c.CanConvertFromParameter(Type, typeToGet, _value, ParameterConverterExtensions.JsonSerializer));
+
+            if (converter != null)
+            {
+                return converter;
+            }
+
+            throw new ArgumentOutOfRangeException("Converter to support this conversion between this value in type " + typeToGet.Name + " from parameter type " + Type + " was not found.");
         }
 
         /// <summary>
@@ -307,7 +393,18 @@ namespace YngveHestem.GenericParameterCollection
         /// <returns></returns>
         public T GetValue<T>()
         {
-            return (T)GetValue();
+            return (T)GetValue(typeof(T));
+        }
+
+        /// <summary>
+        /// Tries to convert the value to correct type and return it as this type. Here you can provide your own converters to check first.
+        /// </summary>
+        /// <typeparam name="T"></typeparam>
+        /// <param name="parameterValueConverters">Some converters. The function will try these converters first before it will check the other converters.</param>
+        /// <returns></returns>
+        public T GetValue<T>(IEnumerable<IParameterValueConverter> parameterValueConverters)
+        {
+            return (T)GetValue(typeof(T), parameterValueConverters);
         }
 
         /// <summary>
@@ -317,18 +414,13 @@ namespace YngveHestem.GenericParameterCollection
         /// <exception cref="NotSupportedException">If this is called for a Parameter with a ParameterType that not support this method. This Exception will be thrown.</exception>
         public IEnumerable<string> GetChoices()
         {
-            if (Type == ParameterType.Enum)
+            var obj = _value.ToObject<ParameterCollection>(ParameterConverterExtensions.JsonSerializer);
+            if (obj.HasKeyAndCanConvertTo("choices", typeof(IEnumerable<string>)))
             {
-                return _value.ToObject<ParameterCollection>(_jsonSerializer).GetByKeyAndType<IEnumerable<string>>("allPossibleValues", ParameterType.String_IEnumerable);
+                return obj.GetByKey<IEnumerable<string>>("choices");
             }
-            else if (Type == ParameterType.SelectOne || Type == ParameterType.SelectMany)
-            {
-                return _value.ToObject<ParameterCollection>(_jsonSerializer).GetByKeyAndType<IEnumerable<string>>("choices", ParameterType.String_IEnumerable);
-            }
-            else
-            {
-                throw new NotSupportedException("The method " + nameof(GetChoices) + " is currently not supported with the parameter type " + Enum.GetName(typeof(ParameterType), Type) + ". This currently only supports " + ParameterType.Enum.ToString() + ", " + ParameterType.SelectOne.ToString() + " and " + ParameterType.SelectMany.ToString() + ". Other parameters has not an option for this.");
-            }
+
+            throw new NotSupportedException("The method " + nameof(GetChoices) + " is currently not supported with the parameter type " + Enum.GetName(typeof(ParameterType), Type) + ". This currently only supports parameters with the option \"choices\". " + ParameterType.Enum.ToString() + ", " + ParameterType.SelectOne.ToString() + " and " + ParameterType.SelectMany.ToString() + " and possibly some ParameterCollections are supported. Other parameters has not an option for this.");
         }
 
         /// <summary>
@@ -349,12 +441,151 @@ namespace YngveHestem.GenericParameterCollection
             return _additionalInfo;
         }
 
+        /// <summary>
+        /// Sets a new value for this parameter.
+        /// </summary>
+        /// <param name="newValue"></param>
+        /// <returns></returns>
+        /// <exception cref="Exception"></exception>
+        public bool SetValue(object newValue)
+        {
+            var valueType = newValue.GetType();
+            try
+            {
+                if (Type == ParameterType.Enum && valueType == typeof(string))
+                {
+                    var v = _value.ToObject<ParameterCollection>(ParameterConverterExtensions.JsonSerializer);
+                    if (v.GetByKeyAndType<List<string>>("choices", ParameterType.String_IEnumerable).Contains((string)newValue))
+                    {
+                        if (v.GetParameterByKeyAndType("value", ParameterType.String).SetValue(newValue))
+                        {
+                            _value = JToken.FromObject(v, ParameterConverterExtensions.JsonSerializer);
+                            return true;
+                        }
+                    }
+                    return false;
+                }
+                else if (Type == ParameterType.SelectOne && valueType == typeof(string))
+                {
+                    var va = _value.ToObject<ParameterCollection>(ParameterConverterExtensions.JsonSerializer);
+                    if (va.GetByKeyAndType<List<string>>("choices", ParameterType.String_IEnumerable).Contains((string)newValue))
+                    {
+                        if (va.GetParameterByKeyAndType("value", ParameterType.String).SetValue(newValue))
+                        {
+                            _value = JToken.FromObject(va, ParameterConverterExtensions.JsonSerializer);
+                            return true;
+                        }
+                    }
+                    return false;
+                }
+                else if (Type == ParameterType.SelectMany && typeof(IEnumerable<string>).IsAssignableFrom(valueType))
+                {
+                    var va = _value.ToObject<ParameterCollection>(ParameterConverterExtensions.JsonSerializer);
+                    if (va.GetByKeyAndType<List<string>>("choices", ParameterType.String_IEnumerable).Contains((string)newValue))
+                    {
+                        if (va.GetParameterByKeyAndType("value", ParameterType.String_IEnumerable).SetValue(newValue))
+                        {
+                            _value = JToken.FromObject(va, ParameterConverterExtensions.JsonSerializer);
+                            return true;
+                        }
+                    }
+                    return false;
+                }
+
+                try
+                {
+                    _value = GetSuitableConverterFromValue(newValue, Type, null).ConvertFromValue(Type, valueType, newValue, ParameterConverterExtensions.JsonSerializer);
+                    return true;
+                }
+                catch (ArgumentOutOfRangeException)
+                {
+                    return false;
+                }
+                
+            }
+            catch (Exception e)
+            {
+                throw new Exception("Got exception when setting a new parameter value. Message on exception: " + e.Message + Environment.NewLine + ToString(), e);
+            }
+        }
+
+        /// <summary>
+        /// Sets a new value for this parameter.
+        /// </summary>
+        /// <param name="newValue"></param>
+        /// <param name="parameterValueConverters"></param>
+        /// <returns></returns>
+        /// <exception cref="Exception"></exception>
+        public bool SetValue(object newValue, IEnumerable<IParameterValueConverter> parameterValueConverters)
+        {
+            try
+            {
+                if (parameterValueConverters != null)
+                {
+                    var valueType = newValue.GetType();
+                    var converter = parameterValueConverters.FirstOrDefault(c => c.CanConvertFromValue(Type, valueType, newValue));
+
+                    if (converter != null)
+                    {
+                        _value = converter.ConvertFromValue(Type, valueType, newValue, ParameterConverterExtensions.JsonSerializer);
+                        return true;
+                    }
+                }
+
+            }
+            catch (Exception e)
+            {
+                throw new Exception("Got exception when setting a new parameter value based on inputted converter. Message on exception: " + e.Message + Environment.NewLine + ToString(), e);
+            }
+
+            return SetValue(newValue);
+        }
+
         public override string ToString()
         {
             return "Parameter has these values:" + Environment.NewLine +
                 "\tThe key is: " + Key + Environment.NewLine +
                 "\tThe type to convert to is: " + Enum.GetName(typeof(ParameterType), Type) + Environment.NewLine +
                 "\tThe value to convert from is: " + _value.ToString();
+        }
+
+        /// <summary>
+        /// Based on the converters, can we convert it to given type.
+        /// </summary>
+        /// <param name="type">The type we want to convert to.</param>
+        /// <returns></returns>
+        public bool CanBeConvertedTo(Type type)
+        {
+            if (_customParameterValueConverters != null)
+            {
+                if (_customParameterValueConverters.FirstOrDefault(c => c.CanConvertFromParameter(Type, type, _value, ParameterConverterExtensions.JsonSerializer)) != null)
+                {
+                    return true;
+                }
+            }
+
+            if (DefaultParameterValueConverters.FirstOrDefault(c => c.CanConvertFromParameter(Type, type, _value, ParameterConverterExtensions.JsonSerializer)) != null)
+            {
+                return true;
+            }
+
+            return false;
+        }
+
+        /// <summary>
+        /// Based on the converters, can we convert it to given type.
+        /// </summary>
+        /// <param name="type">The type we want to convert to.</param>
+        /// <param name="parameterValueConverters">Some converters. The method will try these converters first before it will check the other converters.</param>
+        /// <returns></returns>
+        public bool CanBeConvertedTo(Type type, IEnumerable<IParameterValueConverter> parameterValueConverters)
+        {
+            if (parameterValueConverters != null && parameterValueConverters.FirstOrDefault(c => c.CanConvertFromParameter(Type, type, _value, ParameterConverterExtensions.JsonSerializer)) != null)
+            {
+                return true;
+            }
+
+            return CanBeConvertedTo(type);
         }
     }
 }
