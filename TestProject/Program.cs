@@ -57,10 +57,17 @@ namespace TestProject
             var c3Copy = ParameterCollection.FromJson(json3);
 
             var example1Params = new TestProject.ExampleWithoutConversion.ExampleConversionWithoutConverters().DefineAnExampleSchool();
+
             var Example2Params = new TestProject.ExampleWithConversion.ExampleConversionWithConverter().DefineAnExampleSchool();
+
             var example3 = new TestProject.ExampleWithConversionWithSchool.ExampleConversionWithConverterWithSchool();
             var example3Params = example3.DefineAnExampleSchool();
             var example3SchoolObject = example3.GetSchool(example3Params);
+
+            var example4 = new TestProject.ExampleWithAttributeConversion.ExampleWithAttributeConversion();
+            var example4Params = example4.DefineExamplePerson();
+            Console.WriteLine(example4Params.ToJson());
+            var example4PersonObject = example4.GetPersonObject(example4Params);
 
 
             Console.ReadLine();

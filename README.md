@@ -51,11 +51,17 @@ Different shapes need different forms of parameters. A rectangle will need a sta
 
 ## Custom converters
 
-While the package has some default converters built in, you can add nearly any value as a parameter by creating custom converters.
+While the package has some default converters built in, you can add nearly any value as a parameter by creating custom converters. It is mainly two ways to create custom converters.
 
-The easiest is to save the value as a ParameterCollection. To create a converter for that you can create a class and inherit from the class ParameterCollectionParameterConverter<TValueType>. TValueType will here be the type that should be converted to/from a ParameterCollection.
+### Create converters with the use of attributes
 
-If you will convert to any other ParameterType or will convert more in same class, you can create a class that implement the IParameterValueConverter.
+Maybe the simplest possible way of creating converters on your own classes will be to use some custom attributes on a type you want to convert. See the examples below for how you can implement different converters.
+
+### Create a converter-class to convert between values
+
+It is possible to convert a object to and from any ParameterType by creating a class that implement the IParameterValueConverter.
+
+If you will make converter class between the ParameterType ParameterCollection and a single object type (per converter-class), you can instead of implementing IParameterValueConverter directly, create a class that inherit from the class ParameterCollectionParameterConverter<TValueType>. This class do some of the heavy lifting for you. TValueType will here be the type that should be converted to/from a ParameterCollection.
 
 ## GUI-frontends
 
@@ -371,3 +377,94 @@ Since both the Person and School-classes converts to ParameterCollection, both t
         }
     }
 ```
+
+### Add types by using attributes instead of custom converters
+
+Here comes an example for using some custom attributes to convert an object to and from ParameterCollection. This might make it easier to convert objects you have at your disposal, as you can mark the object with some attributes.
+
+#### Example code
+
+```
+public class ExampleWithAttributeConversion
+    {
+        public ParameterCollection DefineExamplePerson()
+        {
+            var color = new ExampleColor
+            {
+                Blue = 0.5f,
+                Red = 0.9f
+            };
+
+            return ParameterCollection.FromObject(new Person("Rick Mortimer", color));
+        }
+
+        public Person GetPersonObject(ParameterCollection parameters)
+        {
+            return parameters.ToObject<Person>();
+        }
+    }
+
+    [AttributeConvertible]
+    [AdditionalInfo("type", "color")]
+	public class ExampleColor
+	{
+        [ParameterProperty("r")]
+		[AdditionalInfo("desc", "How much red color. Goes from 0 to 1.")]
+        [AdditionalInfo("minValue", 0.0f)]
+        [AdditionalInfo("maxValue", 1.0f)]
+		public float Red { get; set; } = 1;
+
+        [ParameterProperty("g")]
+        [AdditionalInfo("desc", "How much green color. Goes from 0 to 1.")]
+        [AdditionalInfo("minValue", 0.0f)]
+        [AdditionalInfo("maxValue", 1.0f)]
+        public float Green { get; set; } = 1;
+
+        [ParameterProperty("b")]
+        [AdditionalInfo("desc", "How much blue color. Goes from 0 to 1.")]
+        [AdditionalInfo("minValue", 0.0f)]
+        [AdditionalInfo("maxValue", 1.0f)]
+        public float Blue { get; set; } = 1;
+
+        [ParameterProperty("a")]
+        [AdditionalInfo("desc", "Should the color be transparent or not (or something in between). Goes from 0 to 1.")]
+        [AdditionalInfo("minValue", 0.0f)]
+        [AdditionalInfo("maxValue", 1.0f)]
+        public float Alpha { get; set; } = 1;
+	}
+
+    [AttributeConvertible]
+    public class Person
+    {
+        [ParameterProperty("name")]
+        private string _name;
+
+        [ParameterProperty]
+        private ExampleColor _favoriteColor;
+
+        public Person()
+        {
+            _name = "Unknown";
+            _favoriteColor = new ExampleColor();
+        }
+
+        public Person(string name, ExampleColor color)
+        {
+            _name = name;
+            _favoriteColor = color;
+        }
+    }
+```
+#### How do the attributes work
+
+In the example code, we have two classes that will be converted based on the attribute-notations. The ExampleColor-class and the Person-class.
+
+Both classes have the `[AttributeConvertible]` attribute set. This tells the converter to convert this class using the given attributes.
+
+We can see that all the properties and fields we want to convert has the attribute `[ParameterProperty]` set. This can either be used without given any parameters (as we can see with Persons-class property _favoriteColor), then the given property name will be used as a key, or with a specified key (as the other properties are). You are also able to specify a ParameterType if you want. If this is not set, the system will try to find the best suitable ParameterType for you.
+
+In the example code above we do also use another custom attribute. This is the `[AdditionalInfo]` attribute. This attribute can be used to populate the AdditionalInfo-ParameterCollection for given property. As you might see, even the class itself can have this parameter, and this will be set to the parent-parameter's additionalInfo if a parent parameter exists.
+
+While the `[AttributeConvertible]` attribute needs to be set for the `[AdditionalInfo]` attributes on the classes properties to be used. Any `[AdditionalInfo]` attributes on the class itself will be picked up even if no [AttributeConvertible] is used.
+
+Mark that all classes that will be converted using attributes currently needs to have a parameterless constructor.

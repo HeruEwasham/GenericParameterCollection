@@ -2,6 +2,7 @@
 using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
+using System.Reflection;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
 using YngveHestem.GenericParameterCollection.ParameterValueConverters;
@@ -442,6 +443,12 @@ namespace YngveHestem.GenericParameterCollection
         {
             try
             {
+                var acAttribute = type.GetCustomAttribute<AttributeConvertibleAttribute>();
+                if (acAttribute != null)
+                {
+                    return type.GetObjectFromAttributes(JToken.FromObject(this), acAttribute, customConverters);
+                }
+
                 if (customConverters != null)
                 {
                     var converter = customConverters.FirstOrDefault(c => c.CanConvertFromParameter(ParameterType.ParameterCollection, type, JToken.FromObject(this), ParameterConverterExtensions.JsonSerializer));
@@ -548,8 +555,15 @@ namespace YngveHestem.GenericParameterCollection
         /// <returns></returns>
         public static ParameterCollection FromObject(object value, IEnumerable<IParameterValueConverter> customConverters = null)
         {
+            var type = value.GetType();
+            var acAttribute = type.GetCustomAttribute<AttributeConvertibleAttribute>();
+            if (acAttribute != null && acAttribute.ParameterType == ParameterType.ParameterCollection)
+            {
+                return type.GetParameterCollectionFromAttributes(value, customConverters);
+            }
+
             var converter = GetSuitableConverterFromValue(value, ParameterType.ParameterCollection, customConverters);
-            return converter.ConvertFromValue(ParameterType.ParameterCollection, value.GetType(), value, ParameterConverterExtensions.JsonSerializer).ToObject<ParameterCollection>();
+            return converter.ConvertFromValue(ParameterType.ParameterCollection, type, value, ParameterConverterExtensions.JsonSerializer).ToObject<ParameterCollection>(ParameterConverterExtensions.JsonSerializer);
         }
     }
 }
