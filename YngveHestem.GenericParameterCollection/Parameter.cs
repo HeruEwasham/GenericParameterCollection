@@ -1,7 +1,8 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Drawing;
+using System.Data.Common;
 using System.Linq;
+using System.Reflection;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
 using YngveHestem.GenericParameterCollection.ParameterValueConverters;
@@ -141,10 +142,27 @@ namespace YngveHestem.GenericParameterCollection
                 _customParameterValueConverters = customConvertersToSave.ToList();
             }
 
-            var converter = GetSuitableConverterFromValue(value, parameterType, customConvertersToOnlyUseNow);
+            // Check if can convert via attributes
+            var type = value.GetType();
+            type.GetCustomAttributes<AdditionalInfoAttribute>().GetAdditionalInfoFromAttributes(ref additionalInfo, customConvertersToOnlyUseNow);
+            var acAttribute = type.GetCustomAttribute<AttributeConvertibleAttribute>();
+            if (acAttribute != null)
+            {
+                if (parameterType == ParameterType.ParameterCollection)
+                {
+                    _value = JToken.FromObject(type.GetParameterCollectionFromAttributes(value, customConvertersToOnlyUseNow), ParameterConverterExtensions.JsonSerializer);
+                }
+            }
+            
+
+            // Use converters if value not already set.
+            if (_value == null)
+            {
+                var converter = GetSuitableConverterFromValue(value, parameterType, customConvertersToOnlyUseNow);
+                _value = converter.ConvertFromValue(parameterType, value.GetType(), value, ParameterConverterExtensions.JsonSerializer);
+            }
 
             Key = key;
-            _value = converter.ConvertFromValue(parameterType, value.GetType(), value, ParameterConverterExtensions.JsonSerializer);
             Type = parameterType;
             _additionalInfo = additionalInfo;
         }
@@ -192,10 +210,324 @@ namespace YngveHestem.GenericParameterCollection
             return _customParameterValueConverters;
         }
 
+        /// <summary>
+        /// Gets the value converted to correct value as object.
+        /// </summary>
+        /// <param name="typeToGet">The specified type to get.</param>
+        /// <returns></returns>
+        public object GetValue(Type typeToGet)
+        {
+            try
+            {
+                var acAttribute = typeToGet.GetCustomAttribute<AttributeConvertibleAttribute>();
+                if (acAttribute != null)
+                {
+                    return typeToGet.GetObjectFromAttributes(_value, acAttribute, null);
+                }
+                return GetSuitableConverterToValue(typeToGet).ConvertFromParameter(Type, typeToGet, _value, ParameterConverterExtensions.JsonSerializer);
+            }
+            catch (Exception e)
+            {
+                throw new Exception("Got exception when getting a parameter value. Message on exception: " + e.Message + Environment.NewLine + ToString(), e);
+            }
+        }
+
+        /// <summary>
+        /// Gets the value converted to correct value as object. Here you can provide your own converters to check first.
+        /// </summary>
+        /// <param name="typeToGet">The specified type to get.</param>
+        /// <param name="parameterValueConverters">Some converters. The function will try these converters first before it will check the other converters.</param>
+        /// <returns></returns>
+        public object GetValue(Type typeToGet, IEnumerable<IParameterValueConverter> parameterValueConverters)
+        {
+            try
+            {
+                var acAttribute = typeToGet.GetCustomAttribute<AttributeConvertibleAttribute>();
+                if (acAttribute != null)
+                {
+                    return typeToGet.GetObjectFromAttributes(_value, acAttribute, parameterValueConverters);
+                }
+                if (parameterValueConverters != null)
+                {
+                    var converter = parameterValueConverters.FirstOrDefault(c => c.CanConvertFromParameter(Type, typeToGet, _value, ParameterConverterExtensions.JsonSerializer));
+
+                    if (converter != null)
+                    {
+                        return converter.ConvertFromParameter(Type, typeToGet, _value, ParameterConverterExtensions.JsonSerializer);
+                    }
+                }
+            }
+            catch (Exception e)
+            {
+                throw new Exception("Got exception when getting a parameter value from one of the provided converters. Message on exception: " + e.Message + Environment.NewLine + ToString(), e);
+            }
+
+            return GetValue(typeToGet);
+        }
+
+        /// <summary>
+        /// Tries to convert the value to correct type and return it as this type.
+        /// </summary>
+        /// <typeparam name="T"></typeparam>
+        /// <returns></returns>
+        public T GetValue<T>()
+        {
+            return (T)GetValue(typeof(T));
+        }
+
+        /// <summary>
+        /// Tries to convert the value to correct type and return it as this type. Here you can provide your own converters to check first.
+        /// </summary>
+        /// <typeparam name="T"></typeparam>
+        /// <param name="parameterValueConverters">Some converters. The function will try these converters first before it will check the other converters.</param>
+        /// <returns></returns>
+        public T GetValue<T>(IEnumerable<IParameterValueConverter> parameterValueConverters)
+        {
+            return (T)GetValue(typeof(T), parameterValueConverters);
+        }
+
+        /// <summary>
+        /// If this is an enum or one of the Select-parameter-types (SelectOne or SelectMany), this will return the possible values that are available to choose from.
+        /// </summary>
+        /// <returns>The possible values of the parameter.</returns>
+        /// <exception cref="NotSupportedException">If this is called for a Parameter with a ParameterType that not support this method. This Exception will be thrown.</exception>
+        public IEnumerable<string> GetChoices()
+        {
+            var obj = _value.ToObject<ParameterCollection>(ParameterConverterExtensions.JsonSerializer);
+            if (obj.HasKeyAndCanConvertTo("choices", typeof(IEnumerable<string>)))
+            {
+                return obj.GetByKey<IEnumerable<string>>("choices");
+            }
+
+            throw new NotSupportedException("The method " + nameof(GetChoices) + " is currently not supported with the parameter type " + Enum.GetName(typeof(ParameterType), Type) + ". This currently only supports parameters with the option \"choices\". " + ParameterType.Enum.ToString() + ", " + ParameterType.SelectOne.ToString() + " and " + ParameterType.SelectMany.ToString() + " and possibly some ParameterCollections are supported. Other parameters has not an option for this.");
+        }
+
+        /// <summary>
+        /// Get if parameter has additional information or not attached to it.
+        /// </summary>
+        /// <returns></returns>
+        public bool HasAdditionalInfo()
+        {
+            return _additionalInfo != null;
+        }
+
+        /// <summary>
+        /// Get additional information attached to parameter.
+        /// </summary>
+        /// <returns></returns>
+        public ParameterCollection GetAdditionalInfo()
+        {
+            return _additionalInfo;
+        }
+
+        /// <summary>
+        /// Sets a new value for this parameter.
+        /// </summary>
+        /// <param name="newValue"></param>
+        /// <returns></returns>
+        /// <exception cref="Exception"></exception>
+        public bool SetValue(object newValue)
+        {
+            var valueType = newValue.GetType();
+            try
+            {
+                var acAttribute = valueType.GetCustomAttribute<AttributeConvertibleAttribute>();
+                if (acAttribute != null)
+                {
+                    if (Type == ParameterType.ParameterCollection)
+                    {
+                        _value = JToken.FromObject(valueType.GetParameterCollectionFromAttributes(newValue, null), ParameterConverterExtensions.JsonSerializer);
+                        return true;
+                    }
+                }
+
+                if (Type == ParameterType.Enum && valueType == typeof(string))
+                {
+                    var v = _value.ToObject<ParameterCollection>(ParameterConverterExtensions.JsonSerializer);
+                    if (v.GetByKeyAndType<List<string>>("choices", ParameterType.String_IEnumerable).Contains((string)newValue))
+                    {
+                        if (v.GetParameterByKeyAndType("value", ParameterType.String).SetValue(newValue))
+                        {
+                            _value = JToken.FromObject(v, ParameterConverterExtensions.JsonSerializer);
+                            return true;
+                        }
+                    }
+                    return false;
+                }
+                else if (Type == ParameterType.SelectOne && valueType == typeof(string))
+                {
+                    var va = _value.ToObject<ParameterCollection>(ParameterConverterExtensions.JsonSerializer);
+                    if (va.GetByKeyAndType<List<string>>("choices", ParameterType.String_IEnumerable).Contains((string)newValue))
+                    {
+                        if (va.GetParameterByKeyAndType("value", ParameterType.String).SetValue(newValue))
+                        {
+                            _value = JToken.FromObject(va, ParameterConverterExtensions.JsonSerializer);
+                            return true;
+                        }
+                    }
+                    return false;
+                }
+                else if (Type == ParameterType.SelectMany && typeof(IEnumerable<string>).IsAssignableFrom(valueType))
+                {
+                    var va = _value.ToObject<ParameterCollection>(ParameterConverterExtensions.JsonSerializer);
+                    if (va.GetByKeyAndType<List<string>>("choices", ParameterType.String_IEnumerable).Contains((string)newValue))
+                    {
+                        if (va.GetParameterByKeyAndType("value", ParameterType.String_IEnumerable).SetValue(newValue))
+                        {
+                            _value = JToken.FromObject(va, ParameterConverterExtensions.JsonSerializer);
+                            return true;
+                        }
+                    }
+                    return false;
+                }
+
+                try
+                {
+                    _value = GetSuitableConverterFromValue(newValue, Type, null).ConvertFromValue(Type, valueType, newValue, ParameterConverterExtensions.JsonSerializer);
+                    return true;
+                }
+                catch (ArgumentOutOfRangeException)
+                {
+                    return false;
+                }
+                
+            }
+            catch (Exception e)
+            {
+                throw new Exception("Got exception when setting a new parameter value. Message on exception: " + e.Message + Environment.NewLine + ToString(), e);
+            }
+        }
+
+        /// <summary>
+        /// Sets a new value for this parameter.
+        /// </summary>
+        /// <param name="newValue"></param>
+        /// <param name="parameterValueConverters"></param>
+        /// <returns></returns>
+        /// <exception cref="Exception"></exception>
+        public bool SetValue(object newValue, IEnumerable<IParameterValueConverter> parameterValueConverters)
+        {
+            try
+            {
+                var valueType = newValue.GetType();
+                var acAttribute = valueType.GetCustomAttribute<AttributeConvertibleAttribute>();
+                if (acAttribute != null)
+                {
+                    if (Type == ParameterType.ParameterCollection)
+                    {
+                        _value = JToken.FromObject(valueType.GetParameterCollectionFromAttributes(newValue, parameterValueConverters), ParameterConverterExtensions.JsonSerializer);
+                        return true;
+                    }
+                }
+                if (parameterValueConverters != null)
+                {
+                    var converter = parameterValueConverters.FirstOrDefault(c => c.CanConvertFromValue(Type, valueType, newValue));
+
+                    if (converter != null)
+                    {
+                        _value = converter.ConvertFromValue(Type, valueType, newValue, ParameterConverterExtensions.JsonSerializer);
+                        return true;
+                    }
+                }
+
+            }
+            catch (Exception e)
+            {
+                throw new Exception("Got exception when setting a new parameter value based on inputted converter. Message on exception: " + e.Message + Environment.NewLine + ToString(), e);
+            }
+
+            return SetValue(newValue);
+        }
+
+        public override string ToString()
+        {
+            var additionalInfo = "None";
+            if (HasAdditionalInfo())
+            {
+                additionalInfo = _additionalInfo.ToString();
+            }
+            return "Parameter has these values:" + Environment.NewLine +
+                "\tThe key is: " + Key + Environment.NewLine +
+                "\tThe type to convert to is: " + Enum.GetName(typeof(ParameterType), Type) + Environment.NewLine +
+                "\tThe value to convert from is: " + _value.ToString() + Environment.NewLine +
+                "\tAdditionalInfo: " + additionalInfo;
+        }
+
+        /// <summary>
+        /// Based on the converters, can we convert it to given type.
+        /// </summary>
+        /// <param name="type">The type we want to convert to.</param>
+        /// <returns></returns>
+        public bool CanBeConvertedTo(Type type)
+        {
+            var acAttribute = type.GetCustomAttribute<AttributeConvertibleAttribute>();
+            if (acAttribute != null && acAttribute.ParameterType == Type)
+            {
+                return true;
+            }
+
+            if (_customParameterValueConverters != null)
+            {
+                if (_customParameterValueConverters.FirstOrDefault(c => c.CanConvertFromParameter(Type, type, _value, ParameterConverterExtensions.JsonSerializer)) != null)
+                {
+                    return true;
+                }
+            }
+
+            if (DefaultParameterValueConverters.FirstOrDefault(c => c.CanConvertFromParameter(Type, type, _value, ParameterConverterExtensions.JsonSerializer)) != null)
+            {
+                return true;
+            }
+
+            return false;
+        }
+
+        /// <summary>
+        /// Based on the converters, can we convert it to given type.
+        /// </summary>
+        /// <param name="type">The type we want to convert to.</param>
+        /// <param name="parameterValueConverters">Some converters. The method will try these converters first before it will check the other converters.</param>
+        /// <returns></returns>
+        public bool CanBeConvertedTo(Type type, IEnumerable<IParameterValueConverter> parameterValueConverters)
+        {
+            if (parameterValueConverters != null && parameterValueConverters.FirstOrDefault(c => c.CanConvertFromParameter(Type, type, _value, ParameterConverterExtensions.JsonSerializer)) != null)
+            {
+                return true;
+            }
+
+            return CanBeConvertedTo(type);
+        }
+
+        private IParameterValueConverter GetSuitableConverterToValue(Type typeToGet)
+        {
+            var converter = _customParameterValueConverters != null ? _customParameterValueConverters.FirstOrDefault(c => c.CanConvertFromParameter(Type, typeToGet, _value, ParameterConverterExtensions.JsonSerializer)) : null;
+
+            if (converter != null)
+            {
+                return converter;
+            }
+
+            converter = DefaultParameterValueConverters.FirstOrDefault(c => c.CanConvertFromParameter(Type, typeToGet, _value, ParameterConverterExtensions.JsonSerializer));
+
+            if (converter != null)
+            {
+                return converter;
+            }
+
+            throw new ArgumentOutOfRangeException("Converter to support this conversion between this value in type " + typeToGet.Name + " from parameter type " + Type + " was not found.");
+        }
+
         private static ParameterType GetBestSuitableParameterType(object value, IEnumerable<IParameterValueConverter> customConverters1, IEnumerable<IParameterValueConverter> customConverters2 = null)
         {
-            var customConverters = (customConverters1 ?? Enumerable.Empty<IParameterValueConverter>()).Concat(customConverters2 ?? Enumerable.Empty<IParameterValueConverter>()).ToArray();
             var valueType = value.GetType();
+            var acAttribute = valueType.GetCustomAttribute<AttributeConvertibleAttribute>();
+            if (acAttribute != null)
+            {
+                return acAttribute.ParameterType;
+            }
+
+            var customConverters = (customConverters1 ?? Enumerable.Empty<IParameterValueConverter>()).Concat(customConverters2 ?? Enumerable.Empty<IParameterValueConverter>()).ToArray();
+
             if (valueType == typeof(string))
             {
                 if (((string)value).Contains('\n'))
@@ -320,272 +652,6 @@ namespace YngveHestem.GenericParameterCollection
             }
 
             throw new ArgumentOutOfRangeException("Converter to support this conversion between this value in type " + valueType.Name + " to parameter type " + parameterType + " was not found.");
-        }
-
-        /// <summary>
-        /// Gets the value converted to correct value as object.
-        /// </summary>
-        /// <param name="typeToGet">The specified type to get.</param>
-        /// <returns></returns>
-        public object GetValue(Type typeToGet)
-        {
-            try
-            {
-                return GetSuitableConverterToValue(typeToGet).ConvertFromParameter(Type, typeToGet, _value, ParameterConverterExtensions.JsonSerializer);
-            }
-            catch (Exception e)
-            {
-                throw new Exception("Got exception when getting a parameter value. Message on exception: " + e.Message + Environment.NewLine + ToString(), e);
-            }
-        }
-
-        /// <summary>
-        /// Gets the value converted to correct value as object. Here you can provide your own converters to check first.
-        /// </summary>
-        /// <param name="typeToGet">The specified type to get.</param>
-        /// <param name="parameterValueConverters">Some converters. The function will try these converters first before it will check the other converters.</param>
-        /// <returns></returns>
-        public object GetValue(Type typeToGet, IEnumerable<IParameterValueConverter> parameterValueConverters)
-        {
-            try
-            {
-                if (parameterValueConverters != null)
-                {
-                    var converter = parameterValueConverters.FirstOrDefault(c => c.CanConvertFromParameter(Type, typeToGet, _value, ParameterConverterExtensions.JsonSerializer));
-
-                    if (converter != null)
-                    {
-                        return converter.ConvertFromParameter(Type, typeToGet, _value, ParameterConverterExtensions.JsonSerializer);
-                    }
-                }
-            }
-            catch (Exception e)
-            {
-                throw new Exception("Got exception when getting a parameter value from one of the provided converters. Message on exception: " + e.Message + Environment.NewLine + ToString(), e);
-            }
-
-            return GetValue(typeToGet);
-        }
-
-        private IParameterValueConverter GetSuitableConverterToValue(Type typeToGet)
-        {
-            var converter = _customParameterValueConverters != null ? _customParameterValueConverters.FirstOrDefault(c => c.CanConvertFromParameter(Type, typeToGet, _value, ParameterConverterExtensions.JsonSerializer)) : null;
-
-            if (converter != null)
-            {
-                return converter;
-            }
-
-            converter = DefaultParameterValueConverters.FirstOrDefault(c => c.CanConvertFromParameter(Type, typeToGet, _value, ParameterConverterExtensions.JsonSerializer));
-
-            if (converter != null)
-            {
-                return converter;
-            }
-
-            throw new ArgumentOutOfRangeException("Converter to support this conversion between this value in type " + typeToGet.Name + " from parameter type " + Type + " was not found.");
-        }
-
-        /// <summary>
-        /// Tries to convert the value to correct type and return it as this type.
-        /// </summary>
-        /// <typeparam name="T"></typeparam>
-        /// <returns></returns>
-        public T GetValue<T>()
-        {
-            return (T)GetValue(typeof(T));
-        }
-
-        /// <summary>
-        /// Tries to convert the value to correct type and return it as this type. Here you can provide your own converters to check first.
-        /// </summary>
-        /// <typeparam name="T"></typeparam>
-        /// <param name="parameterValueConverters">Some converters. The function will try these converters first before it will check the other converters.</param>
-        /// <returns></returns>
-        public T GetValue<T>(IEnumerable<IParameterValueConverter> parameterValueConverters)
-        {
-            return (T)GetValue(typeof(T), parameterValueConverters);
-        }
-
-        /// <summary>
-        /// If this is an enum or one of the Select-parameter-types (SelectOne or SelectMany), this will return the possible values that are available to choose from.
-        /// </summary>
-        /// <returns>The possible values of the parameter.</returns>
-        /// <exception cref="NotSupportedException">If this is called for a Parameter with a ParameterType that not support this method. This Exception will be thrown.</exception>
-        public IEnumerable<string> GetChoices()
-        {
-            var obj = _value.ToObject<ParameterCollection>(ParameterConverterExtensions.JsonSerializer);
-            if (obj.HasKeyAndCanConvertTo("choices", typeof(IEnumerable<string>)))
-            {
-                return obj.GetByKey<IEnumerable<string>>("choices");
-            }
-
-            throw new NotSupportedException("The method " + nameof(GetChoices) + " is currently not supported with the parameter type " + Enum.GetName(typeof(ParameterType), Type) + ". This currently only supports parameters with the option \"choices\". " + ParameterType.Enum.ToString() + ", " + ParameterType.SelectOne.ToString() + " and " + ParameterType.SelectMany.ToString() + " and possibly some ParameterCollections are supported. Other parameters has not an option for this.");
-        }
-
-        /// <summary>
-        /// Get if parameter has additional information or not attached to it.
-        /// </summary>
-        /// <returns></returns>
-        public bool HasAdditionalInfo()
-        {
-            return _additionalInfo != null;
-        }
-
-        /// <summary>
-        /// Get additional information attached to parameter.
-        /// </summary>
-        /// <returns></returns>
-        public ParameterCollection GetAdditionalInfo()
-        {
-            return _additionalInfo;
-        }
-
-        /// <summary>
-        /// Sets a new value for this parameter.
-        /// </summary>
-        /// <param name="newValue"></param>
-        /// <returns></returns>
-        /// <exception cref="Exception"></exception>
-        public bool SetValue(object newValue)
-        {
-            var valueType = newValue.GetType();
-            try
-            {
-                if (Type == ParameterType.Enum && valueType == typeof(string))
-                {
-                    var v = _value.ToObject<ParameterCollection>(ParameterConverterExtensions.JsonSerializer);
-                    if (v.GetByKeyAndType<List<string>>("choices", ParameterType.String_IEnumerable).Contains((string)newValue))
-                    {
-                        if (v.GetParameterByKeyAndType("value", ParameterType.String).SetValue(newValue))
-                        {
-                            _value = JToken.FromObject(v, ParameterConverterExtensions.JsonSerializer);
-                            return true;
-                        }
-                    }
-                    return false;
-                }
-                else if (Type == ParameterType.SelectOne && valueType == typeof(string))
-                {
-                    var va = _value.ToObject<ParameterCollection>(ParameterConverterExtensions.JsonSerializer);
-                    if (va.GetByKeyAndType<List<string>>("choices", ParameterType.String_IEnumerable).Contains((string)newValue))
-                    {
-                        if (va.GetParameterByKeyAndType("value", ParameterType.String).SetValue(newValue))
-                        {
-                            _value = JToken.FromObject(va, ParameterConverterExtensions.JsonSerializer);
-                            return true;
-                        }
-                    }
-                    return false;
-                }
-                else if (Type == ParameterType.SelectMany && typeof(IEnumerable<string>).IsAssignableFrom(valueType))
-                {
-                    var va = _value.ToObject<ParameterCollection>(ParameterConverterExtensions.JsonSerializer);
-                    if (va.GetByKeyAndType<List<string>>("choices", ParameterType.String_IEnumerable).Contains((string)newValue))
-                    {
-                        if (va.GetParameterByKeyAndType("value", ParameterType.String_IEnumerable).SetValue(newValue))
-                        {
-                            _value = JToken.FromObject(va, ParameterConverterExtensions.JsonSerializer);
-                            return true;
-                        }
-                    }
-                    return false;
-                }
-
-                try
-                {
-                    _value = GetSuitableConverterFromValue(newValue, Type, null).ConvertFromValue(Type, valueType, newValue, ParameterConverterExtensions.JsonSerializer);
-                    return true;
-                }
-                catch (ArgumentOutOfRangeException)
-                {
-                    return false;
-                }
-                
-            }
-            catch (Exception e)
-            {
-                throw new Exception("Got exception when setting a new parameter value. Message on exception: " + e.Message + Environment.NewLine + ToString(), e);
-            }
-        }
-
-        /// <summary>
-        /// Sets a new value for this parameter.
-        /// </summary>
-        /// <param name="newValue"></param>
-        /// <param name="parameterValueConverters"></param>
-        /// <returns></returns>
-        /// <exception cref="Exception"></exception>
-        public bool SetValue(object newValue, IEnumerable<IParameterValueConverter> parameterValueConverters)
-        {
-            try
-            {
-                if (parameterValueConverters != null)
-                {
-                    var valueType = newValue.GetType();
-                    var converter = parameterValueConverters.FirstOrDefault(c => c.CanConvertFromValue(Type, valueType, newValue));
-
-                    if (converter != null)
-                    {
-                        _value = converter.ConvertFromValue(Type, valueType, newValue, ParameterConverterExtensions.JsonSerializer);
-                        return true;
-                    }
-                }
-
-            }
-            catch (Exception e)
-            {
-                throw new Exception("Got exception when setting a new parameter value based on inputted converter. Message on exception: " + e.Message + Environment.NewLine + ToString(), e);
-            }
-
-            return SetValue(newValue);
-        }
-
-        public override string ToString()
-        {
-            return "Parameter has these values:" + Environment.NewLine +
-                "\tThe key is: " + Key + Environment.NewLine +
-                "\tThe type to convert to is: " + Enum.GetName(typeof(ParameterType), Type) + Environment.NewLine +
-                "\tThe value to convert from is: " + _value.ToString();
-        }
-
-        /// <summary>
-        /// Based on the converters, can we convert it to given type.
-        /// </summary>
-        /// <param name="type">The type we want to convert to.</param>
-        /// <returns></returns>
-        public bool CanBeConvertedTo(Type type)
-        {
-            if (_customParameterValueConverters != null)
-            {
-                if (_customParameterValueConverters.FirstOrDefault(c => c.CanConvertFromParameter(Type, type, _value, ParameterConverterExtensions.JsonSerializer)) != null)
-                {
-                    return true;
-                }
-            }
-
-            if (DefaultParameterValueConverters.FirstOrDefault(c => c.CanConvertFromParameter(Type, type, _value, ParameterConverterExtensions.JsonSerializer)) != null)
-            {
-                return true;
-            }
-
-            return false;
-        }
-
-        /// <summary>
-        /// Based on the converters, can we convert it to given type.
-        /// </summary>
-        /// <param name="type">The type we want to convert to.</param>
-        /// <param name="parameterValueConverters">Some converters. The method will try these converters first before it will check the other converters.</param>
-        /// <returns></returns>
-        public bool CanBeConvertedTo(Type type, IEnumerable<IParameterValueConverter> parameterValueConverters)
-        {
-            if (parameterValueConverters != null && parameterValueConverters.FirstOrDefault(c => c.CanConvertFromParameter(Type, type, _value, ParameterConverterExtensions.JsonSerializer)) != null)
-            {
-                return true;
-            }
-
-            return CanBeConvertedTo(type);
         }
     }
 }

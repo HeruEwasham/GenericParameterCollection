@@ -1,11 +1,11 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Drawing;
 using System.Linq;
-using System.Xml.Linq;
+using System.Reflection;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Converters;
 using Newtonsoft.Json.Linq;
+using YngveHestem.GenericParameterCollection.ParameterValueConverters;
 
 namespace YngveHestem.GenericParameterCollection
 {
@@ -155,6 +155,122 @@ namespace YngveHestem.GenericParameterCollection
         }
 
         internal static JsonSerializer JsonSerializer = JsonSerializer.CreateDefault(ParameterConverterExtensions.GetJsonSerializerSettings());
+
+        internal static ParameterCollection GetParameterCollectionFromAttributes(this Type type, object value, IEnumerable<IParameterValueConverter> customConverters)
+        {
+            var parameterCollection = new ParameterCollection();
+            foreach (var property in type.GetRuntimeProperties())
+            {
+                var ppa = property.GetCustomAttribute<ParameterPropertyAttribute>();
+                if (ppa != null)
+                {
+                    var key = ppa.Key;
+                    if (key == null)
+                    {
+                        key = property.Name;
+                    }
+                    ParameterCollection aInfo = null;
+                    GetAdditionalInfoFromAttributes(property.GetCustomAttributes<AdditionalInfoAttribute>(), ref aInfo, customConverters);
+                    if (ppa.ParameterType.HasValue)
+                    {
+                        parameterCollection.Add(key, property.GetValue(value), ppa.ParameterType.Value, aInfo, customConverters);
+                    }
+                    else
+                    {
+                        parameterCollection.Add(key, property.GetValue(value), aInfo, customConverters);
+                    }
+                }
+            }
+            foreach (var field in type.GetRuntimeFields())
+            {
+                var ppa = field.GetCustomAttribute<ParameterPropertyAttribute>();
+                if (ppa != null)
+                {
+                    var key = ppa.Key;
+                    if (key == null)
+                    {
+                        key = field.Name;
+                    }
+                    ParameterCollection aInfo = null;
+                    GetAdditionalInfoFromAttributes(field.GetCustomAttributes<AdditionalInfoAttribute>(), ref aInfo, customConverters);
+                    if (ppa.ParameterType.HasValue)
+                    {
+                        parameterCollection.Add(key, field.GetValue(value), ppa.ParameterType.Value, aInfo, customConverters);
+                    }
+                    else
+                    {
+                        parameterCollection.Add(key, field.GetValue(value), aInfo, customConverters);
+                    }
+                }
+            }
+            return parameterCollection;
+        }
+
+        internal static object GetObjectFromAttributes(this Type typeToGet, JToken value, AttributeConvertibleAttribute acAttribute, IEnumerable<IParameterValueConverter> customConverters)
+        {
+            var obj = Activator.CreateInstance(typeToGet);
+
+            if (acAttribute.ParameterType == ParameterType.ParameterCollection)
+            {
+                var parameterCollection = value.ToObject<ParameterCollection>(JsonSerializer);
+                foreach (var property in typeToGet.GetRuntimeProperties())
+                {
+                    var ppa = property.GetCustomAttribute<ParameterPropertyAttribute>();
+                    if (ppa != null)
+                    {
+                        var key = ppa.Key;
+                        if (key == null)
+                        {
+                            key = property.Name;
+                        }
+                        if (parameterCollection.HasKeyAndCanConvertTo(key, property.PropertyType, customConverters))
+                        {
+                            property.SetValue(obj, parameterCollection.GetByKey(key, property.PropertyType, customConverters));
+                        }
+                    }
+                }
+                foreach (var field in typeToGet.GetRuntimeFields())
+                {
+                    var ppa = field.GetCustomAttribute<ParameterPropertyAttribute>();
+                    if (ppa != null)
+                    {
+                        var key = ppa.Key;
+                        if (key == null)
+                        {
+                            key = field.Name;
+                        }
+                        if (parameterCollection.HasKeyAndCanConvertTo(key, field.FieldType, customConverters))
+                        {
+                            field.SetValue(obj, parameterCollection.GetByKey(key, field.FieldType, customConverters));
+                        }
+                    }
+                }
+            }
+
+            return obj;
+        }
+
+        internal static void GetAdditionalInfoFromAttributes(this IEnumerable<AdditionalInfoAttribute> attributes, ref ParameterCollection additionalInfo, IEnumerable<IParameterValueConverter> customConverters)
+        {
+            if (attributes != null && attributes.Count() > 0)
+            {
+                if (additionalInfo == null)
+                {
+                    additionalInfo = new ParameterCollection();
+                }
+                foreach (var aInfoAttr in attributes)
+                {
+                    if (!additionalInfo.HasKey(aInfoAttr.Key))
+                    {
+                        additionalInfo.Add(aInfoAttr.Key, aInfoAttr.Value, null, customConverters);
+                    }
+                    else if (aInfoAttr.OverrideIfKeyExist)
+                    {
+                        additionalInfo.GetParameterByKey(aInfoAttr.Key).SetValue(aInfoAttr.Value, customConverters);
+                    }
+                }
+            }
+        }
     }
 }
 
