@@ -370,7 +370,7 @@ namespace YngveHestem.GenericParameterCollection
                 else if (Type == ParameterType.SelectMany && typeof(IEnumerable<string>).IsAssignableFrom(valueType))
                 {
                     var va = _value.ToObject<ParameterCollection>(ParameterConverterExtensions.JsonSerializer);
-                    if (va.GetByKeyAndType<List<string>>("choices", ParameterType.String_IEnumerable).Contains((string)newValue))
+                    if (((IEnumerable<string>)newValue).All(value => va.GetByKeyAndType<List<string>>("choices", ParameterType.String_IEnumerable).Contains(value)))
                     {
                         if (va.GetParameterByKeyAndType("value", ParameterType.String_IEnumerable).SetValue(newValue))
                         {
