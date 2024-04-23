@@ -70,6 +70,20 @@ namespace TestProject
             var example4PersonObject = example4.GetPersonObject(example4Params);
 
 
+            Console.WriteLine(Environment.NewLine + "Parameter SelectMany tests:");
+
+            var paramTestSelectMany = new ParameterCollection
+            {
+                { "Test", new string[] {}, new string[] { "Option 1", "Option 2", "Option 3", "Option 4", "Option 5" } }
+            };
+            Console.WriteLine(paramTestSelectMany.ToJson());
+            paramTestSelectMany.GetParameterByKey("Test").SetValue(new string[] { "Option 2", "Option 3" });
+            Console.WriteLine(paramTestSelectMany.ToJson());
+            paramTestSelectMany.GetParameterByKey("Test").SetValue(new string[] { });
+            Console.WriteLine(paramTestSelectMany.ToJson());
+            Console.WriteLine("Parameter SelectMany tests finished.");
+
+
             Console.ReadLine();
         }
     }
