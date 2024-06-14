@@ -19,6 +19,38 @@ namespace TestProject.ExampleWithAttributeConversion
         {
             return parameters.ToObject<Person>();
         }
+
+        public ParameterCollection DefineExamplePersons()
+        {
+            var list = new Person[]
+            {
+                new Person("Rick Mortimer", new ExampleColor
+                {
+                    Blue = 0.5f,
+                    Red = 0.5f
+                }),
+                new Person("Test Person", new ExampleColor
+                {
+                    Green = 0f,
+                    Blue = 0f,
+                    Alpha = 0.75f
+                })
+            };
+            return new ParameterCollection
+            {
+                new Parameter("list", list)
+            };
+        }
+
+        public Person[] GetPersonArrayFromParameterCollection(ParameterCollection parameters)
+        {
+            return parameters.GetByKey<Person[]>("list");
+        }
+
+        public List<Person> GetPersonListFromParameterCollection(ParameterCollection parameters)
+        {
+            return parameters.GetByKey<List<Person>>("list");
+        }
     }
 
     [AttributeConvertible]
