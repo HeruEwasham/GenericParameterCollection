@@ -8,7 +8,7 @@ namespace YngveHestem.GenericParameterCollection.ParameterValueConverters
 {
     public class IntParameterConverter : IParameterValueConverter
     {
-        public bool CanConvertFromParameter(ParameterType sourceType, Type targetType, JToken rawValue, JsonSerializer jsonSerializer)
+        public bool CanConvertFromParameter(ParameterType sourceType, Type targetType, JToken rawValue, IEnumerable<IParameterValueConverter> customConverters, JsonSerializer jsonSerializer)
         {
             if (sourceType == ParameterType.Int)
             {
@@ -24,7 +24,7 @@ namespace YngveHestem.GenericParameterCollection.ParameterValueConverters
             }
         }
 
-        public bool CanConvertFromValue(ParameterType targetType, Type sourceType, object value)
+        public bool CanConvertFromValue(ParameterType targetType, Type sourceType, object value, IEnumerable<IParameterValueConverter> customConverters)
         {
             if (targetType == ParameterType.Int)
             {
@@ -40,7 +40,7 @@ namespace YngveHestem.GenericParameterCollection.ParameterValueConverters
             }
         }
 
-        public object ConvertFromParameter(ParameterType sourceType, Type targetType, JToken rawValue, JsonSerializer jsonSerializer)
+        public object ConvertFromParameter(ParameterType sourceType, Type targetType, JToken rawValue, IEnumerable<IParameterValueConverter> customConverters, JsonSerializer jsonSerializer)
         {
             if (sourceType == ParameterType.Int)
             {
@@ -102,7 +102,7 @@ namespace YngveHestem.GenericParameterCollection.ParameterValueConverters
             throw new ArgumentException("The values was not supported to be converted by " + nameof(IntParameterConverter));
         }
 
-        public JToken ConvertFromValue(ParameterType targetType, Type sourceType, object value, JsonSerializer jsonSerializer)
+        public JToken ConvertFromValue(ParameterType targetType, Type sourceType, object value, IEnumerable<IParameterValueConverter> customConverters, JsonSerializer jsonSerializer)
         {
             if (targetType == ParameterType.Int)
             {

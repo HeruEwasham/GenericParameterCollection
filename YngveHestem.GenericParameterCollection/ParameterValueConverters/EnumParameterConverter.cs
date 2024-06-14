@@ -7,7 +7,7 @@ namespace YngveHestem.GenericParameterCollection.ParameterValueConverters
 {
 	public class EnumParameterConverter : IParameterValueConverter
 	{
-        public bool CanConvertFromParameter(ParameterType sourceType, Type targetType, JToken rawValue, JsonSerializer jsonSerializer)
+        public bool CanConvertFromParameter(ParameterType sourceType, Type targetType, JToken rawValue, IEnumerable<IParameterValueConverter> customConverters, JsonSerializer jsonSerializer)
         {
             return (typeof(Enum).IsAssignableFrom(targetType) &&
                 ((sourceType == ParameterType.Enum && Enum.IsDefined(targetType, rawValue.ToObject<ParameterCollection>(jsonSerializer).GetByKey<string>("value"))) ||
@@ -16,13 +16,13 @@ namespace YngveHestem.GenericParameterCollection.ParameterValueConverters
                 || (sourceType == ParameterType.Enum && (targetType == typeof(string) || targetType == typeof(int) || targetType == typeof(ParameterCollection)));
         }
 
-        public bool CanConvertFromValue(ParameterType targetType, Type sourceType, object value)
+        public bool CanConvertFromValue(ParameterType targetType, Type sourceType, object value, IEnumerable<IParameterValueConverter> customConverters)
         {
             return (typeof(Enum).IsAssignableFrom(sourceType) && (targetType == ParameterType.Enum || targetType == ParameterType.String || targetType == ParameterType.Int))
                 || (targetType == ParameterType.Enum && sourceType == typeof(ParameterCollection) && ((ParameterCollection)value).HasKeyAndCanConvertTo("value", typeof(string)) && ((ParameterCollection)value).HasKeyAndCanConvertTo("type", typeof(string)) && ((ParameterCollection)value).HasKeyAndCanConvertTo("choices", typeof(List<string>))); 
         }
 
-        public object ConvertFromParameter(ParameterType sourceType, Type targetType, JToken rawValue, JsonSerializer jsonSerializer)
+        public object ConvertFromParameter(ParameterType sourceType, Type targetType, JToken rawValue, IEnumerable<IParameterValueConverter> customConverters, JsonSerializer jsonSerializer)
         {
             if (typeof(Enum).IsAssignableFrom(targetType))
             {
@@ -59,7 +59,7 @@ namespace YngveHestem.GenericParameterCollection.ParameterValueConverters
             throw new ArgumentException("The values was not supported to be converted by " + nameof(EnumParameterConverter));
         }
 
-        public JToken ConvertFromValue(ParameterType targetType, Type sourceType, object value, JsonSerializer jsonSerializer)
+        public JToken ConvertFromValue(ParameterType targetType, Type sourceType, object value, IEnumerable<IParameterValueConverter> customConverters, JsonSerializer jsonSerializer)
         {
             if (typeof(Enum).IsAssignableFrom(sourceType))
             {

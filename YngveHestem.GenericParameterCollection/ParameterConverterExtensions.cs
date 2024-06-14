@@ -271,6 +271,19 @@ namespace YngveHestem.GenericParameterCollection
                 }
             }
         }
+
+        internal static IEnumerable<Type> GetGenericIEnumerables(this Type type)
+        {
+            return type.GetInterfaces()
+                    .Where(t => t.IsGenericType
+                        && t.GetGenericTypeDefinition() == typeof(IEnumerable<>))
+                    .Select(t => t.GetGenericArguments()[0]);
+        }
+
+        internal static IEnumerable<T> ConcatWithNullCheck<T>(this IEnumerable<T> list1, IEnumerable<T> list2)
+        {
+            return (list1 ?? Enumerable.Empty<T>()).Concat(list2 ?? Enumerable.Empty<T>());
+        }
     }
 }
 

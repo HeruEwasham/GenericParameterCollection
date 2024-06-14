@@ -68,6 +68,10 @@ namespace TestProject
             var example4Params = example4.DefineExamplePerson();
             Console.WriteLine(example4Params.ToJson());
             var example4PersonObject = example4.GetPersonObject(example4Params);
+            var example4Params2 = example4.DefineExamplePersons();
+            Console.WriteLine(example4Params2.ToJson());
+            var example4PersonsArray = example4.GetPersonArrayFromParameterCollection(example4Params2);
+            var example4PersonsList = example4.GetPersonListFromParameterCollection(example4Params2);
 
 
             Console.WriteLine(Environment.NewLine + "Parameter SelectMany tests:");

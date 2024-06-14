@@ -7,15 +7,15 @@ namespace YngveHestem.GenericParameterCollection.ParameterValueConverters
 {
     public abstract class ParameterCollectionParameterConverter<TValueType> : IParameterValueConverter
     {
-        public bool CanConvertFromParameter(ParameterType sourceType, Type targetType, JToken rawValue, JsonSerializer jsonSerializer)
+        public bool CanConvertFromParameter(ParameterType sourceType, Type targetType, JToken rawValue, IEnumerable<IParameterValueConverter> customConverters, JsonSerializer jsonSerializer)
         {
             if (sourceType == ParameterType.ParameterCollection && targetType == typeof(TValueType))
             {
-                return CanConvertFromParameterCollection(rawValue.ToObject<ParameterCollection>(jsonSerializer));
+                return CanConvertFromParameterCollection(rawValue.ToObject<ParameterCollection>(jsonSerializer), customConverters);
             }
             else if (sourceType == ParameterType.ParameterCollection_IEnumerable && typeof(IEnumerable<TValueType>).IsAssignableFrom(targetType))
             {
-                return CanConvertFromListOfParameterCollection(rawValue.ToObject<IEnumerable<ParameterCollection>>(jsonSerializer));
+                return CanConvertFromListOfParameterCollection(rawValue.ToObject<IEnumerable<ParameterCollection>>(jsonSerializer), customConverters);
             }
             else
             {
@@ -23,15 +23,15 @@ namespace YngveHestem.GenericParameterCollection.ParameterValueConverters
             }
         }
 
-        public bool CanConvertFromValue(ParameterType targetType, Type sourceType, object value)
+        public bool CanConvertFromValue(ParameterType targetType, Type sourceType, object value, IEnumerable<IParameterValueConverter> customConverters)
         {
             if (targetType == ParameterType.ParameterCollection && sourceType == typeof(TValueType))
             {
-                return CanConvertToParameterCollection((TValueType)value);
+                return CanConvertToParameterCollection((TValueType)value, customConverters);
             }
             else if (targetType == ParameterType.ParameterCollection_IEnumerable && typeof(IEnumerable<TValueType>).IsAssignableFrom(sourceType))
             {
-                return CanConvertToListOfParameterCollection((IEnumerable<TValueType>)value);
+                return CanConvertToListOfParameterCollection((IEnumerable<TValueType>)value, customConverters);
             }
             else
             {
@@ -39,13 +39,13 @@ namespace YngveHestem.GenericParameterCollection.ParameterValueConverters
             }
         }
 
-        public object ConvertFromParameter(ParameterType sourceType, Type targetType, JToken rawValue, JsonSerializer jsonSerializer)
+        public object ConvertFromParameter(ParameterType sourceType, Type targetType, JToken rawValue, IEnumerable<IParameterValueConverter> customConverters, JsonSerializer jsonSerializer)
         {
             if (sourceType == ParameterType.ParameterCollection)
             {
                 try
                 {
-                    return ConvertFromParameterCollection(rawValue.ToObject<ParameterCollection>());
+                    return ConvertFromParameterCollection(rawValue.ToObject<ParameterCollection>(), customConverters);
                 }
                 catch (Exception e)
                 {
@@ -56,7 +56,7 @@ namespace YngveHestem.GenericParameterCollection.ParameterValueConverters
             {
                 try
                 {
-                    return ConvertFromListOfParameterCollection(rawValue.ToObject<IEnumerable<ParameterCollection>>()).ToCorrectIEnumerable(targetType);
+                    return ConvertFromListOfParameterCollection(rawValue.ToObject<IEnumerable<ParameterCollection>>(), customConverters).ToCorrectIEnumerable(targetType);
                 }
                 catch (Exception e)
                 {
@@ -64,16 +64,16 @@ namespace YngveHestem.GenericParameterCollection.ParameterValueConverters
                 }
             }
 
-            throw new ArgumentException("The values was not supported to be converted by " + this.GetType().Name);
+            throw new ArgumentException("The values was not supported to be converted by " + GetType().Name);
         }
 
-        public JToken ConvertFromValue(ParameterType targetType, Type sourceType, object value, JsonSerializer jsonSerializer)
+        public JToken ConvertFromValue(ParameterType targetType, Type sourceType, object value, IEnumerable<IParameterValueConverter> customConverters, JsonSerializer jsonSerializer)
         {
             if (targetType == ParameterType.ParameterCollection)
             {
                 try
                 {
-                    return JToken.FromObject(ConvertToParameterCollection((TValueType)value), jsonSerializer);
+                    return JToken.FromObject(ConvertToParameterCollection((TValueType)value, customConverters), jsonSerializer);
                 }
                 catch (Exception e)
                 {
@@ -84,7 +84,7 @@ namespace YngveHestem.GenericParameterCollection.ParameterValueConverters
             {
                 try
                 {
-                    return JToken.FromObject(ConvertToListOfParameterCollection((IEnumerable<TValueType>)value), jsonSerializer);
+                    return JToken.FromObject(ConvertToListOfParameterCollection((IEnumerable<TValueType>)value, customConverters), jsonSerializer);
                 }
                 catch (Exception e)
                 {
@@ -92,22 +92,24 @@ namespace YngveHestem.GenericParameterCollection.ParameterValueConverters
                 }
             }
 
-            throw new ArgumentException("The values was not supported to be converted by " + this.GetType().Name);
+            throw new ArgumentException("The values was not supported to be converted by " + GetType().Name);
         }
 
         /// <summary>
         /// Can this converter convert this ParameterCollection.
         /// </summary>
         /// <param name="value">The ParameterCollection to possibly convert later.</param>
+        /// <param name="customConverters">Any custom converters that might have been given.</param>
         /// <returns></returns>
-        protected abstract bool CanConvertFromParameterCollection(ParameterCollection value);
+        protected abstract bool CanConvertFromParameterCollection(ParameterCollection value, IEnumerable<IParameterValueConverter> customConverters);
 
         /// <summary>
         /// Can this converter convert this list of ParameterCollection. The default implementation checks that all list-items validates sucessfully and that the list itself is not null.
         /// </summary>
         /// <param name="value">The list of ParameterCollection to possibly convert later.</param>
+        /// <param name="customConverters">Any custom converters that might have been given.</param>
         /// <returns></returns>
-        protected virtual bool CanConvertFromListOfParameterCollection(IEnumerable<ParameterCollection> value)
+        protected virtual bool CanConvertFromListOfParameterCollection(IEnumerable<ParameterCollection> value, IEnumerable<IParameterValueConverter> customConverters)
         {
             if (value == null)
             {
@@ -116,7 +118,7 @@ namespace YngveHestem.GenericParameterCollection.ParameterValueConverters
 
             foreach(var item in value)
             {
-                if (!CanConvertFromParameterCollection(item))
+                if (!CanConvertFromParameterCollection(item, customConverters))
                 {
                     return false;
                 }
@@ -129,15 +131,17 @@ namespace YngveHestem.GenericParameterCollection.ParameterValueConverters
         /// Can this value be converted to a ParameterCollection by this converter.
         /// </summary>
         /// <param name="value">The value to possibly convert later.</param>
+        /// <param name="customConverters">Any custom converters that might have been given.</param>
         /// <returns></returns>
-        protected abstract bool CanConvertToParameterCollection(TValueType value);
+        protected abstract bool CanConvertToParameterCollection(TValueType value, IEnumerable<IParameterValueConverter> customConverters);
 
         /// <summary>
         /// Can this value be converted to a list of ParameterCollection by this converter. The default implementation checks that all list-items validates sucessfully and that the list itself is not null.
         /// </summary>
         /// <param name="value">The list of values to possibly convert later.</param>
+        /// <param name="customConverters">Any custom converters that might have been given.</param>
         /// <returns></returns>
-        protected virtual bool CanConvertToListOfParameterCollection(IEnumerable<TValueType> value)
+        protected virtual bool CanConvertToListOfParameterCollection(IEnumerable<TValueType> value, IEnumerable<IParameterValueConverter> customConverters)
         {
             if (value == null)
             {
@@ -146,7 +150,7 @@ namespace YngveHestem.GenericParameterCollection.ParameterValueConverters
 
             foreach (var item in value)
             {
-                if (!CanConvertToParameterCollection(item))
+                if (!CanConvertToParameterCollection(item, customConverters))
                 {
                     return false;
                 }
@@ -159,21 +163,23 @@ namespace YngveHestem.GenericParameterCollection.ParameterValueConverters
         /// Convert ParameterCollection to wanted type.
         /// </summary>
         /// <param name="value">The ParameterCollection to convert.</param>
+        /// <param name="customConverters">Any custom converters that might have been given.</param>
         /// <returns></returns>
-        protected abstract TValueType ConvertFromParameterCollection(ParameterCollection value);
+        protected abstract TValueType ConvertFromParameterCollection(ParameterCollection value, IEnumerable<IParameterValueConverter> customConverters);
 
         /// <summary>
         /// Convert list of ParameterCollection to a list of wanted type. The default implementation goes through each element in the list and converts each element before returning the result as a list.
         /// </summary>
         /// <param name="value">The list of ParameterCollection to convert.</param>
+        /// <param name="customConverters">Any custom converters that might have been given.</param>
         /// <returns></returns>
-        protected virtual IEnumerable<TValueType> ConvertFromListOfParameterCollection(IEnumerable<ParameterCollection> value)
+        protected virtual IEnumerable<TValueType> ConvertFromListOfParameterCollection(IEnumerable<ParameterCollection> value, IEnumerable<IParameterValueConverter> customConverters)
         {
             var result = new List<TValueType>();
 
             foreach(var item in value)
             {
-                result.Add(ConvertFromParameterCollection(item));
+                result.Add(ConvertFromParameterCollection(item, customConverters));
             }
 
             return result;
@@ -183,21 +189,23 @@ namespace YngveHestem.GenericParameterCollection.ParameterValueConverters
         /// Convert value to ParameterCollection.
         /// </summary>
         /// <param name="value">The value to convert.</param>
+        /// <param name="customConverters">Any custom converters that might have been given.</param>
         /// <returns></returns>
-        protected abstract ParameterCollection ConvertToParameterCollection(TValueType value);
+        protected abstract ParameterCollection ConvertToParameterCollection(TValueType value, IEnumerable<IParameterValueConverter> customConverters);
 
         /// <summary>
         /// Convert list of values to list of ParameterCollection. The default implementation goes through each element in the list and converts each element before returning the result as a list.
         /// </summary>
         /// <param name="value">The list of values to convert.</param>
+        /// <param name="customConverters">Any custom converters that might have been given.</param>
         /// <returns></returns>
-        protected virtual IEnumerable<ParameterCollection> ConvertToListOfParameterCollection(IEnumerable<TValueType> value)
+        protected virtual IEnumerable<ParameterCollection> ConvertToListOfParameterCollection(IEnumerable<TValueType> value, IEnumerable<IParameterValueConverter> customConverters)
         {
             var result = new List<ParameterCollection>();
 
             foreach (var item in value)
             {
-                result.Add(ConvertToParameterCollection(item));
+                result.Add(ConvertToParameterCollection(item, customConverters));
             }
 
             return result;

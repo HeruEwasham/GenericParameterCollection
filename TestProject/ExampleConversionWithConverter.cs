@@ -42,7 +42,7 @@ namespace TestProject.ExampleWithConversion
 
     public class PersonConverter : ParameterCollectionParameterConverter<Person>
     {
-        protected override bool CanConvertFromParameterCollection(ParameterCollection value)
+        protected override bool CanConvertFromParameterCollection(ParameterCollection value, IEnumerable<IParameterValueConverter> customConverters)
         {
             return value.HasKeyAndCanConvertTo("name", typeof(string))
                 && value.HasKeyAndCanConvertTo("gender", typeof(Sex))
@@ -50,12 +50,12 @@ namespace TestProject.ExampleWithConversion
                 && value.HasKeyAndCanConvertTo("summary", typeof(string));
         }
 
-        protected override bool CanConvertToParameterCollection(Person value)
+        protected override bool CanConvertToParameterCollection(Person value, IEnumerable<IParameterValueConverter> customConverters)
         {
             return true;        // As the object type is already checked, and I currently have no other reason to check anything in the object to know if I can convert it or not, I just return true.
         }
 
-        protected override Person ConvertFromParameterCollection(ParameterCollection value)
+        protected override Person ConvertFromParameterCollection(ParameterCollection value, IEnumerable<IParameterValueConverter> customConverters)
         {
             return new Person
             {
@@ -66,7 +66,7 @@ namespace TestProject.ExampleWithConversion
             };
         }
 
-        protected override ParameterCollection ConvertToParameterCollection(Person value)
+        protected override ParameterCollection ConvertToParameterCollection(Person value, IEnumerable<IParameterValueConverter> customConverters)
         {
             return new ParameterCollection
             {
