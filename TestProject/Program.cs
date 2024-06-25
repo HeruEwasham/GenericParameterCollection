@@ -88,6 +88,28 @@ namespace TestProject
             Console.WriteLine("Parameter SelectMany tests finished.");
 
 
+            Console.WriteLine(Environment.NewLine + "Testing setting new values:");
+            var paramNewValueTesting = new ParameterCollection
+            {
+                {
+                    "test", "This is a test", new ParameterCollection
+                    {
+                        { "status", "Initial" }
+                    }
+                }
+            };
+            paramNewValueTesting.GetParameterByKey("test").SetValue("New Value set.");
+            paramNewValueTesting.GetParameterByKey("test").SetAdditionalInfo(new ParameterCollection
+                    {
+                        { "status", "newAdditionalInfoSet" }
+                    });
+            paramNewValueTesting.GetParameterByKey("test").SetValue("New value and new additionalInfo set", new ParameterCollection
+                    {
+                        { "status", "newAdditionalInfoSet togheter with new value" },
+                        { "param", "This is a new parameter in additionalInfo" }
+                    });
+
+
             Console.ReadLine();
         }
     }
