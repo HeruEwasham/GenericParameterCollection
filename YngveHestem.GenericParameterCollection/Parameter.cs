@@ -397,6 +397,48 @@ namespace YngveHestem.GenericParameterCollection
             }
         }
 
+        /// <summary>
+        /// Sets the given ParameterCollection as the new additionalInfo-parameters.
+        /// </summary>
+        /// <param name="additionalInfo">The new additionalInfo-object.</param>
+        public void SetAdditionalInfo(ParameterCollection additionalInfo)
+        {
+            _additionalInfo = additionalInfo;
+        }
+
+        /// <summary>
+        /// Sets both a new value for this parameter and updates the additionalInfo.
+        /// </summary>
+        /// <param name="newValue"></param>
+        /// <param name="additionalInfo"></param>
+        /// <returns></returns>
+        public bool SetValue(object newValue, ParameterCollection additionalInfo)
+        {
+            if (SetValue(newValue))
+            {
+                SetAdditionalInfo(additionalInfo);
+                return true;
+            }
+            return false;
+        }
+
+        /// <summary>
+        /// Sets both a new value for this parameter and updates the additionalInfo.
+        /// </summary>
+        /// <param name="newValue"></param>
+        /// <param name="additionalInfo"></param>
+        /// <param name="parameterValueConverters"></param>
+        /// <returns></returns>
+        public bool SetValue(object newValue, ParameterCollection additionalInfo, IEnumerable<IParameterValueConverter> parameterValueConverters)
+        {
+            if (SetValue(newValue, parameterValueConverters))
+            {
+                SetAdditionalInfo(additionalInfo);
+                return true;
+            }
+            return false;
+        }
+
         public override string ToString()
         {
             var additionalInfo = "None";
