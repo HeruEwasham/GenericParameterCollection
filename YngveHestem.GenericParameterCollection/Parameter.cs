@@ -137,30 +137,37 @@ namespace YngveHestem.GenericParameterCollection
         /// <param name="customConvertersToOnlyUseNow">Here goes custom converters needed to convert value (if default converters don't support it, or you want it saved differently). The converters added here will not be saved to the parameter, but only be used to convert the inputted value to the parameter.</param>
         public Parameter(string key, object value, ParameterType parameterType, ParameterCollection additionalInfo = null, IEnumerable<IParameterValueConverter> customConvertersToSave = null, IEnumerable<IParameterValueConverter> customConvertersToOnlyUseNow = null)
         {
-            if (customConvertersToSave != null)
+            if (value != null)
             {
-                _customParameterValueConverters = customConvertersToSave.ToList();
-            }
-
-            // Check if can convert via attributes
-            var type = value.GetType();
-            var allCustomConverters = customConvertersToOnlyUseNow.ConcatWithNullCheck(_customParameterValueConverters);
-            type.GetCustomAttributes<AdditionalInfoAttribute>().GetAdditionalInfoFromAttributes(ref additionalInfo, customConvertersToOnlyUseNow);
-            var acAttribute = type.GetCustomAttribute<AttributeConvertibleAttribute>();
-            if (acAttribute != null)
-            {
-                if (parameterType == ParameterType.ParameterCollection)
+                if (customConvertersToSave != null)
                 {
-                    _value = JToken.FromObject(type.GetParameterCollectionFromAttributes(value, customConvertersToOnlyUseNow), ParameterConverterExtensions.JsonSerializer);
+                    _customParameterValueConverters = customConvertersToSave.ToList();
+                }
+
+                // Check if can convert via attributes
+                var type = value.GetType();
+                var allCustomConverters = customConvertersToOnlyUseNow.ConcatWithNullCheck(_customParameterValueConverters);
+                type.GetCustomAttributes<AdditionalInfoAttribute>().GetAdditionalInfoFromAttributes(ref additionalInfo, customConvertersToOnlyUseNow);
+                var acAttribute = type.GetCustomAttribute<AttributeConvertibleAttribute>();
+                if (acAttribute != null)
+                {
+                    if (parameterType == ParameterType.ParameterCollection)
+                    {
+                        _value = JToken.FromObject(type.GetParameterCollectionFromAttributes(value, customConvertersToOnlyUseNow), ParameterConverterExtensions.JsonSerializer);
+                    }
+                }
+
+
+                // Use converters if value not already set.
+                if (_value == null)
+                {
+                    var converter = GetSuitableConverterFromValue(value, parameterType, customConvertersToOnlyUseNow);
+                    _value = converter.ConvertFromValue(parameterType, value.GetType(), value, allCustomConverters, ParameterConverterExtensions.JsonSerializer);
                 }
             }
-            
-
-            // Use converters if value not already set.
-            if (_value == null)
+            else
             {
-                var converter = GetSuitableConverterFromValue(value, parameterType, customConvertersToOnlyUseNow);
-                _value = converter.ConvertFromValue(parameterType, value.GetType(), value, allCustomConverters, ParameterConverterExtensions.JsonSerializer);
+                _value = JValue.CreateNull();
             }
 
             Key = key;
@@ -521,6 +528,10 @@ namespace YngveHestem.GenericParameterCollection
 
         private static ParameterType GetBestSuitableParameterType(object value, IEnumerable<IParameterValueConverter> customConverters1, IEnumerable<IParameterValueConverter> customConverters2 = null)
         {
+            if (value == null)
+            {
+                throw new ArgumentNullException("You are trying to create a parameter with a null value without any way for us to understand what type of object to assume you want. If you want to create a new parameter with a null-value, please use one of the methods that let us understand the type.");
+            }
             var valueType = value.GetType();
             var acAttribute = valueType.GetCustomAttribute<AttributeConvertibleAttribute>();
             if (acAttribute != null)

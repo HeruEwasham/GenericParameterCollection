@@ -110,6 +110,35 @@ namespace TestProject
                     });
 
 
+            // Null testing
+            Console.WriteLine(Environment.NewLine + "Testing null");
+            var setNull = new ParameterCollection();
+            try
+            {
+                setNull.Add("nullWithoutKnowingTypeShouldNotBePossible", null, new ParameterCollection
+                {
+                    { "extra", true }
+                });
+                Console.WriteLine("Sending a null value that should not be possible became possible!");
+            }
+            catch (ArgumentNullException argEx)
+            {
+                Console.WriteLine("Sending a null value that should not be possible failed with expected type of exception: " + argEx.Message);
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine("Sending a null value that should not be possible failed with an exception not expected: " + ex.Message);
+            }
+            setNull.Add("string", null, ParameterType.String);
+            setNull.Add("int", null, ParameterType.Int);
+            setNull.Add("decimal", null, ParameterType.Decimal);
+            setNull.Add("bytes", null, ParameterType.Bytes);
+            setNull.Add("date", null, ParameterType.Date);
+            setNull.Add("parameterCollection", null, ParameterType.ParameterCollection);
+            setNull.Add("stringArray", null, ParameterType.String_IEnumerable);
+            Console.WriteLine("NullParameters after setting some (in JSON): " + setNull.ToJson());
+
+
             Console.ReadLine();
         }
     }
