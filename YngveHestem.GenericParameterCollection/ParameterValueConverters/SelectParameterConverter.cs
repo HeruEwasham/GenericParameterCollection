@@ -23,14 +23,26 @@ namespace YngveHestem.GenericParameterCollection.ParameterValueConverters
             {
                 if (targetType == typeof(string))
                 {
+                    if (rawValue == null)
+                    {
+                        return string.Empty;
+                    }
                     return rawValue.ToObject<ParameterCollection>().GetByKey<string>("value");
                 }
                 else if (typeof(IEnumerable<string>).IsAssignableFrom(targetType))
                 {
+                    if (rawValue == null)
+                    {
+                        return Array.Empty<string>().ToCorrectIEnumerable(targetType);
+                    }
                     return rawValue.ToObject<ParameterCollection>().GetByKey<IEnumerable<string>>("value").ToCorrectIEnumerable(targetType);
                 }
                 else if (targetType == typeof(ParameterCollection))
                 {
+                    if (rawValue == null)
+                    {
+                        return null;
+                    }
                     return rawValue.ToObject<ParameterCollection>();
                 }
             }
@@ -38,14 +50,26 @@ namespace YngveHestem.GenericParameterCollection.ParameterValueConverters
             {
                 if (targetType == typeof(string))
                 {
+                    if (rawValue == null)
+                    {
+                        return string.Empty;
+                    }
                     return string.Join(", ", rawValue.ToObject<ParameterCollection>().GetByKey<string[]>("value"));
                 }
                 else if (typeof(IEnumerable<string>).IsAssignableFrom(targetType))
                 {
+                    if (rawValue == null)
+                    {
+                        return Array.Empty<string>().ToCorrectIEnumerable(targetType);
+                    }
                     return rawValue.ToObject<ParameterCollection>().GetByKey<IEnumerable<string>>("value").ToCorrectIEnumerable(targetType);
                 }
                 else if (targetType == typeof(ParameterCollection))
                 {
+                    if (rawValue == null)
+                    {
+                        return null;
+                    }
                     return rawValue.ToObject<ParameterCollection>();
                 }
             }

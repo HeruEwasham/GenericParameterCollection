@@ -136,8 +136,112 @@ namespace TestProject
             setNull.Add("date", null, ParameterType.Date);
             setNull.Add("parameterCollection", null, ParameterType.ParameterCollection);
             setNull.Add("stringArray", null, ParameterType.String_IEnumerable);
+            setNull.Add("stringNull", (string?)null, true);
             Console.WriteLine("NullParameters after setting some (in JSON): " + setNull.ToJson());
 
+            var setNullableTypes = new ParameterCollection();
+            setNullableTypes.Add("int", (int?)17);
+            setNullableTypes.Add("dateTime", (DateTime?)DateTime.Now);
+            setNullableTypes.Add("string", (string?)"Hello.", true);
+            Console.WriteLine("NullableTypesParameters after setting some (in JSON): " + setNullableTypes.ToJson());
+
+            setNull.GetParameterByKey("int").SetValue(32);
+            setNull.GetParameterByKey("decimal").SetValue((float?)32f);
+            setNull.GetParameterByKey("string").SetValue("Test");
+            Console.WriteLine("NullParameters after changing some values (in JSON): " + setNull.ToJson());
+
+            setNull.GetParameterByKey("string").SetValue(null);
+            setNull.GetParameterByKey("int").SetValue(null);
+            Console.WriteLine("NullParameters after changing some values back to null (in JSON): " + setNull.ToJson());
+
+            var integer = setNullableTypes.GetByKey<int>("int");
+            var nullableInteger = setNullableTypes.GetByKey<int?>("int");
+            var text = setNullableTypes.GetByKey<string>("string");
+            var textNullable = setNullableTypes.GetByKey<string?>("string");
+
+            setNull.GetParameterByKey("string").SetValue(null);
+            var stringNull = setNull.GetByKey<string>("string");
+
+            var allNull = new ParameterCollection
+            {
+                { "int", null, ParameterType.Int },
+                { "string", null, ParameterType.String },
+                { "string_multiline", null, ParameterType.String_Multiline },
+                { "string_multiline_short", (string?)null, true },
+                { "decimal", null, ParameterType.Decimal },
+                { "bytes", null, ParameterType.Bytes },
+                { "bool", null, ParameterType.Bool },
+                { "datetime", null, ParameterType.DateTime },
+                { "datetime_short", (DateTime?)null, false },
+                { "date", null, ParameterType.Date },
+                { "string_array", null, ParameterType.String_IEnumerable },
+                { "string_multiline_array", null, ParameterType.String_Multiline_IEnumerable },
+                { "int_array", null, ParameterType.Int_IEnumerable },
+                { "decimal_array", null, ParameterType.Decimal_IEnumerable },
+                { "bool_array", null, ParameterType.Bool_IEnumerable },
+                { "datetime_array", null, ParameterType.DateTime_IEnumerable },
+                { "datetime_array_short", (List<DateTime?>)null, false },
+                { "date_array", null, ParameterType.Date_IEnumerable },
+                { "parameterCollection", null, ParameterType.ParameterCollection },
+                { "parameterCollection_array", null, ParameterType.ParameterCollection_IEnumerable },
+                { "enum", null, ParameterType.Enum },
+                { "selectOne", null, ParameterType.SelectOne },
+                { "selectMany", null, ParameterType.SelectMany },
+            };
+            Console.WriteLine("All null (as JSON): " + allNull.ToJson());
+            Console.WriteLine("All null (as string): " + allNull.ToString());
+
+            var nullInt = allNull.GetByKey<int?>("int");
+            var nullString = allNull.GetByKey<string>("string");
+            var nullStringMultiline = allNull.GetByKey<string>("string_multiline");
+            var nullStringMultilineShort = allNull.GetByKey<string>("string_multiline_short");
+            var nullDecimal = allNull.GetByKey<decimal?>("decimal");
+            var nullFloat = allNull.GetByKey<float?>("decimal");
+            var nullBytes = allNull.GetByKey<byte[]>("bytes");
+            var nullBool = allNull.GetByKey<bool?>("bool");
+            var nullDateTime = allNull.GetByKey<DateTime?>("datetime");
+            var nullDateTimeShort = allNull.GetByKey<DateTime?>("datetime_short");
+            var nullDate = allNull.GetByKey<DateTime?>("date");
+            var nullStringArray = allNull.GetByKey<string[]>("string_array");
+            var nullStringMultilineArray = allNull.GetByKey<string[]>("string_multiline_array");
+            var nullIntArray = allNull.GetByKey<int[]>("int_array");
+            var nullDecimalArray = allNull.GetByKey<decimal[]>("decimal_array");
+            var nullBoolArray = allNull.GetByKey<bool[]>("bool_array");
+            var nullDateTimeArray = allNull.GetByKey<DateTime[]>("datetime_array");
+            var nullDateTimeArrayShort = allNull.GetByKey<DateTime[]>("datetime_array_short");
+            var nullDateArray = allNull.GetByKey<DateTime[]>("date_array");
+            var nullParameterCollection = allNull.GetByKey<ParameterCollection>("parameterCollection");
+            var nullParameterCollectionArray = allNull.GetByKey<ParameterCollection[]>("parameterCollection_array");
+            var nullEnum = allNull.GetByKey<ParameterType?>("enum");
+            var nullSelectOne = allNull.GetByKey<string>("selectOne");
+            var nullSelectOneChoices = allNull.GetParameterByKey("selectOne").GetChoices();
+            var nullSelectMany = allNull.GetByKey<string[]>("selectMany");
+            var nullSelectManyChoices = allNull.GetParameterByKey("selectMany").GetChoices();
+
+            var p = new ParameterCollection
+            {
+                { "intIe", new int[] {1,5,7} },
+                { "intIeNullable", new int?[] {1,6, null, 5} },
+                { "decimalIe", new float[] {1.5f,5,7.7f} },
+                { "decimalIeNullable", new float?[] {1.3f,6, null, 5.23f} },
+                { "bool", new bool?[] { true, false, null, true, true } },
+                { "datetime", new DateTime?[] { null, DateTime.Now, DateTime.Today, DateTime.UtcNow } }
+            };
+
+            var pIntIe_double = p.GetByKey<double[]>("intIe");
+            var pIntIe_string = p.GetByKey<string[]>("intIe");
+            var pIntIe_double_nullable = p.GetByKey<double?[]>("intIeNullable");
+            var pIntIe_string_nullable = p.GetByKey<string?[]>("intIeNullable");
+            var pDecimalIe_double = p.GetByKey<double[]>("decimalIe");
+            var pDecimalIe_string = p.GetByKey<string[]>("decimalIe");
+            var pDecimalIe_double_nullable = p.GetByKey<double?[]>("decimalIeNullable");
+            var pDecimalIe_string_nullable = p.GetByKey<string?[]>("decimalIeNullable");
+            var pBool = p.GetByKey<bool?[]>("bool");
+            var pDateTime = p.GetByKey<DateTime?[]>("datetime");
+
+            var nullableExample = new ExampleNullableTypes.ExampleNullableTypesClass();
+            var taskParameters = nullableExample.GetExampleParameters();
+            var tasks = nullableExample.GetAsList(taskParameters);
 
             Console.ReadLine();
         }

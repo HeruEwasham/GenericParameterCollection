@@ -9,7 +9,7 @@ namespace YngveHestem.GenericParameterCollection.ParameterValueConverters
 	{
         public bool CanConvertFromParameter(ParameterType sourceType, Type targetType, JToken rawValue, IEnumerable<IParameterValueConverter> customConverters, JsonSerializer jsonSerializer)
         {
-            return (typeof(Enum).IsAssignableFrom(targetType) &&
+            return (typeof(Enum).IsAssignableFrom(targetType) && rawValue != null &&
                 ((sourceType == ParameterType.Enum && Enum.IsDefined(targetType, rawValue.ToObject<ParameterCollection>(jsonSerializer).GetByKey<string>("value"))) ||
                 (sourceType == ParameterType.String && Enum.IsDefined(targetType, rawValue.ToObject<string>(jsonSerializer))) ||
                 (sourceType == ParameterType.Int && Enum.IsDefined(targetType, rawValue.ToObject<int>(jsonSerializer)))))

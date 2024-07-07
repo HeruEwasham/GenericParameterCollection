@@ -13,11 +13,15 @@ namespace YngveHestem.GenericParameterCollection.ParameterValueConverters
         {
             if (sourceType == ParameterType.DateTime || sourceType == ParameterType.Date)
             {
+                if (rawValue == null)
+                {
+                    return false;
+                }
                 return targetType == typeof(DateTime) || targetType == typeof(string) || typeof(IEnumerable<DateTime>).IsAssignableFrom(targetType);
             }
             else if (sourceType == ParameterType.DateTime_IEnumerable || sourceType == ParameterType.Date_IEnumerable)
             {
-                return typeof(IEnumerable<DateTime>).IsAssignableFrom(targetType) || typeof(IEnumerable<string>).IsAssignableFrom(targetType);
+                return typeof(IEnumerable<DateTime>).IsAssignableFrom(targetType) || typeof(IEnumerable<string>).IsAssignableFrom(targetType) || typeof(IEnumerable<DateTime?>).IsAssignableFrom(targetType);
             }
             else
             {
@@ -33,7 +37,7 @@ namespace YngveHestem.GenericParameterCollection.ParameterValueConverters
             }
             else if (targetType == ParameterType.DateTime_IEnumerable || targetType == ParameterType.Date_IEnumerable)
             {
-                return typeof(IEnumerable<DateTime>).IsAssignableFrom(sourceType) || (typeof(IEnumerable<string>).IsAssignableFrom(sourceType) && ((IEnumerable<string>)value).All(v => DateTime.TryParse(v, out _)));
+                return typeof(IEnumerable<DateTime>).IsAssignableFrom(sourceType) || (typeof(IEnumerable<string>).IsAssignableFrom(sourceType) && ((IEnumerable<string>)value).All(v => v == null || DateTime.TryParse(v, out _))) || typeof(IEnumerable<DateTime?>).IsAssignableFrom(sourceType);
             }
             else
             {
@@ -65,6 +69,10 @@ namespace YngveHestem.GenericParameterCollection.ParameterValueConverters
             }
             else if (sourceType == ParameterType.DateTime_IEnumerable || sourceType == ParameterType.Date_IEnumerable)
             {
+                if (rawValue == null)
+                {
+                    return null;
+                }
                 if (typeof(IEnumerable<DateTime>).IsAssignableFrom(targetType))
                 {
                     return rawValue.ToObject<IEnumerable<DateTime>>(jsonSerializer).ToCorrectIEnumerable(targetType);
@@ -77,6 +85,10 @@ namespace YngveHestem.GenericParameterCollection.ParameterValueConverters
                         pattern = "F";
                     }
                     return rawValue.ToObject<IEnumerable<DateTime>>(jsonSerializer).Select(v => v.ToString(pattern, CultureInfo.CurrentCulture)).ToCorrectIEnumerable(targetType);
+                }
+                else if (typeof(IEnumerable<DateTime?>).IsAssignableFrom(targetType))
+                {
+                    return rawValue.ToObject<IEnumerable<DateTime?>>(jsonSerializer).ToCorrectIEnumerable(targetType);
                 }
             }
 
@@ -98,7 +110,7 @@ namespace YngveHestem.GenericParameterCollection.ParameterValueConverters
             }
             else if (targetType == ParameterType.DateTime_IEnumerable || targetType == ParameterType.Date_IEnumerable)
             {
-                if (typeof(IEnumerable<DateTime>).IsAssignableFrom(sourceType))
+                if (typeof(IEnumerable<DateTime>).IsAssignableFrom(sourceType) || typeof(IEnumerable<DateTime?>).IsAssignableFrom(sourceType))
                 {
                     return JToken.FromObject(value, jsonSerializer);
                 }
