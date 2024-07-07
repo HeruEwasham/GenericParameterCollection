@@ -177,7 +177,7 @@ namespace YngveHestem.GenericParameterCollection
                     }
                     else
                     {
-                        parameterCollection.Add(key, property.GetValue(value), aInfo, customConverters);
+                        parameterCollection.Add(key, property.GetValue(value), property.PropertyType, aInfo, customConverters);
                     }
                 }
             }

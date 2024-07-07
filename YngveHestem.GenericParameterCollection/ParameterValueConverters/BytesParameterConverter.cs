@@ -37,6 +37,10 @@ namespace YngveHestem.GenericParameterCollection.ParameterValueConverters
         {
             if (sourceType == ParameterType.Bytes)
             {
+                if (rawValue == null)
+                {
+                    return null;
+                }
                 var value = Convert.FromBase64String(rawValue.ToObject<string>(jsonSerializer));
                 if (typeof(IEnumerable<byte>).IsAssignableFrom(targetType))
                 {

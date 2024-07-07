@@ -12,11 +12,16 @@ namespace YngveHestem.GenericParameterCollection.ParameterValueConverters
         {
             if (sourceType == ParameterType.Decimal)
             {
+                if (rawValue == null)
+                {
+                    return false;
+                }
                 return targetType == typeof(int) || targetType == typeof(float) || targetType == typeof(double) || targetType == typeof(long) || targetType == typeof(decimal) || targetType == typeof(string);
             }
             else if (sourceType == ParameterType.Decimal_IEnumerable)
             {
-                return typeof(IEnumerable<int>).IsAssignableFrom(targetType) || typeof(IEnumerable<float>).IsAssignableFrom(targetType) || typeof(IEnumerable<double>).IsAssignableFrom(targetType) || typeof(IEnumerable<long>).IsAssignableFrom(targetType) || typeof(IEnumerable<decimal>).IsAssignableFrom(targetType) || typeof(IEnumerable<string>).IsAssignableFrom(targetType);
+                return typeof(IEnumerable<int>).IsAssignableFrom(targetType) || typeof(IEnumerable<float>).IsAssignableFrom(targetType) || typeof(IEnumerable<double>).IsAssignableFrom(targetType) || typeof(IEnumerable<long>).IsAssignableFrom(targetType) || typeof(IEnumerable<decimal>).IsAssignableFrom(targetType) || typeof(IEnumerable<string>).IsAssignableFrom(targetType)
+                    || typeof(IEnumerable<int?>).IsAssignableFrom(targetType) || typeof(IEnumerable<float?>).IsAssignableFrom(targetType) || typeof(IEnumerable<double?>).IsAssignableFrom(targetType) || typeof(IEnumerable<long?>).IsAssignableFrom(targetType) || typeof(IEnumerable<decimal?>).IsAssignableFrom(targetType);
             }
             else
             {
@@ -32,7 +37,8 @@ namespace YngveHestem.GenericParameterCollection.ParameterValueConverters
             }
             else if (targetType == ParameterType.Decimal_IEnumerable)
             {
-                return typeof(IEnumerable<int>).IsAssignableFrom(sourceType) || typeof(IEnumerable<float>).IsAssignableFrom(sourceType) || typeof(IEnumerable<double>).IsAssignableFrom(sourceType) || typeof(IEnumerable<long>).IsAssignableFrom(sourceType) || typeof(IEnumerable<decimal>).IsAssignableFrom(sourceType) || (typeof(IEnumerable<string>).IsAssignableFrom(sourceType) && ((IEnumerable<string>)value).All(v => decimal.TryParse(v, out _)));
+                return typeof(IEnumerable<int>).IsAssignableFrom(sourceType) || typeof(IEnumerable<float>).IsAssignableFrom(sourceType) || typeof(IEnumerable<double>).IsAssignableFrom(sourceType) || typeof(IEnumerable<long>).IsAssignableFrom(sourceType) || typeof(IEnumerable<decimal>).IsAssignableFrom(sourceType) || (typeof(IEnumerable<string>).IsAssignableFrom(sourceType) && ((IEnumerable<string>)value).All(v => v == null || decimal.TryParse(v, out _)))
+                    || typeof(IEnumerable<int?>).IsAssignableFrom(sourceType) || typeof(IEnumerable<float?>).IsAssignableFrom(sourceType) || typeof(IEnumerable<double?>).IsAssignableFrom(sourceType) || typeof(IEnumerable<long?>).IsAssignableFrom(sourceType) || typeof(IEnumerable<decimal?>).IsAssignableFrom(sourceType);
             }
             else
             {
@@ -72,30 +78,53 @@ namespace YngveHestem.GenericParameterCollection.ParameterValueConverters
             }
             else if (sourceType == ParameterType.Decimal_IEnumerable)
             {
-                var value = rawValue.ToObject<IEnumerable<float>>(jsonSerializer);
+                if (rawValue == null)
+                {
+                    return null;
+                }
                 if (typeof(IEnumerable<float>).IsAssignableFrom(targetType))
                 {
-                    return value.ToCorrectIEnumerable(targetType);
+                    return rawValue.ToObject<IEnumerable<float>>(jsonSerializer).ToCorrectIEnumerable(targetType);
                 }
                 else if (typeof(IEnumerable<int>).IsAssignableFrom(targetType))
                 {
-                    return value.Select(v => (int)v).ToCorrectIEnumerable(targetType);
+                    return rawValue.ToObject<IEnumerable<int>>(jsonSerializer).ToCorrectIEnumerable(targetType);
                 }
                 else if (typeof(IEnumerable<double>).IsAssignableFrom(targetType))
                 {
-                    return value.Select(v => (double)v).ToCorrectIEnumerable(targetType);
+                    return rawValue.ToObject<IEnumerable<double>>(jsonSerializer).ToCorrectIEnumerable(targetType);
                 }
                 else if (typeof(IEnumerable<long>).IsAssignableFrom(targetType))
                 {
-                    return value.Select(v => (long)v).ToCorrectIEnumerable(targetType);
+                    return rawValue.ToObject<IEnumerable<long>>(jsonSerializer).ToCorrectIEnumerable(targetType);
                 }
                 else if (typeof(IEnumerable<decimal>).IsAssignableFrom(targetType))
                 {
-                    return value.Select(v => (decimal)v).ToCorrectIEnumerable(targetType);
+                    return rawValue.ToObject<IEnumerable<decimal>>(jsonSerializer).ToCorrectIEnumerable(targetType);
                 }
                 else if (typeof(IEnumerable<string>).IsAssignableFrom(targetType))
                 {
-                    return value.Select(v => v.ToString()).ToCorrectIEnumerable(targetType);
+                    return rawValue.ToObject<IEnumerable<string>>(jsonSerializer).ToCorrectIEnumerable(targetType);
+                }
+                else if (typeof(IEnumerable<float?>).IsAssignableFrom(targetType))
+                {
+                    return rawValue.ToObject<IEnumerable<float?>>(jsonSerializer).ToCorrectIEnumerable(targetType);
+                }
+                else if (typeof(IEnumerable<int?>).IsAssignableFrom(targetType))
+                {
+                    return rawValue.ToObject<IEnumerable<int?>>(jsonSerializer).ToCorrectIEnumerable(targetType);
+                }
+                else if (typeof(IEnumerable<double?>).IsAssignableFrom(targetType))
+                {
+                    return rawValue.ToObject<IEnumerable<double?>>(jsonSerializer).ToCorrectIEnumerable(targetType);
+                }
+                else if (typeof(IEnumerable<long?>).IsAssignableFrom(targetType))
+                {
+                    return rawValue.ToObject<IEnumerable<long?>>(jsonSerializer).ToCorrectIEnumerable(targetType);
+                }
+                else if (typeof(IEnumerable<decimal?>).IsAssignableFrom(targetType))
+                {
+                    return rawValue.ToObject<IEnumerable<decimal?>>(jsonSerializer).ToCorrectIEnumerable(targetType);
                 }
             }
 
@@ -125,13 +154,18 @@ namespace YngveHestem.GenericParameterCollection.ParameterValueConverters
                     || typeof(IEnumerable<int>).IsAssignableFrom(sourceType)
                     || typeof(IEnumerable<double>).IsAssignableFrom(sourceType)
                     || typeof(IEnumerable<long>).IsAssignableFrom(sourceType)
-                    || typeof(IEnumerable<decimal>).IsAssignableFrom(sourceType))
+                    || typeof(IEnumerable<decimal>).IsAssignableFrom(sourceType)
+                    || typeof(IEnumerable<float?>).IsAssignableFrom(sourceType)
+                    || typeof(IEnumerable<int?>).IsAssignableFrom(sourceType)
+                    || typeof(IEnumerable<double?>).IsAssignableFrom(sourceType)
+                    || typeof(IEnumerable<long?>).IsAssignableFrom(sourceType)
+                    || typeof(IEnumerable<decimal?>).IsAssignableFrom(sourceType))
                 {
                     return JToken.FromObject(value, jsonSerializer);
                 }
                 else if (typeof(IEnumerable<string>).IsAssignableFrom(sourceType))
                 {
-                    return JToken.FromObject(((IEnumerable<string>)value).Select(decimal.Parse), jsonSerializer);
+                    return JToken.FromObject(((IEnumerable<string>)value)/*.Select(decimal.Parse)*/, jsonSerializer);
                 }
             }
 

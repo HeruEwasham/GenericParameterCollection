@@ -60,7 +60,7 @@ namespace YngveHestem.GenericParameterCollection
         /// <param name="multiline">Is the string meant to be multiline or should it only be a one-liner.</param>
         /// <param name="additionalInfo">This is a parameter that can be used to add more information to the parameter. This can for example be used to communicate between the part of the program that wants some parameters, and the part that show the parameters to the user, like tell that it only allow subsets of what the type can deliver. It can also be used the other way, to give more information about the content without needing to have seperate parameters to search for.</param>
         /// <param name="customConverters">Here you can put custom converters if you want the value saved differently than the default converters save it as. The converters added here will not be saved to the parameter, but only be used to convert the inputted value to the parameter. If you want to save a custom converter to the parameter(s), use AddCustomConverter(..)-method before calling the add-method instead.</param>
-        public void Add(string key, string value, bool multiline = false, ParameterCollection additionalInfo = null, IEnumerable<IParameterValueConverter> customConverters = null)
+        public void Add(string key, string value, bool multiline, ParameterCollection additionalInfo = null, IEnumerable<IParameterValueConverter> customConverters = null)
         {
             Add(new Parameter(key, value, multiline, additionalInfo, _customParameterValueConverters, customConverters));
         }
@@ -73,7 +73,20 @@ namespace YngveHestem.GenericParameterCollection
         /// <param name="onlyDate">Is both the date and date part relevant or is it only the date that is relevant.</param>
         /// <param name="additionalInfo">This is a parameter that can be used to add more information to the parameter. This can for example be used to communicate between the part of the program that wants some parameters, and the part that show the parameters to the user, like tell that it only allow subsets of what the type can deliver. It can also be used the other way, to give more information about the content without needing to have seperate parameters to search for.</param>
         /// <param name="customConverters">Here you can put custom converters if you want the value saved differently than the default converters save it as. The converters added here will not be saved to the parameter, but only be used to convert the inputted value to the parameter. If you want to save a custom converter to the parameter(s), use AddCustomConverter(..)-method before calling the add-method instead.</param>
-        public void Add(string key, DateTime value, bool onlyDate = false, ParameterCollection additionalInfo = null, IEnumerable<IParameterValueConverter> customConverters = null)
+        public void Add(string key, DateTime value, bool onlyDate, ParameterCollection additionalInfo = null, IEnumerable<IParameterValueConverter> customConverters = null)
+        {
+            Add(new Parameter(key, value, onlyDate, additionalInfo, _customParameterValueConverters, customConverters));
+        }
+
+        /// <summary>
+        /// Create and add a new parameter.
+        /// </summary>
+        /// <param name="key">The given key.</param>
+        /// <param name="value">The given value.</param>
+        /// <param name="onlyDate">Is both the date and date part relevant or is it only the date that is relevant.</param>
+        /// <param name="additionalInfo">This is a parameter that can be used to add more information to the parameter. This can for example be used to communicate between the part of the program that wants some parameters, and the part that show the parameters to the user, like tell that it only allow subsets of what the type can deliver. It can also be used the other way, to give more information about the content without needing to have seperate parameters to search for.</param>
+        /// <param name="customConverters">Here you can put custom converters if you want the value saved differently than the default converters save it as. The converters added here will not be saved to the parameter, but only be used to convert the inputted value to the parameter. If you want to save a custom converter to the parameter(s), use AddCustomConverter(..)-method before calling the add-method instead.</param>
+        public void Add(string key, DateTime? value, bool onlyDate, ParameterCollection additionalInfo = null, IEnumerable<IParameterValueConverter> customConverters = null)
         {
             Add(new Parameter(key, value, onlyDate, additionalInfo, _customParameterValueConverters, customConverters));
         }
@@ -86,7 +99,7 @@ namespace YngveHestem.GenericParameterCollection
         /// <param name="multiline">Is the strings meant to be multiline or should it only be one-liners.</param>
         /// <param name="additionalInfo">This is a parameter that can be used to add more information to the parameter. This can for example be used to communicate between the part of the program that wants some parameters, and the part that show the parameters to the user, like tell that it only allow subsets of what the type can deliver. It can also be used the other way, to give more information about the content without needing to have seperate parameters to search for.</param>
         /// <param name="customConverters">Here you can put custom converters if you want the value saved differently than the default converters save it as. The converters added here will not be saved to the parameter, but only be used to convert the inputted value to the parameter. If you want to save a custom converter to the parameter(s), use AddCustomConverter(..)-method before calling the add-method instead.</param>
-        public void Add(string key, IEnumerable<string> value, bool multiline = false, ParameterCollection additionalInfo = null, IEnumerable<IParameterValueConverter> customConverters = null)
+        public void Add(string key, IEnumerable<string> value, bool multiline, ParameterCollection additionalInfo = null, IEnumerable<IParameterValueConverter> customConverters = null)
         {
             Add(new Parameter(key, value, multiline, additionalInfo, _customParameterValueConverters, customConverters));
         }
@@ -99,7 +112,20 @@ namespace YngveHestem.GenericParameterCollection
         /// <param name="onlyDate">Is both the date and date part relevant in this list or is it only the date that is relevant.</param>
         /// <param name="additionalInfo">This is a parameter that can be used to add more information to the parameter. This can for example be used to communicate between the part of the program that wants some parameters, and the part that show the parameters to the user, like tell that it only allow subsets of what the type can deliver. It can also be used the other way, to give more information about the content without needing to have seperate parameters to search for.</param>
         /// <param name="customConverters">Here you can put custom converters if you want the value saved differently than the default converters save it as. The converters added here will not be saved to the parameter, but only be used to convert the inputted value to the parameter. If you want to save a custom converter to the parameter(s), use AddCustomConverter(..)-method before calling the add-method instead.</param>
-        public void Add(string key, IEnumerable<DateTime> value, bool onlyDate = false, ParameterCollection additionalInfo = null, IEnumerable<IParameterValueConverter> customConverters = null)
+        public void Add(string key, IEnumerable<DateTime> value, bool onlyDate, ParameterCollection additionalInfo = null, IEnumerable<IParameterValueConverter> customConverters = null)
+        {
+            Add(new Parameter(key, value, onlyDate, additionalInfo, _customParameterValueConverters, customConverters));
+        }
+
+        /// <summary>
+        /// Create and add a new parameter.
+        /// </summary>
+        /// <param name="key">The given key.</param>
+        /// <param name="value">The given value.</param>
+        /// <param name="onlyDate">Is both the date and date part relevant in this list or is it only the date that is relevant.</param>
+        /// <param name="additionalInfo">This is a parameter that can be used to add more information to the parameter. This can for example be used to communicate between the part of the program that wants some parameters, and the part that show the parameters to the user, like tell that it only allow subsets of what the type can deliver. It can also be used the other way, to give more information about the content without needing to have seperate parameters to search for.</param>
+        /// <param name="customConverters">Here you can put custom converters if you want the value saved differently than the default converters save it as. The converters added here will not be saved to the parameter, but only be used to convert the inputted value to the parameter. If you want to save a custom converter to the parameter(s), use AddCustomConverter(..)-method before calling the add-method instead.</param>
+        public void Add(string key, IEnumerable<DateTime?> value, bool onlyDate, ParameterCollection additionalInfo = null, IEnumerable<IParameterValueConverter> customConverters = null)
         {
             Add(new Parameter(key, value, onlyDate, additionalInfo, _customParameterValueConverters, customConverters));
         }
@@ -137,9 +163,35 @@ namespace YngveHestem.GenericParameterCollection
         /// <param name="value">The given value.</param>
         /// <param name="additionalInfo">This is a parameter that can be used to add more information to the parameter. This can for example be used to communicate between the part of the program that wants some parameters, and the part that show the parameters to the user, like tell that it only allow subsets of what the type can deliver. It can also be used the other way, to give more information about the content without needing to have seperate parameters to search for.</param>
         /// <param name="customConverters">Here goes custom converters needed to convert value (if default converters don't support it, or you want it saved differently). The converters added here will not be saved to the parameter, but only be used to convert the inputted value to the parameter. If you want to save a custom converter to the parameter(s), use AddCustomConverter(..)-method before calling the add-method instead.</param>
+        /// <typeparam name="T">Specify the type of the value given.</typeparam>
+        public void Add<T>(string key, T value, ParameterCollection additionalInfo = null, IEnumerable<IParameterValueConverter> customConverters = null)
+        {
+            Add(new Parameter(key, value, typeof(T), additionalInfo, _customParameterValueConverters, customConverters));
+        }
+
+        /// <summary>
+        /// Create and add a new parameter. This will use either one of the default converters or another converter provided.
+        /// </summary>
+        /// <param name="key">The given key.</param>
+        /// <param name="value">The given value.</param>
+        /// <param name="additionalInfo">This is a parameter that can be used to add more information to the parameter. This can for example be used to communicate between the part of the program that wants some parameters, and the part that show the parameters to the user, like tell that it only allow subsets of what the type can deliver. It can also be used the other way, to give more information about the content without needing to have seperate parameters to search for.</param>
+        /// <param name="customConverters">Here goes custom converters needed to convert value (if default converters don't support it, or you want it saved differently). The converters added here will not be saved to the parameter, but only be used to convert the inputted value to the parameter. If you want to save a custom converter to the parameter(s), use AddCustomConverter(..)-method before calling the add-method instead.</param>
         public void Add(string key, object value, ParameterCollection additionalInfo = null, IEnumerable<IParameterValueConverter> customConverters = null)
         {
             Add(new Parameter(key, value, additionalInfo, _customParameterValueConverters, customConverters));
+        }
+
+        /// <summary>
+        /// Create and add a new parameter. This will use either one of the default converters or another converter provided.
+        /// </summary>
+        /// <param name="key">The given key.</param>
+        /// <param name="value">The given value.</param>
+        /// <param name="valueType">Specify the type of the value given.</param>
+        /// <param name="additionalInfo">This is a parameter that can be used to add more information to the parameter. This can for example be used to communicate between the part of the program that wants some parameters, and the part that show the parameters to the user, like tell that it only allow subsets of what the type can deliver. It can also be used the other way, to give more information about the content without needing to have seperate parameters to search for.</param>
+        /// <param name="customConverters">Here goes custom converters needed to convert value (if default converters don't support it, or you want it saved differently). The converters added here will not be saved to the parameter, but only be used to convert the inputted value to the parameter. If you want to save a custom converter to the parameter(s), use AddCustomConverter(..)-method before calling the add-method instead.</param>
+        public void Add(string key, object value, Type valueType, ParameterCollection additionalInfo = null, IEnumerable<IParameterValueConverter> customConverters = null)
+        {
+            Add(new Parameter(key, value, valueType, additionalInfo, _customParameterValueConverters, customConverters));
         }
 
         /// <summary>
@@ -538,15 +590,38 @@ namespace YngveHestem.GenericParameterCollection
         /// <returns></returns>
         public static ParameterCollection FromObject(object value, IEnumerable<IParameterValueConverter> customConverters = null)
         {
-            var type = value.GetType();
-            var acAttribute = type.GetCustomAttribute<AttributeConvertibleAttribute>();
+            return FromObject(value, value.GetType(), customConverters);
+        }
+
+        /// <summary>
+        /// Create a new ParameterCollection 
+        /// </summary>
+        /// <param name="value"></param>
+        /// <param name="customConverters"></param>
+        /// <typeparam name="TValue"></typeparam>
+        /// <returns></returns>
+        public static ParameterCollection FromObject<TValue>(TValue value, IEnumerable<IParameterValueConverter> customConverters = null)
+        {
+            return FromObject(value, typeof(TValue), customConverters);
+        }
+
+        /// <summary>
+        /// Create a new ParameterCollection 
+        /// </summary>
+        /// <param name="value"></param>
+        /// <param name="valueType">Specify the type of the value given.</param>
+        /// <param name="customConverters"></param>
+        /// <returns></returns>
+        public static ParameterCollection FromObject(object value, Type valueType, IEnumerable<IParameterValueConverter> customConverters = null)
+        {
+            var acAttribute = valueType.GetCustomAttribute<AttributeConvertibleAttribute>();
             if (acAttribute != null && acAttribute.ParameterType == ParameterType.ParameterCollection)
             {
-                return type.GetParameterCollectionFromAttributes(value, customConverters);
+                return valueType.GetParameterCollectionFromAttributes(value, customConverters);
             }
 
             var converter = GetSuitableConverterFromValue(value, ParameterType.ParameterCollection, customConverters);
-            return converter.ConvertFromValue(ParameterType.ParameterCollection, type, value, customConverters, ParameterConverterExtensions.JsonSerializer).ToObject<ParameterCollection>(ParameterConverterExtensions.JsonSerializer);
+            return converter.ConvertFromValue(ParameterType.ParameterCollection, valueType, value, customConverters, ParameterConverterExtensions.JsonSerializer).ToObject<ParameterCollection>(ParameterConverterExtensions.JsonSerializer);
         }
     }
 }

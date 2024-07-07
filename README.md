@@ -31,6 +31,7 @@ Currently, these C#-types are supported out of the box, with some conversion bet
 - IEnumerable of ParameterCollection
 - Enum-types
 - IEnumerable of objects of types that use attribute-converters
+- Nullable types of the one above (int?, double?, IEnumerable of int?, etc.)
 
 Converters for other types are easy to implement.
 
@@ -65,6 +66,12 @@ When using attributes, simple ienumerables of theese objects are also supported 
 It is possible to convert a object to and from any ParameterType by creating a class that implement the IParameterValueConverter.
 
 If you will make converter class between the ParameterType ParameterCollection and a single object type (per converter-class), you can instead of implementing IParameterValueConverter directly, create a class that inherit from the class ParameterCollectionParameterConverter<TValueType>. This class do some of the heavy lifting for you. TValueType will here be the type that should be converted to/from a ParameterCollection.
+
+### A quick note about how null-value is handled
+
+When someone tries to set a null-value, that will automatically be set without going through converters. This means that you for now can assume that all values sent in CanConvertFromValue(..) are not null (but it do not hurt to check). This means also that the raw values saved on a parameter can be null, and you need to have that in mind when for example using it in ConvertFromParameter(..).
+
+One thing to also think about is that the default converters will make an exception if you try to get a value that is null as a type that can not contain null (for instance you can not convert a null value to int, but you can convert it to int?). If you want to return for instance a default value if the value is null and you try to get it as a type that are not able to be null, you will be able to do that by creating a custom converter.
 
 ## GUI-frontends
 

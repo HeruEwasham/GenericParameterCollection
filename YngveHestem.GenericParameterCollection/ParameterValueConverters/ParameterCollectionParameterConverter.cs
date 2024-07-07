@@ -11,11 +11,11 @@ namespace YngveHestem.GenericParameterCollection.ParameterValueConverters
         {
             if (sourceType == ParameterType.ParameterCollection && targetType == typeof(TValueType))
             {
-                return CanConvertFromParameterCollection(rawValue.ToObject<ParameterCollection>(jsonSerializer), customConverters);
+                return CanConvertFromParameterCollection(rawValue?.ToObject<ParameterCollection>(jsonSerializer), customConverters);
             }
             else if (sourceType == ParameterType.ParameterCollection_IEnumerable && typeof(IEnumerable<TValueType>).IsAssignableFrom(targetType))
             {
-                return CanConvertFromListOfParameterCollection(rawValue.ToObject<IEnumerable<ParameterCollection>>(jsonSerializer), customConverters);
+                return CanConvertFromListOfParameterCollection(rawValue?.ToObject<IEnumerable<ParameterCollection>>(jsonSerializer), customConverters);
             }
             else
             {
@@ -45,7 +45,7 @@ namespace YngveHestem.GenericParameterCollection.ParameterValueConverters
             {
                 try
                 {
-                    return ConvertFromParameterCollection(rawValue.ToObject<ParameterCollection>(), customConverters);
+                    return ConvertFromParameterCollection(rawValue?.ToObject<ParameterCollection>(), customConverters);
                 }
                 catch (Exception e)
                 {
@@ -56,7 +56,7 @@ namespace YngveHestem.GenericParameterCollection.ParameterValueConverters
             {
                 try
                 {
-                    return ConvertFromListOfParameterCollection(rawValue.ToObject<IEnumerable<ParameterCollection>>(), customConverters).ToCorrectIEnumerable(targetType);
+                    return ConvertFromListOfParameterCollection(rawValue?.ToObject<IEnumerable<ParameterCollection>>(), customConverters)?.ToCorrectIEnumerable(targetType);
                 }
                 catch (Exception e)
                 {

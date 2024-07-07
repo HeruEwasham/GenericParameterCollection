@@ -19,6 +19,10 @@ namespace YngveHestem.GenericParameterCollection.ParameterValueConverters
 
         public object ConvertFromParameter(ParameterType sourceType, Type targetType, JToken rawValue, IEnumerable<IParameterValueConverter> customConverters, JsonSerializer jsonSerializer)
         {
+            if (rawValue == null)
+            {
+                return null;
+            }
             if (sourceType == ParameterType.String || sourceType == ParameterType.String_Multiline)
             {
                 if (targetType == typeof(string))
