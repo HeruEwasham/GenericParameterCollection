@@ -69,11 +69,16 @@ namespace YngveHestem.GenericParameterCollection.ParameterValueConverters
                 {
                     valueAsString = Enum.GetName(underlyingType, value);
                 }
+                var choices = new List<string>()
+                {
+                    string.Empty
+                };
+                choices.AddRange(Enum.GetNames(underlyingType));
                 return JToken.FromObject(new ParameterCollection
                     {
                         { "value", valueAsString, false },
                         { "type", underlyingType.FullName },
-                        { "choices", Enum.GetNames(underlyingType) }
+                        { "choices", choices }
                     }, jsonSerializer);
             }
 
