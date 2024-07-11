@@ -162,40 +162,16 @@ namespace YngveHestem.GenericParameterCollection
         {
             if (value != null)
             {
-                if (customConvertersToSave != null)
-                {
-                    _customParameterValueConverters = customConvertersToSave.ToList();
-                }
-
-                // Check if can convert via attributes
                 var type = value.GetType();
-                var allCustomConverters = customConvertersToOnlyUseNow.ConcatWithNullCheck(_customParameterValueConverters);
-                type.GetCustomAttributes<AdditionalInfoAttribute>().GetAdditionalInfoFromAttributes(ref additionalInfo, customConvertersToOnlyUseNow);
-                var acAttribute = type.GetCustomAttribute<AttributeConvertibleAttribute>();
-                if (acAttribute != null)
-                {
-                    if (parameterType == ParameterType.ParameterCollection)
-                    {
-                        _value = JToken.FromObject(type.GetParameterCollectionFromAttributes(value, customConvertersToOnlyUseNow), ParameterConverterExtensions.JsonSerializer);
-                    }
-                }
-
-
-                // Use converters if value not already set.
-                if (_value == null)
-                {
-                    var converter = GetSuitableConverterFromValue(value, parameterType, customConvertersToOnlyUseNow);
-                    _value = converter.ConvertFromValue(parameterType, value.GetType(), value, allCustomConverters, ParameterConverterExtensions.JsonSerializer);
-                }
+                InitParameter(key, value, value.GetType(), parameterType, additionalInfo, customConvertersToSave, customConvertersToOnlyUseNow);
             }
             else
             {
                 _value = null;
+                Key = key;
+                Type = parameterType;
+                _additionalInfo = additionalInfo;
             }
-
-            Key = key;
-            Type = parameterType;
-            _additionalInfo = additionalInfo;
         }
 
         /// <summary>
@@ -215,7 +191,42 @@ namespace YngveHestem.GenericParameterCollection
         /// <param name="valueType">Specify the type of the value given.</param>
         /// <param name="additionalInfo">This is a parameter that can be used to add more information to the parameter. This can for example be used to communicate between the part of the program that wants some parameters, and the part that show the parameters to the user, like tell that it only allow subsets of what the type can deliver. It can also be used the other way, to give more information about the content without needing to have seperate parameters to search for.</param>
         /// <param name="customConverters">Here can custom converters needed to convert value (if default converters don't support it, or you want it saved differently). More converters can also be added later.</param>
-        public Parameter(string key, object value, Type valueType, ParameterCollection additionalInfo = null, IEnumerable<IParameterValueConverter> customConvertersToSave = null, IEnumerable<IParameterValueConverter> customConvertersToOnlyUseNow = null) : this(key, value, GetBestSuitableParameterType(value, valueType, customConvertersToSave, customConvertersToOnlyUseNow), additionalInfo, customConvertersToSave, customConvertersToOnlyUseNow) { }
+        public Parameter(string key, object value, Type valueType, ParameterCollection additionalInfo = null, IEnumerable<IParameterValueConverter> customConvertersToSave = null, IEnumerable<IParameterValueConverter> customConvertersToOnlyUseNow = null)
+        {
+            InitParameter(key, value, valueType, GetBestSuitableParameterType(value, valueType, customConvertersToSave, customConvertersToOnlyUseNow), additionalInfo, customConvertersToSave, customConvertersToOnlyUseNow);
+        }
+
+        private void InitParameter(string key, object value, Type valueType, ParameterType parameterType, ParameterCollection additionalInfo, IEnumerable<IParameterValueConverter> customConvertersToSave, IEnumerable<IParameterValueConverter> customConvertersToOnlyUseNow)
+        {
+            if (customConvertersToSave != null)
+            {
+                _customParameterValueConverters = customConvertersToSave.ToList();
+            }
+
+            // Check if can convert via attributes
+            var allCustomConverters = customConvertersToOnlyUseNow.ConcatWithNullCheck(_customParameterValueConverters);
+            valueType.GetCustomAttributes<AdditionalInfoAttribute>().GetAdditionalInfoFromAttributes(ref additionalInfo, customConvertersToOnlyUseNow);
+            var acAttribute = valueType.GetCustomAttribute<AttributeConvertibleAttribute>();
+            if (acAttribute != null)
+            {
+                if (parameterType == ParameterType.ParameterCollection)
+                {
+                    _value = JToken.FromObject(valueType.GetParameterCollectionFromAttributes(value, customConvertersToOnlyUseNow), ParameterConverterExtensions.JsonSerializer);
+                }
+            }
+
+
+            // Use converters if value not already set.
+            if (_value == null)
+            {
+                var converter = GetSuitableConverterFromValue(value, valueType, parameterType, customConvertersToOnlyUseNow);
+                _value = converter.ConvertFromValue(parameterType, valueType, value, allCustomConverters, ParameterConverterExtensions.JsonSerializer);
+            }
+
+            Key = key;
+            Type = parameterType;
+            _additionalInfo = additionalInfo;
+        }
 
         /// <summary>
         /// Adds a new custom converter that could be used by parameter.
@@ -338,12 +349,12 @@ namespace YngveHestem.GenericParameterCollection
         }
 
         /// <summary>
-        /// Get if the parameters current value is null or not.
+        /// Get if the parameter's current value is not null.
         /// </summary>
         /// <returns></returns>
-        public bool IsNull()
+        public bool HasValue()
         {
-            return _value == null;
+            return _value != null && _value.Type != JTokenType.Null;
         }
 
         /// <summary>
@@ -409,7 +420,7 @@ namespace YngveHestem.GenericParameterCollection
 
                 try
                 {
-                    _value = GetSuitableConverterFromValue(newValue, Type, null).ConvertFromValue(Type, valueType, newValue, _customParameterValueConverters, ParameterConverterExtensions.JsonSerializer);
+                    _value = GetSuitableConverterFromValue(newValue, valueType, Type, null).ConvertFromValue(Type, valueType, newValue, _customParameterValueConverters, ParameterConverterExtensions.JsonSerializer);
                     return true;
                 }
                 catch (ArgumentOutOfRangeException)
@@ -469,7 +480,7 @@ namespace YngveHestem.GenericParameterCollection
 
                 try
                 {
-                    _value = GetSuitableConverterFromValue(newValue, Type, parameterValueConverters).ConvertFromValue(Type, valueType, newValue, parameterValueConverters.ConcatWithNullCheck(_customParameterValueConverters), ParameterConverterExtensions.JsonSerializer);
+                    _value = GetSuitableConverterFromValue(newValue, valueType, Type, parameterValueConverters).ConvertFromValue(Type, valueType, newValue, parameterValueConverters.ConcatWithNullCheck(_customParameterValueConverters), ParameterConverterExtensions.JsonSerializer);
                     return true;
                 }
                 catch (ArgumentOutOfRangeException)
@@ -536,7 +547,7 @@ namespace YngveHestem.GenericParameterCollection
             return "Parameter has these values:" + Environment.NewLine +
                 "\tThe key is: " + Key + Environment.NewLine +
                 "\tThe type to convert to is: " + Enum.GetName(typeof(ParameterType), Type) + Environment.NewLine +
-                "\tThe value to convert from is: " + (_value?.ToString() ?? "null") + Environment.NewLine +
+                "\tThe value to convert from is: " + (HasValue() ? _value.ToString() : "null") + Environment.NewLine +
                 "\tAdditionalInfo: " + additionalInfo;
         }
 
@@ -709,7 +720,7 @@ namespace YngveHestem.GenericParameterCollection
             {
                 return ParameterType.ParameterCollection_IEnumerable;
             }
-            else if (typeof(Enum).IsAssignableFrom(valueType))
+            else if (typeof(Enum).IsAssignableFrom(valueType) || Nullable.GetUnderlyingType(valueType) != null && typeof(Enum).IsAssignableFrom(Nullable.GetUnderlyingType(valueType)))
             {
                 return ParameterType.Enum;
             }
@@ -737,9 +748,8 @@ namespace YngveHestem.GenericParameterCollection
             throw new ArgumentException("Did not find any suitable ParameterType for the valuetype " + valueType);
         }
 
-        private IParameterValueConverter GetSuitableConverterFromValue(object value, ParameterType parameterType, IEnumerable<IParameterValueConverter> parameterValueConverters)
+        private IParameterValueConverter GetSuitableConverterFromValue(object value, Type valueType, ParameterType parameterType, IEnumerable<IParameterValueConverter> parameterValueConverters)
         {
-            var valueType = value.GetType();
             var allCustomConverters = parameterValueConverters.ConcatWithNullCheck(_customParameterValueConverters);
             var converter = parameterValueConverters != null ? parameterValueConverters.FirstOrDefault(c => c.CanConvertFromValue(parameterType, valueType, value, allCustomConverters)) : null;
 
@@ -770,7 +780,7 @@ namespace YngveHestem.GenericParameterCollection
             if ((Type == ParameterType.Enum || Type == ParameterType.SelectOne) && valueType == typeof(string))
             {
                 var v = _value.ToObject<ParameterCollection>(ParameterConverterExtensions.JsonSerializer);
-                if (v.GetByKeyAndType<List<string>>("choices", ParameterType.String_IEnumerable).Contains((string)newValue))
+                if (v.GetByKeyAndType<List<string>>("choices", ParameterType.String_IEnumerable).Contains((string)newValue) || string.IsNullOrEmpty((string)newValue))
                 {
                     if (v.GetParameterByKeyAndType("value", ParameterType.String).SetValue(newValue))
                     {

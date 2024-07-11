@@ -143,6 +143,7 @@ namespace TestProject
             setNullableTypes.Add("int", (int?)17);
             setNullableTypes.Add("dateTime", (DateTime?)DateTime.Now);
             setNullableTypes.Add("string", (string?)"Hello.", true);
+            setNullableTypes.Add("enum nullable specified nullable type but is with value", ParameterType.DateTime, typeof(ParameterType?));
             Console.WriteLine("NullableTypesParameters after setting some (in JSON): " + setNullableTypes.ToJson());
 
             setNull.GetParameterByKey("int").SetValue(32);
@@ -187,6 +188,7 @@ namespace TestProject
                 { "enum", null, ParameterType.Enum },
                 { "selectOne", null, ParameterType.SelectOne },
                 { "selectMany", null, ParameterType.SelectMany },
+                { "int as nullable", null, typeof(int?) },
             };
             Console.WriteLine("All null (as JSON): " + allNull.ToJson());
             Console.WriteLine("All null (as string): " + allNull.ToString());
@@ -242,6 +244,47 @@ namespace TestProject
             var nullableExample = new ExampleNullableTypes.ExampleNullableTypesClass();
             var taskParameters = nullableExample.GetExampleParameters();
             var tasks = nullableExample.GetAsList(taskParameters);
+
+            Console.WriteLine("Int in allNull is null: " + allNull.GetParameterByKey("int").HasValue().ToString());
+            Console.WriteLine("Int as nullable in allNull is null: " + allNull.GetParameterByKey("int as nullable").HasValue().ToString());
+
+            allNull.Add("enum with type specified", null, typeof(ParameterType?));
+            var hasEnumKeyAllNull = allNull.HasKeyAndCanConvertTo("enum with type specified", typeof(ParameterType?));
+            var nullEnumSpecified = allNull.GetByKey<ParameterType?>("enum with type specified");
+            var nullEnumSpecifiedAsString = allNull.GetByKey<string>("enum with type specified");
+            var nullEnumSpecifiedChoices = allNull.GetParameterByKey("enum with type specified").GetChoices();
+            allNull.Add("int nullable type specified as nullable", null, typeof(int?));
+            var intNullable = allNull.GetByKey<int?>("int nullable type specified as nullable");
+            var nullableEnumSpecified = setNullableTypes.GetByKey<ParameterType?>("enum nullable specified nullable type but is with value");
+            var nullableEnumSpecifiedAsString = setNullableTypes.GetByKey<string>("enum nullable specified nullable type but is with value");
+            var nullableEnumSpecifiedChoices = setNullableTypes.GetParameterByKey("enum nullable specified nullable type but is with value").GetChoices();
+
+            var someMoreTests = new ParameterCollection
+            {
+                { "enum", ParameterType.ParameterCollection },
+                { "enumAsString", "Date" },
+                { "enumAsInt", 5 },
+                { "int", 15 },
+                { "nullableEnumStartNull", null, typeof(ParameterType?) },
+                { "nullableEnumStartValue", ParameterType.SelectOne, typeof(ParameterType?) },
+            };
+
+            var hasEnumKey = someMoreTests.HasKeyAndCanConvertTo("enum", typeof(ParameterType));
+            var hasIntKey = someMoreTests.HasKeyAndCanConvertTo("int", typeof(int));
+            var hasEnumKeyAsStringAndCanConvertToEnum = someMoreTests.HasKeyAndCanConvertTo("enumAsString", typeof(ParameterType));
+            var hasEnumKeyAsIntAndCanConvertToEnum = someMoreTests.HasKeyAndCanConvertTo("enumAsInt", typeof(ParameterType));
+            var hasEnumKeyWithoutCheckingConvertionType = someMoreTests.HasKey("enum");
+
+            var enumFromEnum = someMoreTests.GetByKey<ParameterType>("enum");
+            var enumFromString = someMoreTests.GetByKey<ParameterType>("enumAsString");
+            var enumFromInt = someMoreTests.GetByKey<ParameterType>("enumAsInt");
+            var nullableEnumFromEnum = someMoreTests.GetByKey<ParameterType?>("enum");
+
+            var enumChoices = someMoreTests.GetParameterByKey("enum").GetChoices();
+            var nullableEnumStartNullChoices = someMoreTests.GetParameterByKey("nullableEnumStartNull").GetChoices();
+            var nullableEnumStartValueChoices = someMoreTests.GetParameterByKey("nullableEnumStartValue").GetChoices();
+            var nullableEnumStartNull = someMoreTests.GetByKey<ParameterType?>("nullableEnumStartNull");
+
 
             Console.ReadLine();
         }

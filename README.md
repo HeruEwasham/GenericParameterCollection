@@ -69,9 +69,9 @@ If you will make converter class between the ParameterType ParameterCollection a
 
 ### A quick note about how null-value is handled
 
-When someone tries to set a null-value, that will automatically be set without going through converters. This means that you for now can assume that all values sent in CanConvertFromValue(..) are not null (but it do not hurt to check). This means also that the raw values saved on a parameter can be null, and you need to have that in mind when for example using it in ConvertFromParameter(..).
+As we handle null-values, this will mean that both the rawValue and value in the converters can be null.
 
-One thing to also think about is that the default converters will make an exception if you try to get a value that is null as a type that can not contain null (for instance you can not convert a null value to int, but you can convert it to int?). If you want to return for instance a default value if the value is null and you try to get it as a type that are not able to be null, you will be able to do that by creating a custom converter.
+Another thing to mark is that the default converters will make an exception if you try to get a value that is null as a type that can not contain null (for instance you can not convert a null value to int, but you can convert it to int?). If you want to return for instance a default value if the value is null and you try to get it as a type that are not able to be null, you will be able to do that by creating a custom converter.
 
 ## GUI-frontends
 

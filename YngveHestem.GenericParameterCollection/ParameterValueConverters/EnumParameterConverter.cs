@@ -9,11 +9,11 @@ namespace YngveHestem.GenericParameterCollection.ParameterValueConverters
 	{
         public bool CanConvertFromParameter(ParameterType sourceType, Type targetType, JToken rawValue, IEnumerable<IParameterValueConverter> customConverters, JsonSerializer jsonSerializer)
         {
-            return (typeof(Enum).IsAssignableFrom(targetType) && rawValue != null &&
+            return (typeof(Enum).IsAssignableFrom(targetType) && EnumParameterHasValue(rawValue, sourceType, jsonSerializer) &&
                 ((sourceType == ParameterType.Enum && Enum.IsDefined(targetType, rawValue.ToObject<ParameterCollection>(jsonSerializer).GetByKey<string>("value"))) ||
                 (sourceType == ParameterType.String && Enum.IsDefined(targetType, rawValue.ToObject<string>(jsonSerializer))) ||
                 (sourceType == ParameterType.Int && Enum.IsDefined(targetType, rawValue.ToObject<int>(jsonSerializer)))))
-                || (sourceType == ParameterType.Enum && (targetType == typeof(string) || targetType == typeof(int) || targetType == typeof(ParameterCollection)));
+                || (sourceType == ParameterType.Enum && (targetType == typeof(string) || (targetType == typeof(int) && EnumParameterHasValue(rawValue, sourceType, jsonSerializer)) || targetType == typeof(ParameterCollection)));
         }
 
         public bool CanConvertFromValue(ParameterType targetType, Type sourceType, object value, IEnumerable<IParameterValueConverter> customConverters)
@@ -87,6 +87,29 @@ namespace YngveHestem.GenericParameterCollection.ParameterValueConverters
             }
 
             throw new ArgumentException("The values was not supported to be converted by " + nameof(EnumParameterConverter));
+        }
+
+        private bool EnumParameterHasValue(JToken rawValue, ParameterType sourceType, JsonSerializer jsonSerializer)
+        {
+            if (rawValue != null)
+            {
+                if (sourceType == ParameterType.Enum)
+                {
+                    return !string.IsNullOrEmpty(rawValue.ToObject<ParameterCollection>(jsonSerializer).GetByKey<string>("value"));
+                }
+                else if (sourceType == ParameterType.String)
+                {
+                    return rawValue.ToObject<string>() != string.Empty;
+                }
+                else
+                {
+                    return true;
+                }
+            }
+            else
+            {
+                return false;
+            }
         }
     }
 }
