@@ -14,7 +14,7 @@ namespace YngveHestem.GenericParameterCollection.ParameterValueConverters
             var underlyingType = Nullable.GetUnderlyingType(targetType);
             if (underlyingType != null)
             {
-                if (rawValue == null)
+                if (rawValue == null || (sourceType == ParameterType.Enum && typeof(Enum).IsAssignableFrom(underlyingType)))
                 {
                     return true;
                 }
@@ -26,7 +26,8 @@ namespace YngveHestem.GenericParameterCollection.ParameterValueConverters
 
         public bool CanConvertFromValue(ParameterType targetType, Type sourceType, object value, IEnumerable<IParameterValueConverter> customConverters)
         {
-            return false; // Converting from nullable values should not be necessarry as the value gotten if not null is the underlying type on nullable types.
+            var underlyingType = Nullable.GetUnderlyingType(sourceType);
+            return underlyingType != null && customConverters.ConcatWithNullCheck(Parameter.DefaultParameterValueConverters).Any(c => c.CanConvertFromValue(targetType, underlyingType, value, customConverters));
         }
 
         public object ConvertFromParameter(ParameterType sourceType, Type targetType, JToken rawValue, IEnumerable<IParameterValueConverter> customConverters, JsonSerializer jsonSerializer)
@@ -36,7 +37,8 @@ namespace YngveHestem.GenericParameterCollection.ParameterValueConverters
             {
                 throw new ArgumentException("The values was not supported to be converted by " + nameof(NullableParameterConverter) + ". It is not nullable.");
             }
-            if (rawValue == null || rawValue.Type == JTokenType.Null)
+            if (rawValue == null || rawValue.Type == JTokenType.Null
+                || (sourceType == ParameterType.Enum && typeof(Enum).IsAssignableFrom(underlyingType) && string.IsNullOrEmpty(rawValue.ToObject<ParameterCollection>().GetByKey<string>("value"))))
             {
                 return null;
             }
@@ -54,7 +56,42 @@ namespace YngveHestem.GenericParameterCollection.ParameterValueConverters
 
         public JToken ConvertFromValue(ParameterType targetType, Type sourceType, object value, IEnumerable<IParameterValueConverter> customConverters, JsonSerializer jsonSerializer)
         {
-            throw new NotImplementedException();
+            var underlyingType = Nullable.GetUnderlyingType(sourceType);
+            if (underlyingType == null)
+            {
+                throw new ArgumentException("The values was not supported to be converted by " + nameof(NullableParameterConverter) + ". It is not nullable.");
+            }
+
+            if (targetType == ParameterType.Enum && typeof(Enum).IsAssignableFrom(underlyingType))
+            {
+                var valueAsString = string.Empty;
+                if (value != null)
+                {
+                    valueAsString = Enum.GetName(underlyingType, value);
+                }
+                return JToken.FromObject(new ParameterCollection
+                    {
+                        { "value", valueAsString, false },
+                        { "type", underlyingType.FullName },
+                        { "choices", Enum.GetNames(underlyingType) }
+                    }, jsonSerializer);
+            }
+
+            if (value == null)
+            {
+                return null;
+            }
+
+            var converters = customConverters.ConcatWithNullCheck(Parameter.DefaultParameterValueConverters);
+            var converter = converters.FirstOrDefault(c => c.CanConvertFromValue(targetType, underlyingType, value, customConverters));
+            if (converter != null)
+            {
+                return converter.ConvertFromValue(targetType, underlyingType, value, customConverters, jsonSerializer);
+            }
+            else
+            {
+                throw new ArgumentException("The values was not supported to be converted by " + nameof(NullableParameterConverter) + ". No converter to convert the underlying type was found.");
+            }
         }
     }
 }
