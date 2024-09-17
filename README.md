@@ -81,6 +81,7 @@ Here is a list of known packages that will provide an editor for a given framewo
 - [GenericParameterCollection.Maui](https://github.com/HeruEwasham/GenericParameterCollection.Maui)
 - [GenericParameterCollection.Console](https://github.com/HeruEwasham/GenericParameterCollection.Console)
 - [GenericParameterCollection.RadzenBlazor](https://github.com/HeruEwasham/GenericParameterCollection.RadzenBlazor)
+- [GenericParameterCollection.Avalonia](hhttps://github.com/HeruEwasham/GenericParameterCollection.Avalonia)
 
 Have you made a package that will fit here? Create an issue with link or create a PR.
 
