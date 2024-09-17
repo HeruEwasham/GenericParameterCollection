@@ -83,7 +83,7 @@ namespace YngveHestem.GenericParameterCollection.ParameterValueConverters
                     {
                         result.Add(ParameterCollection.FromObject(item, customConverters));
                     }
-                    return JToken.FromObject(result);
+                    return JToken.FromObject(result, jsonSerializer);
                 }
             }
 

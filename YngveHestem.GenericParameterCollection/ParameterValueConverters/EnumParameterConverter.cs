@@ -83,7 +83,7 @@ namespace YngveHestem.GenericParameterCollection.ParameterValueConverters
             }
             else if (targetType == ParameterType.Enum && sourceType == typeof(ParameterCollection))
             {
-                return JToken.FromObject(value);
+                return JToken.FromObject(value, jsonSerializer);
             }
 
             throw new ArgumentException("The values was not supported to be converted by " + nameof(EnumParameterConverter));
@@ -99,7 +99,7 @@ namespace YngveHestem.GenericParameterCollection.ParameterValueConverters
                 }
                 else if (sourceType == ParameterType.String)
                 {
-                    return rawValue.ToObject<string>() != string.Empty;
+                    return rawValue.ToObject<string>(jsonSerializer) != string.Empty;
                 }
                 else
                 {

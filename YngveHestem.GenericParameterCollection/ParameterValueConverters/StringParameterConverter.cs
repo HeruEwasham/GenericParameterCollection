@@ -59,7 +59,7 @@ namespace YngveHestem.GenericParameterCollection.ParameterValueConverters
                 }
                 else if (typeof(IEnumerable<string>).IsAssignableFrom(sourceType))
                 {
-                    return JToken.FromObject(string.Join(", ", (IEnumerable<string>)value));
+                    return JToken.FromObject(string.Join(", ", (IEnumerable<string>)value), jsonSerializer);
                 }
             }
             else if (targetType == ParameterType.String_IEnumerable || targetType == ParameterType.String_Multiline_IEnumerable)

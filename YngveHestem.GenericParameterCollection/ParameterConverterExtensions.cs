@@ -46,7 +46,7 @@ namespace YngveHestem.GenericParameterCollection
 
         public static IEnumerable<T> ToIEnumerable<T>(this T value)
         {
-            return JToken.FromObject(new T[] { value }).ToObject<IEnumerable<T>>();
+            return JToken.FromObject(new T[] { value }, JsonSerializer).ToObject<IEnumerable<T>>(JsonSerializer);
         }
 
         public static Type GetDefaultValueType(this ParameterType type)

@@ -61,15 +61,15 @@ namespace YngveHestem.GenericParameterCollection.ParameterValueConverters
             {
                 if (value == null)
                 {
-                    return JToken.FromObject(Convert.ToBase64String(new byte[0]));
+                    return JToken.FromObject(Convert.ToBase64String(new byte[0]), jsonSerializer);
                 }
                 else if (typeof(IEnumerable<byte>).IsAssignableFrom(sourceType))
                 {
-                    return JToken.FromObject(Convert.ToBase64String(((IEnumerable<byte>)value).ToArray()));
+                    return JToken.FromObject(Convert.ToBase64String(((IEnumerable<byte>)value).ToArray()), jsonSerializer);
                 }
                 else if (sourceType == typeof(string))
                 {
-                    return JToken.FromObject(Convert.ToBase64String(Encoding.UTF8.GetBytes((string)value)));
+                    return JToken.FromObject(Convert.ToBase64String(Encoding.UTF8.GetBytes((string)value)), jsonSerializer);
                 }
             }
 
