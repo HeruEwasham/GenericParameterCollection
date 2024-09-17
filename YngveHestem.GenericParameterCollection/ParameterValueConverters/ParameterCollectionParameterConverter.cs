@@ -45,7 +45,7 @@ namespace YngveHestem.GenericParameterCollection.ParameterValueConverters
             {
                 try
                 {
-                    return ConvertFromParameterCollection(rawValue?.ToObject<ParameterCollection>(), customConverters);
+                    return ConvertFromParameterCollection(rawValue?.ToObject<ParameterCollection>(jsonSerializer), customConverters);
                 }
                 catch (Exception e)
                 {
@@ -56,7 +56,7 @@ namespace YngveHestem.GenericParameterCollection.ParameterValueConverters
             {
                 try
                 {
-                    return ConvertFromListOfParameterCollection(rawValue?.ToObject<IEnumerable<ParameterCollection>>(), customConverters)?.ToCorrectIEnumerable(targetType);
+                    return ConvertFromListOfParameterCollection(rawValue?.ToObject<IEnumerable<ParameterCollection>>(jsonSerializer), customConverters)?.ToCorrectIEnumerable(targetType);
                 }
                 catch (Exception e)
                 {

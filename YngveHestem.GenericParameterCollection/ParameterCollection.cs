@@ -498,7 +498,7 @@ namespace YngveHestem.GenericParameterCollection
                 var acAttribute = type.GetCustomAttribute<AttributeConvertibleAttribute>();
                 if (acAttribute != null)
                 {
-                    return type.GetObjectFromAttributes(JToken.FromObject(this), acAttribute, customConverters);
+                    return type.GetObjectFromAttributes(JToken.FromObject(this, ParameterConverterExtensions.JsonSerializer), acAttribute, customConverters);
                 }
 
                 return GetSuitableConverterToValue(type, customConverters).ConvertFromParameter(ParameterType.ParameterCollection, type, JToken.FromObject(this), customConverters.ConcatWithNullCheck(_customParameterValueConverters), ParameterConverterExtensions.JsonSerializer);

@@ -27,7 +27,7 @@ namespace YngveHestem.GenericParameterCollection.ParameterValueConverters
                     {
                         return string.Empty;
                     }
-                    return rawValue.ToObject<ParameterCollection>().GetByKey<string>("value");
+                    return rawValue.ToObject<ParameterCollection>(jsonSerializer).GetByKey<string>("value");
                 }
                 else if (typeof(IEnumerable<string>).IsAssignableFrom(targetType))
                 {
@@ -35,7 +35,7 @@ namespace YngveHestem.GenericParameterCollection.ParameterValueConverters
                     {
                         return Array.Empty<string>().ToCorrectIEnumerable(targetType);
                     }
-                    return rawValue.ToObject<ParameterCollection>().GetByKey<IEnumerable<string>>("value").ToCorrectIEnumerable(targetType);
+                    return rawValue.ToObject<ParameterCollection>(jsonSerializer).GetByKey<IEnumerable<string>>("value").ToCorrectIEnumerable(targetType);
                 }
                 else if (targetType == typeof(ParameterCollection))
                 {
@@ -43,7 +43,7 @@ namespace YngveHestem.GenericParameterCollection.ParameterValueConverters
                     {
                         return null;
                     }
-                    return rawValue.ToObject<ParameterCollection>();
+                    return rawValue.ToObject<ParameterCollection>(jsonSerializer);
                 }
             }
             else if (sourceType == ParameterType.SelectMany)
@@ -54,7 +54,7 @@ namespace YngveHestem.GenericParameterCollection.ParameterValueConverters
                     {
                         return string.Empty;
                     }
-                    return string.Join(", ", rawValue.ToObject<ParameterCollection>().GetByKey<string[]>("value"));
+                    return string.Join(", ", rawValue.ToObject<ParameterCollection>(jsonSerializer).GetByKey<string[]>("value"));
                 }
                 else if (typeof(IEnumerable<string>).IsAssignableFrom(targetType))
                 {
@@ -62,7 +62,7 @@ namespace YngveHestem.GenericParameterCollection.ParameterValueConverters
                     {
                         return Array.Empty<string>().ToCorrectIEnumerable(targetType);
                     }
-                    return rawValue.ToObject<ParameterCollection>().GetByKey<IEnumerable<string>>("value").ToCorrectIEnumerable(targetType);
+                    return rawValue.ToObject<ParameterCollection>(jsonSerializer).GetByKey<IEnumerable<string>>("value").ToCorrectIEnumerable(targetType);
                 }
                 else if (targetType == typeof(ParameterCollection))
                 {
@@ -70,7 +70,7 @@ namespace YngveHestem.GenericParameterCollection.ParameterValueConverters
                     {
                         return null;
                     }
-                    return rawValue.ToObject<ParameterCollection>();
+                    return rawValue.ToObject<ParameterCollection>(jsonSerializer);
                 }
             }
 
@@ -81,7 +81,7 @@ namespace YngveHestem.GenericParameterCollection.ParameterValueConverters
         {
             if (sourceType == typeof(ParameterCollection) && (targetType == ParameterType.SelectOne || targetType == ParameterType.SelectMany))
             {
-                return JToken.FromObject(value);
+                return JToken.FromObject(value, jsonSerializer);
             }
 
             throw new ArgumentException("The values was not supported to be converted by " + nameof(SelectParameterConverter));

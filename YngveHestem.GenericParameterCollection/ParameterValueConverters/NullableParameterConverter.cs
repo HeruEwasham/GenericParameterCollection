@@ -38,7 +38,7 @@ namespace YngveHestem.GenericParameterCollection.ParameterValueConverters
                 throw new ArgumentException("The values was not supported to be converted by " + nameof(NullableParameterConverter) + ". It is not nullable.");
             }
             if (rawValue == null || rawValue.Type == JTokenType.Null
-                || (sourceType == ParameterType.Enum && typeof(Enum).IsAssignableFrom(underlyingType) && string.IsNullOrEmpty(rawValue.ToObject<ParameterCollection>().GetByKey<string>("value"))))
+                || (sourceType == ParameterType.Enum && typeof(Enum).IsAssignableFrom(underlyingType) && string.IsNullOrEmpty(rawValue.ToObject<ParameterCollection>(jsonSerializer).GetByKey<string>("value"))))
             {
                 return null;
             }
