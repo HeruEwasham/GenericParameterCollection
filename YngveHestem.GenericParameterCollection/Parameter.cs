@@ -682,7 +682,7 @@ namespace YngveHestem.GenericParameterCollection
             }
             else if (typeof(IEnumerable<string>).IsAssignableFrom(valueType))
             {
-                if (((IEnumerable<string>)value).Any(s => s.Contains('\n')))
+                if (value != null && ((IEnumerable<string>)value).Any(s => s.Contains('\n')))
                 {
                     return ParameterType.String_Multiline_IEnumerable;
                 }
@@ -707,7 +707,7 @@ namespace YngveHestem.GenericParameterCollection
             }
             else if (typeof(IEnumerable<DateTime>).IsAssignableFrom(valueType) || typeof(IEnumerable<DateTime?>).IsAssignableFrom(valueType))
             {
-                if (value == null && ((IEnumerable<DateTime>)value).All(v => v.TimeOfDay == TimeSpan.Zero))
+                if (value != null && ((IEnumerable<DateTime>)value).All(v => v.TimeOfDay == TimeSpan.Zero))
                 {
                     return ParameterType.Date_IEnumerable;
                 }
