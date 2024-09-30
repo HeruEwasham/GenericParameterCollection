@@ -199,7 +199,7 @@ namespace YngveHestem.GenericParameterCollection
                     }
                     else
                     {
-                        parameterCollection.Add(key, field.GetValue(value), aInfo, customConverters);
+                        parameterCollection.Add(key, field.GetValue(value), field.FieldType, aInfo, customConverters);
                     }
                 }
             }
