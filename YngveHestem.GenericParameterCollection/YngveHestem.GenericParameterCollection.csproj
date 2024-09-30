@@ -2,11 +2,11 @@
 
   <PropertyGroup>
     <TargetFramework>netstandard2.0</TargetFramework>
-    <Version>1.1.7-beta02</Version>
+    <Version>1.1.7-beta04</Version>
     <Description>ParameterCollection is a simple to use collection for different parameters and types defined with a key. It supports many of the standard types like int, string, double, float, long, DateTime, bool, byte[], enums and more. It can also support nearly every other objects by easy converting the object to it´s own ParameterCollection, which can be nested togheter as parameters. It also supports many of the parameters as IEnumerables (List, Array, etc.). Methods to convert to and from JSON is also included.</Description>
     <PackageReleaseNotes>
         - Fixed a small bug that made it so AttributeConvertibles fields that was null, made a big error on conversion.
-        - Fixed also some other bugs that were found around conversion that was not caught before.
+        - Fixed also some other bugs that were found around null-conversion that was not caught before.
     </PackageReleaseNotes>
     <Authors>Yngve J. K. Hestem</Authors>
     <Copyright>Copyright (c) Yngve J. K. Hestem 2023</Copyright>

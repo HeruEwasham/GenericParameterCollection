@@ -162,7 +162,6 @@ namespace YngveHestem.GenericParameterCollection
         {
             if (value != null)
             {
-                var type = value.GetType();
                 InitParameter(key, value, value.GetType(), parameterType, additionalInfo, customConvertersToSave, customConvertersToOnlyUseNow);
             }
             else
@@ -207,17 +206,19 @@ namespace YngveHestem.GenericParameterCollection
             var allCustomConverters = customConvertersToOnlyUseNow.ConcatWithNullCheck(_customParameterValueConverters);
             valueType.GetCustomAttributes<AdditionalInfoAttribute>().GetAdditionalInfoFromAttributes(ref additionalInfo, customConvertersToOnlyUseNow);
             var acAttribute = valueType.GetCustomAttribute<AttributeConvertibleAttribute>();
+            var valueSet = false;
             if (acAttribute != null)
             {
                 if (parameterType == ParameterType.ParameterCollection)
                 {
                     _value = JToken.FromObject(valueType.GetParameterCollectionFromAttributes(value, customConvertersToOnlyUseNow), ParameterConverterExtensions.JsonSerializer);
+                    valueSet = true;
                 }
             }
 
 
             // Use converters if value not already set.
-            if (_value == null)
+            if (!valueSet)
             {
                 var converter = GetSuitableConverterFromValue(value, valueType, parameterType, customConvertersToOnlyUseNow);
                 _value = converter.ConvertFromValue(parameterType, valueType, value, allCustomConverters, ParameterConverterExtensions.JsonSerializer);

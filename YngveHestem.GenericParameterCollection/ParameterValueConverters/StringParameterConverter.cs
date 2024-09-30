@@ -51,7 +51,11 @@ namespace YngveHestem.GenericParameterCollection.ParameterValueConverters
 
         public JToken ConvertFromValue(ParameterType targetType, Type sourceType, object value, IEnumerable<IParameterValueConverter> customConverters, JsonSerializer jsonSerializer)
         {
-            if ((targetType == ParameterType.String || targetType == ParameterType.String_Multiline))
+            if (value == null)
+            {
+                return null;
+            }
+            if (targetType == ParameterType.String || targetType == ParameterType.String_Multiline)
             {
                 if (sourceType == typeof(string))
                 {
