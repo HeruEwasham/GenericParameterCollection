@@ -171,13 +171,18 @@ namespace YngveHestem.GenericParameterCollection
                     }
                     ParameterCollection aInfo = null;
                     GetAdditionalInfoFromAttributes(property.GetCustomAttributes<AdditionalInfoAttribute>(), ref aInfo, customConverters);
+                    var pValue = property.GetValue(value);
                     if (ppa.ParameterType.HasValue)
                     {
-                        parameterCollection.Add(key, property.GetValue(value), ppa.ParameterType.Value, aInfo, customConverters);
+                        parameterCollection.Add(key, pValue, ppa.ParameterType.Value, aInfo, customConverters);
+                    }
+                    else if (pValue != null)
+                    {
+                        parameterCollection.Add(key, pValue, pValue.GetType(), aInfo, customConverters);
                     }
                     else
                     {
-                        parameterCollection.Add(key, property.GetValue(value), property.PropertyType, aInfo, customConverters);
+                        parameterCollection.Add(key, pValue, property.PropertyType, aInfo, customConverters);
                     }
                 }
             }
@@ -193,13 +198,18 @@ namespace YngveHestem.GenericParameterCollection
                     }
                     ParameterCollection aInfo = null;
                     GetAdditionalInfoFromAttributes(field.GetCustomAttributes<AdditionalInfoAttribute>(), ref aInfo, customConverters);
+                    var fValue = field.GetValue(value);
                     if (ppa.ParameterType.HasValue)
                     {
-                        parameterCollection.Add(key, field.GetValue(value), ppa.ParameterType.Value, aInfo, customConverters);
+                        parameterCollection.Add(key, fValue, ppa.ParameterType.Value, aInfo, customConverters);
+                    }
+                    else if (fValue != null)
+                    {
+                        parameterCollection.Add(key, fValue, fValue.GetType(), aInfo, customConverters);
                     }
                     else
                     {
-                        parameterCollection.Add(key, field.GetValue(value), field.FieldType, aInfo, customConverters);
+                        parameterCollection.Add(key, fValue, field.FieldType, aInfo, customConverters);
                     }
                 }
             }
