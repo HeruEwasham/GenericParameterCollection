@@ -468,10 +468,11 @@ namespace YngveHestem.GenericParameterCollection
         /// <summary>
         /// Convert this collection to json.
         /// </summary>
+        /// <param name="formatting">Any special formatting?</param>
         /// <returns></returns>
-        public string ToJson()
+        public string ToJson(Formatting formatting = Formatting.None)
         {
-            return JsonConvert.SerializeObject(this, ParameterConverterExtensions.GetJsonSerializerSettings());
+            return JsonConvert.SerializeObject(this, formatting, ParameterConverterExtensions.GetJsonSerializerSettings());
         }
 
         /// <summary>

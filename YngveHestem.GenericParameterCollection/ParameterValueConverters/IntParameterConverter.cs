@@ -50,30 +50,29 @@ namespace YngveHestem.GenericParameterCollection.ParameterValueConverters
         {
             if (sourceType == ParameterType.Int)
             {
-                var value = rawValue.ToObject<int>(jsonSerializer);
                 if (targetType == typeof(int))
                 {
-                    return value;
+                    return rawValue.ToObject<int>(jsonSerializer);
                 }
                 else if (targetType == typeof(float))
                 {
-                    return (float)value;
+                    return rawValue.ToObject<float>(jsonSerializer);
                 }
                 else if (targetType == typeof(double))
                 {
-                    return (double)value;
+                    return rawValue.ToObject<double>(jsonSerializer);
                 }
                 else if (targetType == typeof(long))
                 {
-                    return (long)value;
+                    return rawValue.ToObject<long>(jsonSerializer);
                 }
                 else if (targetType == typeof(decimal))
                 {
-                    return (decimal)value;
+                    return rawValue.ToObject<decimal>(jsonSerializer);
                 }
                 else if (targetType == typeof(string))
                 {
-                    return value.ToString();
+                    return rawValue.ToObject<string>(jsonSerializer);
                 }
             }
             else if (sourceType == ParameterType.Int_IEnumerable)

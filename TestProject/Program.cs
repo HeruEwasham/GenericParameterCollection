@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Diagnostics;
 using YngveHestem.GenericParameterCollection;
 
 namespace TestProject
@@ -284,6 +285,34 @@ namespace TestProject
             var nullableEnumStartNullChoices = someMoreTests.GetParameterByKey("nullableEnumStartNull").GetChoices();
             var nullableEnumStartValueChoices = someMoreTests.GetParameterByKey("nullableEnumStartValue").GetChoices();
             var nullableEnumStartNull = someMoreTests.GetByKey<ParameterType?>("nullableEnumStartNull");
+
+            var testNumberBoundaries = new ParameterCollection
+            {
+                { "minInt", int.MinValue },
+                { "maxInt", int.MaxValue },
+                { "minFloat", float.MinValue },
+                { "maxFloat", float.MaxValue },
+                { "minDouble", double.MinValue },
+                { "maxDouble", double.MaxValue },
+                { "minLong", long.MinValue },
+                { "maxLong", long.MaxValue },
+                { "minDecimal", decimal.MinValue },
+                { "maxDecimal", decimal.MaxValue },
+            };
+
+            Console.WriteLine(Environment.NewLine + "TestNumberBoundaries:" + Environment.NewLine + testNumberBoundaries.ToJson(Newtonsoft.Json.Formatting.Indented));
+
+            var testNumberBoundaries_MinInt = testNumberBoundaries.GetByKey<int>("minInt");
+            var testNumberBoundaries_MaxInt = testNumberBoundaries.GetByKey<int>("maxInt");
+            var testNumberBoundaries_MinFloat = testNumberBoundaries.GetByKey<float>("minFloat");
+            var testNumberBoundaries_MaxFloat = testNumberBoundaries.GetByKey<float>("maxFloat");
+            var testNumberBoundaries_MinDouble = testNumberBoundaries.GetByKey<double>("minDouble");
+            var testNumberBoundaries_MaxDouble = testNumberBoundaries.GetByKey<double>("maxDouble");
+            var testNumberBoundaries_MinLong = testNumberBoundaries.GetByKey<long>("minLong");
+            var testNumberBoundaries_MaxLong = testNumberBoundaries.GetByKey<long>("maxLong");
+            var testNumberBoundaries_MinDecimal = testNumberBoundaries.GetByKey<decimal>("minDecimal");
+            var testNumberBoundaries_MaxDecimal = testNumberBoundaries.GetByKey<decimal>("maxDecimal");
+            var testNumberBoundaries_MinDecimalDirect = testNumberBoundaries.GetParameterByKey("minDecimal").GetValue<decimal>();
 
 
             Console.ReadLine();

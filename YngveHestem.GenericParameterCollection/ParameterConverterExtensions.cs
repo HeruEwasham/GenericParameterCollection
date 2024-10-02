@@ -125,7 +125,8 @@ namespace YngveHestem.GenericParameterCollection
             return new JsonSerializerSettings
             {
                 TypeNameHandling = TypeNameHandling.Auto,
-                Converters = GetJsonConverters()
+                Converters = GetJsonConverters(),
+                FloatParseHandling = FloatParseHandling.Decimal
             };
         }
 

@@ -706,9 +706,20 @@ namespace YngveHestem.GenericParameterCollection
             {
                 return ParameterType.Bool_IEnumerable;
             }
-            else if (typeof(IEnumerable<DateTime>).IsAssignableFrom(valueType) || typeof(IEnumerable<DateTime?>).IsAssignableFrom(valueType))
+            else if (typeof(IEnumerable<DateTime>).IsAssignableFrom(valueType))
             {
-                if (value != null && ((IEnumerable<DateTime>)value).All(v => v.TimeOfDay == TimeSpan.Zero))
+                if (((IEnumerable<DateTime>)value).All(v => v.TimeOfDay == TimeSpan.Zero))
+                {
+                    return ParameterType.Date_IEnumerable;
+                }
+                else
+                {
+                    return ParameterType.DateTime_IEnumerable;
+                }
+            }
+            else if (typeof(IEnumerable<DateTime?>).IsAssignableFrom(valueType))
+            {
+                if (value != null && ((IEnumerable<DateTime?>)value).Any(v => v.HasValue) && ((IEnumerable<DateTime?>)value).All(v => !v.HasValue || v.Value.TimeOfDay == TimeSpan.Zero))
                 {
                     return ParameterType.Date_IEnumerable;
                 }
