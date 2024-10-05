@@ -273,7 +273,14 @@ namespace YngveHestem.GenericParameterCollection
                 {
                     if (!additionalInfo.HasKey(aInfoAttr.Key))
                     {
-                        additionalInfo.Add(aInfoAttr.Key, aInfoAttr.Value, null, customConverters);
+                        if (aInfoAttr.ParameterType.HasValue)
+                        {
+                            additionalInfo.Add(aInfoAttr.Key, aInfoAttr.Value, aInfoAttr.ParameterType.Value, null, customConverters);
+                        }
+                        else
+                        {
+                            additionalInfo.Add(aInfoAttr.Key, aInfoAttr.Value, null, customConverters);
+                        }    
                     }
                     else if (aInfoAttr.OverrideIfKeyExist)
                     {
