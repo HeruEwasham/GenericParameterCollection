@@ -14,9 +14,24 @@ namespace YngveHestem.GenericParameterCollection
 		public bool OverrideIfKeyExist { get; set; } = false;
 
 		/// <summary>
-		/// This can be set to a value to define what ParameterType the value is. If not set, the values type is used to decide. Mark that this only is used if the key don't already exists.
+		/// This can be set to a value to define what ParameterType the given AdditionalInfo-parameter's value is. If not set, the value's type is used to decide. Mark that this only is used if the key don't already exists.
 		/// </summary>
-		public ParameterType? ParameterType = null;
+		public ParameterType ParameterType 
+		{
+			get
+			{
+				return _parameterType;
+			}
+			set
+			{
+				_parameterType = value;
+				ParameterTypeIsSet = true;
+			}
+		}
+
+		public bool ParameterTypeIsSet { get; private set; } = false;
+
+		private ParameterType _parameterType;
 
 		public AdditionalInfoAttribute(string key, object value)
 		{
