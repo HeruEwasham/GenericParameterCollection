@@ -315,6 +315,14 @@ namespace TestProject
             var testNumberBoundaries_MinDecimalDirect = testNumberBoundaries.GetParameterByKey("minDecimal").GetValue<decimal>();
 
 
+            var testClassForAdditionalInfoPathSerialisation = new ExampleWithAttributeConversionWithManyAdditonalInfoLayers.ExampleWithAttributeConversionWithManyAdditonalInfoLayers();
+            var testClassForAdditionalInfoPathSerialisationResult = testClassForAdditionalInfoPathSerialisation.DefineExample();
+            Console.WriteLine("testClassForAdditionalInfoPathSerialisationResult:" + Environment.NewLine + testClassForAdditionalInfoPathSerialisationResult.ToJson(Newtonsoft.Json.Formatting.Indented));
+
+            var testClassForAdditionalInfoPathSerialisationWithOtherAdditionalinfoResult = testClassForAdditionalInfoPathSerialisation.DefineExampleWithPartlyPathAlreadyMadeWithSomeOtherParameters();
+            Console.WriteLine("testClassForAdditionalInfoPathSerialisationWithOtherAdditionalinfoResult:" + Environment.NewLine + testClassForAdditionalInfoPathSerialisationWithOtherAdditionalinfoResult.ToJson(Newtonsoft.Json.Formatting.Indented));
+
+
             Console.ReadLine();
         }
     }

@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Globalization;
 using System.Linq;
 using System.Reflection;
 using Newtonsoft.Json;
@@ -271,23 +272,94 @@ namespace YngveHestem.GenericParameterCollection
                 }
                 foreach (var aInfoAttr in attributes)
                 {
-                    if (!additionalInfo.HasKey(aInfoAttr.Key))
+                    if (aInfoAttr.KeyIsPath)
                     {
-                        if (aInfoAttr.ParameterTypeIsSet)
-                        {
-                            additionalInfo.Add(aInfoAttr.Key, aInfoAttr.Value, aInfoAttr.ParameterType, null, customConverters);
-                        }
-                        else
-                        {
-                            additionalInfo.Add(aInfoAttr.Key, aInfoAttr.Value, null, customConverters);
-                        }    
+                        var parts = aInfoAttr.Key.Split(new string[] {aInfoAttr.KeyPathDivider}, StringSplitOptions.RemoveEmptyEntries );
+                        CreatePathAndAddNewItem(ref additionalInfo, parts, aInfoAttr, customConverters);
                     }
-                    else if (aInfoAttr.OverrideIfKeyExist)
+                    else
                     {
-                        additionalInfo.GetParameterByKey(aInfoAttr.Key).SetValue(aInfoAttr.Value, customConverters);
+                        if (!additionalInfo.HasKey(aInfoAttr.Key))
+                        {
+                            if (aInfoAttr.ParameterTypeIsSet)
+                            {
+                                additionalInfo.Add(aInfoAttr.Key, aInfoAttr.Value, aInfoAttr.ParameterType, null, customConverters);
+                            }
+                            else
+                            {
+                                additionalInfo.Add(aInfoAttr.Key, aInfoAttr.Value, null, customConverters);
+                            }
+                        }
+                        else if (aInfoAttr.OverrideIfKeyExist)
+                        {
+                            additionalInfo.GetParameterByKey(aInfoAttr.Key).SetValue(aInfoAttr.Value, customConverters);
+                        }
                     }
                 }
             }
+        }
+
+        private static bool CreatePathAndAddNewItem(ref ParameterCollection additionalInfo, string[] parts, AdditionalInfoAttribute aInfoAttr, IEnumerable<IParameterValueConverter> customConverters)
+        {
+            var aInfoList = new List<ParameterCollection>
+            {
+                additionalInfo
+            };
+            for(var i = 0; i < parts.Length-1; i++)
+            {
+                if (aInfoList[i].HasKey(parts[i]))
+                {
+                    if (aInfoList[i].GetParameterType(parts[i]) != ParameterType.ParameterCollection)
+                    {
+                        return false;
+                    }
+                    aInfoList.Add(aInfoList[i].GetByKey<ParameterCollection>(parts[i], customConverters));
+                }
+                else
+                {
+                    aInfoList.Add(new ParameterCollection());
+                }
+            }
+
+            var lastAInfoNumber = aInfoList.Count()-1;
+            if (!aInfoList[lastAInfoNumber].HasKey(parts[lastAInfoNumber]))
+            {
+                if (aInfoAttr.ParameterTypeIsSet)
+                {
+                    aInfoList[lastAInfoNumber].Add(parts[lastAInfoNumber], aInfoAttr.Value, aInfoAttr.ParameterType, null, customConverters);
+                }
+                else
+                {
+                    aInfoList[lastAInfoNumber].Add(parts[lastAInfoNumber], aInfoAttr.Value, null, customConverters);
+                }
+            }
+            else if (aInfoAttr.OverrideIfKeyExist)
+            {
+               aInfoList[lastAInfoNumber].GetParameterByKey(parts[lastAInfoNumber-1]).SetValue(aInfoAttr.Value, customConverters);
+            }
+
+            for (var i = lastAInfoNumber-1; i > 0; i--)
+            {
+                if (aInfoList[i].HasKey(parts[i]))
+                {
+                    aInfoList[i].GetParameterByKey(parts[i]).SetValue(aInfoList[i+1], customConverters);
+                }
+                else
+                {
+                    aInfoList[i].Add(parts[i], aInfoList[i+1], ParameterType.ParameterCollection, null, customConverters);
+                }
+            }
+
+            if (additionalInfo.HasKey(parts[0]))
+            {
+                additionalInfo.GetParameterByKey(parts[0]).SetValue(aInfoList[1], customConverters);
+            }
+            else
+            {
+                additionalInfo.Add(parts[0], aInfoList[1], ParameterType.ParameterCollection, null, customConverters);
+            }
+
+            return true;
         }
 
         internal static IEnumerable<Type> GetGenericIEnumerables(this Type type)

@@ -29,6 +29,16 @@ namespace YngveHestem.GenericParameterCollection
 			}
 		}
 
+		/// <summary>
+		/// If set to true, the key will be divided up to possible ParameterCollections in ParameterCollections based on the KeyPathDivider.
+		/// </summary>
+		public bool KeyIsPath { get; set; } = false;
+
+		/// <summary>
+		/// If key is a path to a sub-AdditionalInfo, what is the dividder between the key-parts.
+		/// </summary>
+		public string KeyPathDivider { get; set; } = ".";
+
 		public bool ParameterTypeIsSet { get; private set; } = false;
 
 		private ParameterType _parameterType;
