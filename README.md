@@ -71,6 +71,16 @@ To mark a class or struct as convertable via attributes, this has to be set on t
 
 This has a property where you can set which ParameterType it should preferably convert to. As of this writing, only the default ParameterCollection is supported.
 
+This has also some parameters regarding how the class wants to give a default value if some code asks for it (many of the editors may for instance need it if handling an IEnumerable of the class). The parameters are "DefaultValueHandling", "DefaultValueKey" and "DefaultValueArguments".
+
+DefaultValueHandling lets you decide if you want it to be any default value at all. Of course, the code that calls it might not respect it, but hopefully it does. The default value is InitializeNewObject, which means it will create a new object. But if that is not wanted, this propertycan be set to None.
+
+DefaultValueKey gives the wanted key that should be used if added to the additionalInfo of for instance the IEnumerable. The default value is "defaultValue", which is the key used on many of the knnown editors.
+
+DefaultValueArguments gives you a chance to set the arguments used on the constructor when creating that new object.
+
+The IEnumerable-converter for the AttributeConvertibles will use theese properties when deciding what to do with parameters that don't have the defaultValue set in additionalInfo.
+
 ##### ParameterPropertyAttribute
 
 This attribute should be marked on any field or property in the class/struct that should be converted. Only the marked properties/fields are converted.
@@ -266,12 +276,12 @@ Since the Person-class converts to ParameterCollection, the converter-class deri
                 && value.HasKeyAndCanConvertTo("summary", typeof(string));
         }
 
-        protected override bool CanConvertToParameterCollection(Person value, IEnumerable<IParameterValueConverter> customConverters)
+        protected override bool CanConvertToParameterCollection(Person value, ParameterCollection additionalInfo, IEnumerable<IParameterValueConverter> customConverters)
         {
             return true;        // As the object type is already checked, and I currently have no other reason to check anything in the object to know if I can convert it or not, I just return true.
         }
 
-        protected override Person ConvertFromParameterCollection(ParameterCollection value, IEnumerable<IParameterValueConverter> customConverters)
+        protected override Person ConvertFromParameterCollection(ParameterCollection value, ParameterCollection additionalInfo, IEnumerable<IParameterValueConverter> customConverters)
         {
             return new Person
             {
@@ -282,7 +292,7 @@ Since the Person-class converts to ParameterCollection, the converter-class deri
             };
         }
 
-        protected override ParameterCollection ConvertToParameterCollection(Person value, IEnumerable<IParameterValueConverter> customConverters)
+        protected override ParameterCollection ConvertToParameterCollection(Person value, ParameterCollection additionalInfo, IEnumerable<IParameterValueConverter> customConverters)
         {
             return new ParameterCollection
             {
@@ -355,7 +365,7 @@ Since both the Person and School-classes converts to ParameterCollection, both t
 
     public class PersonConverter : ParameterCollectionParameterConverter<Person>
     {
-        protected override bool CanConvertFromParameterCollection(ParameterCollection value, IEnumerable<IParameterValueConverter> customConverters)
+        protected override bool CanConvertFromParameterCollection(ParameterCollection value, ParameterCollection additionalInfo, IEnumerable<IParameterValueConverter> customConverters)
         {
             return value.HasKeyAndCanConvertTo("name", typeof(string))
                 && value.HasKeyAndCanConvertTo("gender", typeof(Sex))
@@ -363,12 +373,12 @@ Since both the Person and School-classes converts to ParameterCollection, both t
                 && value.HasKeyAndCanConvertTo("summary", typeof(string));
         }
 
-        protected override bool CanConvertToParameterCollection(Person value, IEnumerable<IParameterValueConverter> customConverters)
+        protected override bool CanConvertToParameterCollection(Person value, ParameterCollection additionalInfo, IEnumerable<IParameterValueConverter> customConverters)
         {
             return true;        // As the object type is already checked, and I currently have no other reason to check anything in the object to know if I can convert it or not, I just return true.
         }
 
-        protected override Person ConvertFromParameterCollection(ParameterCollection value, IEnumerable<IParameterValueConverter> customConverters)
+        protected override Person ConvertFromParameterCollection(ParameterCollection value, ParameterCollection additionalInfo, IEnumerable<IParameterValueConverter> customConverters)
         {
             return new Person
             {
@@ -379,7 +389,7 @@ Since both the Person and School-classes converts to ParameterCollection, both t
             };
         }
 
-        protected override ParameterCollection ConvertToParameterCollection(Person value, IEnumerable<IParameterValueConverter> customConverters)
+        protected override ParameterCollection ConvertToParameterCollection(Person value, ParameterCollection additionalInfo, IEnumerable<IParameterValueConverter> customConverters)
         {
             return new ParameterCollection
             {
@@ -398,17 +408,17 @@ Since both the Person and School-classes converts to ParameterCollection, both t
             new PersonConverter()
         };
 
-        protected override bool CanConvertFromParameterCollection(ParameterCollection value, IEnumerable<IParameterValueConverter> customConverters)
+        protected override bool CanConvertFromParameterCollection(ParameterCollection value, ParameterCollection additionalInfo, IEnumerable<IParameterValueConverter> customConverters)
         {
             return value.HasKeyAndCanConvertTo("name", typeof(string)) && value.HasKeyAndCanConvertTo("headmaster", typeof(Person), _parameterValueConverters);
         }
 
-        protected override bool CanConvertToParameterCollection(School value, IEnumerable<IParameterValueConverter> customConverters)
+        protected override bool CanConvertToParameterCollection(School value, ParameterCollection additionalInfo, IEnumerable<IParameterValueConverter> customConverters)
         {
             return true;         // As the object type is already checked, and I currently have no other reason to check anything in the object to know if I can convert it or not, I just return true.
         }
 
-        protected override School ConvertFromParameterCollection(ParameterCollection value, IEnumerable<IParameterValueConverter> customConverters)
+        protected override School ConvertFromParameterCollection(ParameterCollection value, ParameterCollection additionalInfo, IEnumerable<IParameterValueConverter> customConverters)
         {
             return new School
             {
@@ -417,7 +427,7 @@ Since both the Person and School-classes converts to ParameterCollection, both t
             };
         }
 
-        protected override ParameterCollection ConvertToParameterCollection(School value, IEnumerable<IParameterValueConverter> customConverters)
+        protected override ParameterCollection ConvertToParameterCollection(School value, ParameterCollection additionalInfo, IEnumerable<IParameterValueConverter> customConverters)
         {
             return new ParameterCollection
             {

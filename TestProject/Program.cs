@@ -67,10 +67,10 @@ namespace TestProject
 
             var example4 = new TestProject.ExampleWithAttributeConversion.ExampleWithAttributeConversion();
             var example4Params = example4.DefineExamplePerson();
-            Console.WriteLine(example4Params.ToJson());
+            Console.WriteLine(example4Params.ToJson(Newtonsoft.Json.Formatting.Indented));
             var example4PersonObject = example4.GetPersonObject(example4Params);
             var example4Params2 = example4.DefineExamplePersons();
-            Console.WriteLine(example4Params2.ToJson());
+            Console.WriteLine(example4Params2.ToJson(Newtonsoft.Json.Formatting.Indented));
             var example4PersonsArray = example4.GetPersonArrayFromParameterCollection(example4Params2);
             var example4PersonsList = example4.GetPersonListFromParameterCollection(example4Params2);
 
@@ -321,7 +321,9 @@ namespace TestProject
 
             var testClassForAdditionalInfoPathSerialisationWithOtherAdditionalinfoResult = testClassForAdditionalInfoPathSerialisation.DefineExampleWithPartlyPathAlreadyMadeWithSomeOtherParameters();
             Console.WriteLine("testClassForAdditionalInfoPathSerialisationWithOtherAdditionalinfoResult:" + Environment.NewLine + testClassForAdditionalInfoPathSerialisationWithOtherAdditionalinfoResult.ToJson(Newtonsoft.Json.Formatting.Indented));
-
+            
+            var testClassForAdditionalInfoPathSerialisation2Result = testClassForAdditionalInfoPathSerialisation.DefineExampleWithClass2();
+            Console.WriteLine("testClassForAdditionalInfoPathSerialisation2Result:" + Environment.NewLine + testClassForAdditionalInfoPathSerialisation2Result.ToJson(Newtonsoft.Json.Formatting.Indented));
 
             Console.ReadLine();
         }

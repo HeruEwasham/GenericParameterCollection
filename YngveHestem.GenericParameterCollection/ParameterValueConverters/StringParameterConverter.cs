@@ -7,17 +7,17 @@ namespace YngveHestem.GenericParameterCollection.ParameterValueConverters
 {
     public class StringParameterConverter : IParameterValueConverter
 	{
-        public bool CanConvertFromParameter(ParameterType sourceType, Type targetType, JToken rawValue, IEnumerable<IParameterValueConverter> customConverters, JsonSerializer jsonSerializer)
+        public bool CanConvertFromParameter(ParameterType sourceType, Type targetType, JToken rawValue, ParameterCollection additionalInfo, IEnumerable<IParameterValueConverter> customConverters, JsonSerializer jsonSerializer)
         {
             return ((sourceType == ParameterType.String || sourceType == ParameterType.String_Multiline) && (targetType == typeof(string) || typeof(IEnumerable<string>).IsAssignableFrom(targetType))) || ((sourceType == ParameterType.String_IEnumerable || sourceType == ParameterType.String_Multiline_IEnumerable) && (typeof(IEnumerable<string>).IsAssignableFrom(targetType) || targetType == typeof(string)));
         }
 
-        public bool CanConvertFromValue(ParameterType targetType, Type sourceType, object value, IEnumerable<IParameterValueConverter> customConverters)
+        public bool CanConvertFromValue(ParameterType targetType, Type sourceType, object value, ParameterCollection additionalInfo, IEnumerable<IParameterValueConverter> customConverters)
         {
             return ((targetType == ParameterType.String || targetType == ParameterType.String_Multiline) && (sourceType == typeof(string) || typeof(IEnumerable<string>).IsAssignableFrom(sourceType))) || ((targetType == ParameterType.String_IEnumerable || targetType == ParameterType.String_Multiline_IEnumerable) && (typeof(IEnumerable<string>).IsAssignableFrom(sourceType) || sourceType == typeof(string)));
         }
 
-        public object ConvertFromParameter(ParameterType sourceType, Type targetType, JToken rawValue, IEnumerable<IParameterValueConverter> customConverters, JsonSerializer jsonSerializer)
+        public object ConvertFromParameter(ParameterType sourceType, Type targetType, JToken rawValue, ParameterCollection additionalInfo, IEnumerable<IParameterValueConverter> customConverters, JsonSerializer jsonSerializer)
         {
             if (rawValue == null || rawValue.Type == JTokenType.Null)
             {
@@ -49,7 +49,7 @@ namespace YngveHestem.GenericParameterCollection.ParameterValueConverters
             throw new ArgumentException("The values was not supported to be converted by " + nameof(StringParameterConverter));
         }
 
-        public JToken ConvertFromValue(ParameterType targetType, Type sourceType, object value, IEnumerable<IParameterValueConverter> customConverters, JsonSerializer jsonSerializer)
+        public JToken ConvertFromValue(ParameterType targetType, Type sourceType, object value, ParameterCollection additionalInfo, IEnumerable<IParameterValueConverter> customConverters, JsonSerializer jsonSerializer)
         {
             if (value == null)
             {

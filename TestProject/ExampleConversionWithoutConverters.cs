@@ -1,9 +1,8 @@
-﻿using System;
-using YngveHestem.GenericParameterCollection;
+﻿using YngveHestem.GenericParameterCollection;
 
 namespace TestProject.ExampleWithoutConversion
 {
-public class ExampleConversionWithoutConverters
+    public class ExampleConversionWithoutConverters
     {
         public ParameterCollection DefineAnExampleSchool()
         {

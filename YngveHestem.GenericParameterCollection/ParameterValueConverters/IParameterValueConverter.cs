@@ -13,10 +13,11 @@ namespace YngveHestem.GenericParameterCollection.ParameterValueConverters
 		/// <param name="sourceType">The parameter type the parameter is saved as.</param>
 		/// <param name="targetType">The type to convert to.</param>
 		/// <param name="rawValue">Current value to possibly convert later.</param>
+        /// <param name="additionalInfo">Any addditionalInfo that might have been saved. The object is always set at this point.</param>
         /// <param name="customConverters">Any custom converters that might have been given.</param>
 		/// <param name="jsonSerializer">A JSON-serializer to use if conversion is needed. It is reccomended that this is used so everything serializes correct.</param>
 		/// <returns></returns>
-		bool CanConvertFromParameter(ParameterType sourceType, Type targetType, JToken rawValue, IEnumerable<IParameterValueConverter> customConverters, JsonSerializer jsonSerializer);
+		bool CanConvertFromParameter(ParameterType sourceType, Type targetType, JToken rawValue, ParameterCollection additionalInfo, IEnumerable<IParameterValueConverter> customConverters, JsonSerializer jsonSerializer);
 
         /// <summary>
         /// Can this converter convert given source type to given target type?
@@ -24,9 +25,10 @@ namespace YngveHestem.GenericParameterCollection.ParameterValueConverters
         /// <param name="targetType">The parameter type the parameter will be saved as.</param>
         /// <param name="sourceType">The type to convert from.</param>
         /// <param name="value">The value to possibly convert.</param>
+        /// <param name="additionalInfo">The addditionalInfo-object that will be saved in the parameter. This can be used to both read any possible additionalInfo, but also to add some additionalInfo. The object is always set at this point.</param>
         /// <param name="customConverters">Any custom converters that might have been given.</param>
         /// <returns></returns>
-        bool CanConvertFromValue(ParameterType targetType, Type sourceType, object value, IEnumerable<IParameterValueConverter> customConverters);
+        bool CanConvertFromValue(ParameterType targetType, Type sourceType, object value, ParameterCollection additionalInfo, IEnumerable<IParameterValueConverter> customConverters);
 
         /// <summary>
         /// Convert parameter to value.
@@ -34,10 +36,11 @@ namespace YngveHestem.GenericParameterCollection.ParameterValueConverters
         /// <param name="sourceType">The parameter type the parameter is saved as.</param>
         /// <param name="targetType">The type to convert to.</param>
         /// <param name="rawValue">The value of the parameter to convert.</param>
+        /// <param name="additionalInfo">Any addditionalInfo that might have been saved. The object is always set at this point.</param>
         /// <param name="customConverters">Any custom converters that might have been given.</param>
         /// <param name="jsonSerializer">A JSON-serializer to use when converting. It is reccomended that this is used so everything serializes correct.</param>
         /// <returns></returns>
-        object ConvertFromParameter(ParameterType sourceType, Type targetType, JToken rawValue, IEnumerable<IParameterValueConverter> customConverters, JsonSerializer jsonSerializer);
+        object ConvertFromParameter(ParameterType sourceType, Type targetType, JToken rawValue, ParameterCollection additionalInfo, IEnumerable<IParameterValueConverter> customConverters, JsonSerializer jsonSerializer);
 
         /// <summary>
         /// Convert value to parameter's value.
@@ -45,10 +48,11 @@ namespace YngveHestem.GenericParameterCollection.ParameterValueConverters
         /// <param name="targetType">The parameter type the parameter will be saved as.</param>
         /// <param name="sourceType">The type to convert from.</param>
         /// <param name="value">The value to convert.</param>
+        /// <param name="additionalInfo">The addditionalInfo-object that will be saved in the parameter. This can be used to both read any possible additionalInfo, but also to add some additionalInfo. The object is always set at this point.</param>
         /// <param name="customConverters">Any custom converters that might have been given.</param>
         /// <param name="jsonSerializer">A JSON-serializer to use when converting. It is reccomended that this is used so everything serializes correct.</param>
         /// <returns></returns>
-        JToken ConvertFromValue(ParameterType targetType, Type sourceType, object value, IEnumerable<IParameterValueConverter> customConverters, JsonSerializer jsonSerializer);
+        JToken ConvertFromValue(ParameterType targetType, Type sourceType, object value, ParameterCollection additionalInfo, IEnumerable<IParameterValueConverter> customConverters, JsonSerializer jsonSerializer);
     }
 }
 

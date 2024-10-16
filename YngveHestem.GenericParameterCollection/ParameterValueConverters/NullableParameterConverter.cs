@@ -9,7 +9,7 @@ namespace YngveHestem.GenericParameterCollection.ParameterValueConverters
 {
     public class NullableParameterConverter : IParameterValueConverter
     {
-        public bool CanConvertFromParameter(ParameterType sourceType, Type targetType, JToken rawValue, IEnumerable<IParameterValueConverter> customConverters, JsonSerializer jsonSerializer)
+        public bool CanConvertFromParameter(ParameterType sourceType, Type targetType, JToken rawValue, ParameterCollection additionalInfo, IEnumerable<IParameterValueConverter> customConverters, JsonSerializer jsonSerializer)
         {
             var underlyingType = Nullable.GetUnderlyingType(targetType);
             if (underlyingType != null)
@@ -18,19 +18,19 @@ namespace YngveHestem.GenericParameterCollection.ParameterValueConverters
                 {
                     return true;
                 }
-                return customConverters.ConcatWithNullCheck(Parameter.DefaultParameterValueConverters).Any(c => c.CanConvertFromParameter(sourceType, underlyingType, rawValue, customConverters, jsonSerializer));
+                return customConverters.ConcatWithNullCheck(Parameter.DefaultParameterValueConverters).Any(c => c.CanConvertFromParameter(sourceType, underlyingType, rawValue, additionalInfo, customConverters, jsonSerializer));
             }
 
             return false;
         }
 
-        public bool CanConvertFromValue(ParameterType targetType, Type sourceType, object value, IEnumerable<IParameterValueConverter> customConverters)
+        public bool CanConvertFromValue(ParameterType targetType, Type sourceType, object value, ParameterCollection additionalInfo, IEnumerable<IParameterValueConverter> customConverters)
         {
             var underlyingType = Nullable.GetUnderlyingType(sourceType);
-            return underlyingType != null && customConverters.ConcatWithNullCheck(Parameter.DefaultParameterValueConverters).Any(c => c.CanConvertFromValue(targetType, underlyingType, value, customConverters));
+            return underlyingType != null && customConverters.ConcatWithNullCheck(Parameter.DefaultParameterValueConverters).Any(c => c.CanConvertFromValue(targetType, underlyingType, value, additionalInfo, customConverters));
         }
 
-        public object ConvertFromParameter(ParameterType sourceType, Type targetType, JToken rawValue, IEnumerable<IParameterValueConverter> customConverters, JsonSerializer jsonSerializer)
+        public object ConvertFromParameter(ParameterType sourceType, Type targetType, JToken rawValue, ParameterCollection additionalInfo, IEnumerable<IParameterValueConverter> customConverters, JsonSerializer jsonSerializer)
         {
             var underlyingType = Nullable.GetUnderlyingType(targetType);
             if (underlyingType == null)
@@ -43,10 +43,10 @@ namespace YngveHestem.GenericParameterCollection.ParameterValueConverters
                 return null;
             }
             var converters = customConverters.ConcatWithNullCheck(Parameter.DefaultParameterValueConverters);
-            var converter = converters.FirstOrDefault(c => c.CanConvertFromParameter(sourceType, underlyingType, rawValue, customConverters, jsonSerializer));
+            var converter = converters.FirstOrDefault(c => c.CanConvertFromParameter(sourceType, underlyingType, rawValue, additionalInfo, customConverters, jsonSerializer));
             if (converter != null)
             {
-                return converter.ConvertFromParameter(sourceType, underlyingType, rawValue, customConverters, jsonSerializer);
+                return converter.ConvertFromParameter(sourceType, underlyingType, rawValue, additionalInfo, customConverters, jsonSerializer);
             }
             else
             {
@@ -54,7 +54,7 @@ namespace YngveHestem.GenericParameterCollection.ParameterValueConverters
             }
         }
 
-        public JToken ConvertFromValue(ParameterType targetType, Type sourceType, object value, IEnumerable<IParameterValueConverter> customConverters, JsonSerializer jsonSerializer)
+        public JToken ConvertFromValue(ParameterType targetType, Type sourceType, object value, ParameterCollection additionalInfo, IEnumerable<IParameterValueConverter> customConverters, JsonSerializer jsonSerializer)
         {
             var underlyingType = Nullable.GetUnderlyingType(sourceType);
             if (underlyingType == null)
@@ -88,10 +88,10 @@ namespace YngveHestem.GenericParameterCollection.ParameterValueConverters
             }
 
             var converters = customConverters.ConcatWithNullCheck(Parameter.DefaultParameterValueConverters);
-            var converter = converters.FirstOrDefault(c => c.CanConvertFromValue(targetType, underlyingType, value, customConverters));
+            var converter = converters.FirstOrDefault(c => c.CanConvertFromValue(targetType, underlyingType, value, additionalInfo, customConverters));
             if (converter != null)
             {
-                return converter.ConvertFromValue(targetType, underlyingType, value, customConverters, jsonSerializer);
+                return converter.ConvertFromValue(targetType, underlyingType, value, additionalInfo, customConverters, jsonSerializer);
             }
             else
             {

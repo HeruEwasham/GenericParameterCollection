@@ -501,8 +501,9 @@ namespace YngveHestem.GenericParameterCollection
                 {
                     return type.GetObjectFromAttributes(JToken.FromObject(this, ParameterConverterExtensions.JsonSerializer), acAttribute, customConverters);
                 }
+                ParameterCollection additionalInfo = new ParameterCollection();
 
-                return GetSuitableConverterToValue(type, customConverters).ConvertFromParameter(ParameterType.ParameterCollection, type, JToken.FromObject(this), customConverters.ConcatWithNullCheck(_customParameterValueConverters), ParameterConverterExtensions.JsonSerializer);
+                return GetSuitableConverterToValue(type, additionalInfo, customConverters).ConvertFromParameter(ParameterType.ParameterCollection, type, JToken.FromObject(this), additionalInfo, customConverters.ConcatWithNullCheck(_customParameterValueConverters), ParameterConverterExtensions.JsonSerializer);
             }
             catch (Exception e)
             {
@@ -525,7 +526,8 @@ namespace YngveHestem.GenericParameterCollection
         {
             try
             {
-                return GetSuitableConverterToValue(type, customConverters) != null;
+                ParameterCollection additionalInfo = new ParameterCollection();
+                return GetSuitableConverterToValue(type, additionalInfo, customConverters) != null;
             }
             catch (Exception e)
             {
@@ -533,17 +535,17 @@ namespace YngveHestem.GenericParameterCollection
             }
         }
 
-        private IParameterValueConverter GetSuitableConverterToValue(Type typeToGet, IEnumerable<IParameterValueConverter> customConverters)
+        private IParameterValueConverter GetSuitableConverterToValue(Type typeToGet, ParameterCollection additionalInfo, IEnumerable<IParameterValueConverter> customConverters)
         {
             var allCustomConverters = customConverters.ConcatWithNullCheck(_customParameterValueConverters);
-            var converter = allCustomConverters.FirstOrDefault(c => c.CanConvertFromParameter(ParameterType.ParameterCollection, typeToGet, JToken.FromObject(this), allCustomConverters, ParameterConverterExtensions.JsonSerializer));
+            var converter = allCustomConverters.FirstOrDefault(c => c.CanConvertFromParameter(ParameterType.ParameterCollection, typeToGet, JToken.FromObject(this), additionalInfo, allCustomConverters, ParameterConverterExtensions.JsonSerializer));
 
             if (converter != null)
             {
                 return converter;
             }
 
-            converter = Parameter.DefaultParameterValueConverters.FirstOrDefault(c => c.CanConvertFromParameter(ParameterType.ParameterCollection, typeToGet, JToken.FromObject(this), allCustomConverters, ParameterConverterExtensions.JsonSerializer));
+            converter = Parameter.DefaultParameterValueConverters.FirstOrDefault(c => c.CanConvertFromParameter(ParameterType.ParameterCollection, typeToGet, JToken.FromObject(this), additionalInfo, allCustomConverters, ParameterConverterExtensions.JsonSerializer));
 
             if (converter != null)
             {
@@ -553,17 +555,17 @@ namespace YngveHestem.GenericParameterCollection
             throw new ArgumentOutOfRangeException("Converter to support this conversion between this value in type " + typeToGet.Name + " from parameter type " + ParameterType.ParameterCollection + " was not found.");
         }
 
-        private static IParameterValueConverter GetSuitableConverterFromValue(object value, ParameterType parameterType, IEnumerable<IParameterValueConverter> parameterValueConverters)
+        private static IParameterValueConverter GetSuitableConverterFromValue(object value, ParameterType parameterType, ParameterCollection additionalInfo, IEnumerable<IParameterValueConverter> parameterValueConverters)
         {
             var valueType = value.GetType();
-            var converter = parameterValueConverters != null ? parameterValueConverters.FirstOrDefault(c => c.CanConvertFromValue(parameterType, valueType, value, parameterValueConverters)) : null;
+            var converter = parameterValueConverters != null ? parameterValueConverters.FirstOrDefault(c => c.CanConvertFromValue(parameterType, valueType, value, additionalInfo, parameterValueConverters)) : null;
 
             if (converter != null)
             {
                 return converter;
             }
 
-            converter = Parameter.DefaultParameterValueConverters.FirstOrDefault(c => c.CanConvertFromValue(parameterType, valueType, value, parameterValueConverters));
+            converter = Parameter.DefaultParameterValueConverters.FirstOrDefault(c => c.CanConvertFromValue(parameterType, valueType, value, additionalInfo, parameterValueConverters));
 
             if (converter != null)
             {
@@ -621,8 +623,9 @@ namespace YngveHestem.GenericParameterCollection
                 return valueType.GetParameterCollectionFromAttributes(value, customConverters);
             }
 
-            var converter = GetSuitableConverterFromValue(value, ParameterType.ParameterCollection, customConverters);
-            return converter.ConvertFromValue(ParameterType.ParameterCollection, valueType, value, customConverters, ParameterConverterExtensions.JsonSerializer).ToObject<ParameterCollection>(ParameterConverterExtensions.JsonSerializer);
+            ParameterCollection additionalInfo = new ParameterCollection();
+            var converter = GetSuitableConverterFromValue(value, ParameterType.ParameterCollection, additionalInfo, customConverters);
+            return converter.ConvertFromValue(ParameterType.ParameterCollection, valueType, value, additionalInfo, customConverters, ParameterConverterExtensions.JsonSerializer).ToObject<ParameterCollection>(ParameterConverterExtensions.JsonSerializer);
         }
     }
 }

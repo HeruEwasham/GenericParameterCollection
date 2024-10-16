@@ -50,6 +50,10 @@ namespace YngveHestem.GenericParameterCollection
         [JsonConstructor]
         private Parameter(string key, JToken value, ParameterType type, ParameterCollection additionalInfo, IEnumerable<IParameterValueConverter> customConverters)
         {
+            if (additionalInfo == null)
+            {
+                additionalInfo = new ParameterCollection();
+            }
             Key = key;
             _value = value;
             Type = type;
@@ -166,6 +170,10 @@ namespace YngveHestem.GenericParameterCollection
             }
             else
             {
+                if (additionalInfo == null)
+                {
+                    additionalInfo = new ParameterCollection();
+                }
                 _value = null;
                 Key = key;
                 Type = parameterType;
@@ -180,7 +188,7 @@ namespace YngveHestem.GenericParameterCollection
         /// <param name="value">The given value.</param>
         /// <param name="additionalInfo">This is a parameter that can be used to add more information to the parameter. This can for example be used to communicate between the part of the program that wants some parameters, and the part that show the parameters to the user, like tell that it only allow subsets of what the type can deliver. It can also be used the other way, to give more information about the content without needing to have seperate parameters to search for.</param>
         /// <param name="customConverters">Here can custom converters needed to convert value (if default converters don't support it, or you want it saved differently). More converters can also be added later.</param>
-        public Parameter(string key, object value, ParameterCollection additionalInfo = null, IEnumerable<IParameterValueConverter> customConvertersToSave = null, IEnumerable<IParameterValueConverter> customConvertersToOnlyUseNow = null) : this(key, value, GetBestSuitableParameterType(value, customConvertersToSave, customConvertersToOnlyUseNow), additionalInfo, customConvertersToSave, customConvertersToOnlyUseNow) { }
+        public Parameter(string key, object value, ParameterCollection additionalInfo = null, IEnumerable<IParameterValueConverter> customConvertersToSave = null, IEnumerable<IParameterValueConverter> customConvertersToOnlyUseNow = null) : this(key, value, GetBestSuitableParameterType(value, additionalInfo, customConvertersToSave, customConvertersToOnlyUseNow), additionalInfo, customConvertersToSave, customConvertersToOnlyUseNow) { }
 
         /// <summary>
         /// Create a new parameter where you pass an object. How the parameter should be converted to one of the parameter-types is decided automatically based on the values type. Mark that it needs to be a converter that supports the conversion, so if one of the default converters do not support the conversion, one or more converters that support the conversion must be added.
@@ -192,7 +200,7 @@ namespace YngveHestem.GenericParameterCollection
         /// <param name="customConverters">Here can custom converters needed to convert value (if default converters don't support it, or you want it saved differently). More converters can also be added later.</param>
         public Parameter(string key, object value, Type valueType, ParameterCollection additionalInfo = null, IEnumerable<IParameterValueConverter> customConvertersToSave = null, IEnumerable<IParameterValueConverter> customConvertersToOnlyUseNow = null)
         {
-            InitParameter(key, value, valueType, GetBestSuitableParameterType(value, valueType, customConvertersToSave, customConvertersToOnlyUseNow), additionalInfo, customConvertersToSave, customConvertersToOnlyUseNow);
+            InitParameter(key, value, valueType, GetBestSuitableParameterType(value, valueType, additionalInfo, customConvertersToSave, customConvertersToOnlyUseNow), additionalInfo, customConvertersToSave, customConvertersToOnlyUseNow);
         }
 
         private void InitParameter(string key, object value, Type valueType, ParameterType parameterType, ParameterCollection additionalInfo, IEnumerable<IParameterValueConverter> customConvertersToSave, IEnumerable<IParameterValueConverter> customConvertersToOnlyUseNow)
@@ -200,6 +208,11 @@ namespace YngveHestem.GenericParameterCollection
             if (customConvertersToSave != null)
             {
                 _customParameterValueConverters = customConvertersToSave.ToList();
+            }
+
+            if (additionalInfo == null)
+            {
+                additionalInfo = new ParameterCollection();
             }
 
             // Check if can convert via attributes
@@ -220,8 +233,8 @@ namespace YngveHestem.GenericParameterCollection
             // Use converters if value not already set.
             if (!valueSet)
             {
-                var converter = GetSuitableConverterFromValue(value, valueType, parameterType, customConvertersToOnlyUseNow);
-                _value = converter.ConvertFromValue(parameterType, valueType, value, allCustomConverters, ParameterConverterExtensions.JsonSerializer);
+                var converter = GetSuitableConverterFromValue(value, valueType, parameterType, additionalInfo, customConvertersToOnlyUseNow);
+                _value = converter.ConvertFromValue(parameterType, valueType, value, additionalInfo, allCustomConverters, ParameterConverterExtensions.JsonSerializer);
             }
 
             Key = key;
@@ -277,7 +290,7 @@ namespace YngveHestem.GenericParameterCollection
                 {
                     return typeToGet.GetObjectFromAttributes(_value, acAttribute, null);
                 }
-                return GetSuitableConverterToValue(typeToGet, _customParameterValueConverters).ConvertFromParameter(Type, typeToGet, _value, _customParameterValueConverters, ParameterConverterExtensions.JsonSerializer);
+                return GetSuitableConverterToValue(typeToGet, _customParameterValueConverters).ConvertFromParameter(Type, typeToGet, _value, _additionalInfo, _customParameterValueConverters, ParameterConverterExtensions.JsonSerializer);
             }
             catch (Exception e)
             {
@@ -300,7 +313,7 @@ namespace YngveHestem.GenericParameterCollection
                 {
                     return typeToGet.GetObjectFromAttributes(_value, acAttribute, parameterValueConverters);
                 }
-                return GetSuitableConverterToValue(typeToGet, parameterValueConverters).ConvertFromParameter(Type, typeToGet, _value, parameterValueConverters.ConcatWithNullCheck(_customParameterValueConverters), ParameterConverterExtensions.JsonSerializer);
+                return GetSuitableConverterToValue(typeToGet, parameterValueConverters).ConvertFromParameter(Type, typeToGet, _value, _additionalInfo, parameterValueConverters.ConcatWithNullCheck(_customParameterValueConverters), ParameterConverterExtensions.JsonSerializer);
             }
             catch (Exception e)
             {
@@ -421,7 +434,7 @@ namespace YngveHestem.GenericParameterCollection
 
                 try
                 {
-                    _value = GetSuitableConverterFromValue(newValue, valueType, Type, null).ConvertFromValue(Type, valueType, newValue, _customParameterValueConverters, ParameterConverterExtensions.JsonSerializer);
+                    _value = GetSuitableConverterFromValue(newValue, valueType, Type, _additionalInfo, null).ConvertFromValue(Type, valueType, newValue, _additionalInfo, _customParameterValueConverters, ParameterConverterExtensions.JsonSerializer);
                     return true;
                 }
                 catch (ArgumentOutOfRangeException)
@@ -481,7 +494,7 @@ namespace YngveHestem.GenericParameterCollection
 
                 try
                 {
-                    _value = GetSuitableConverterFromValue(newValue, valueType, Type, parameterValueConverters).ConvertFromValue(Type, valueType, newValue, parameterValueConverters.ConcatWithNullCheck(_customParameterValueConverters), ParameterConverterExtensions.JsonSerializer);
+                    _value = GetSuitableConverterFromValue(newValue, valueType, Type, _additionalInfo, parameterValueConverters).ConvertFromValue(Type, valueType, newValue, _additionalInfo, parameterValueConverters.ConcatWithNullCheck(_customParameterValueConverters), ParameterConverterExtensions.JsonSerializer);
                     return true;
                 }
                 catch (ArgumentOutOfRangeException)
@@ -567,13 +580,13 @@ namespace YngveHestem.GenericParameterCollection
 
             if (_customParameterValueConverters != null)
             {
-                if (_customParameterValueConverters.FirstOrDefault(c => c.CanConvertFromParameter(Type, type, _value, _customParameterValueConverters, ParameterConverterExtensions.JsonSerializer)) != null)
+                if (_customParameterValueConverters.FirstOrDefault(c => c.CanConvertFromParameter(Type, type, _value, _additionalInfo, _customParameterValueConverters, ParameterConverterExtensions.JsonSerializer)) != null)
                 {
                     return true;
                 }
             }
 
-            if (DefaultParameterValueConverters.FirstOrDefault(c => c.CanConvertFromParameter(Type, type, _value, _customParameterValueConverters, ParameterConverterExtensions.JsonSerializer)) != null)
+            if (DefaultParameterValueConverters.FirstOrDefault(c => c.CanConvertFromParameter(Type, type, _value, _additionalInfo, _customParameterValueConverters, ParameterConverterExtensions.JsonSerializer)) != null)
             {
                 return true;
             }
@@ -589,7 +602,7 @@ namespace YngveHestem.GenericParameterCollection
         /// <returns></returns>
         public bool CanBeConvertedTo(Type type, IEnumerable<IParameterValueConverter> parameterValueConverters)
         {
-            if (parameterValueConverters != null && parameterValueConverters.FirstOrDefault(c => c.CanConvertFromParameter(Type, type, _value, parameterValueConverters.ConcatWithNullCheck(_customParameterValueConverters), ParameterConverterExtensions.JsonSerializer)) != null)
+            if (parameterValueConverters != null && parameterValueConverters.FirstOrDefault(c => c.CanConvertFromParameter(Type, type, _value, _additionalInfo, parameterValueConverters.ConcatWithNullCheck(_customParameterValueConverters), ParameterConverterExtensions.JsonSerializer)) != null)
             {
                 return true;
             }
@@ -601,14 +614,14 @@ namespace YngveHestem.GenericParameterCollection
         {
             var allCustomConverters = parameterValueConverters.ConcatWithNullCheck(_customParameterValueConverters);
 
-            var converter = allCustomConverters.FirstOrDefault(c => c.CanConvertFromParameter(Type, typeToGet, _value, allCustomConverters, ParameterConverterExtensions.JsonSerializer));
+            var converter = allCustomConverters.FirstOrDefault(c => c.CanConvertFromParameter(Type, typeToGet, _value, _additionalInfo, allCustomConverters, ParameterConverterExtensions.JsonSerializer));
 
             if (converter != null)
             {
                 return converter;
             }
 
-            converter = DefaultParameterValueConverters.FirstOrDefault(c => c.CanConvertFromParameter(Type, typeToGet, _value, allCustomConverters, ParameterConverterExtensions.JsonSerializer));
+            converter = DefaultParameterValueConverters.FirstOrDefault(c => c.CanConvertFromParameter(Type, typeToGet, _value, _additionalInfo, allCustomConverters, ParameterConverterExtensions.JsonSerializer));
 
             if (converter != null)
             {
@@ -618,16 +631,16 @@ namespace YngveHestem.GenericParameterCollection
             throw new ArgumentOutOfRangeException("Converter to support this conversion between this value in type " + typeToGet.Name + " from parameter type " + Type + " was not found.");
         }
 
-        private static ParameterType GetBestSuitableParameterType(object value, IEnumerable<IParameterValueConverter> customConverters1, IEnumerable<IParameterValueConverter> customConverters2 = null)
+        private static ParameterType GetBestSuitableParameterType(object value, ParameterCollection additionalInfo, IEnumerable<IParameterValueConverter> customConverters1, IEnumerable<IParameterValueConverter> customConverters2 = null)
         {
             if (value == null)
             {
                 throw new ArgumentNullException("You are trying to create a parameter with a null value without any way for us to understand what type of object to assume you want. If you want to create a new parameter with a null-value, please use one of the methods that let us understand the type.");
             }
-            return GetBestSuitableParameterType(value, value.GetType(), customConverters1, customConverters2);
+            return GetBestSuitableParameterType(value, value.GetType(), additionalInfo, customConverters1, customConverters2);
         }
 
-        private static ParameterType GetBestSuitableParameterType(object value, Type valueType, IEnumerable<IParameterValueConverter> customConverters1, IEnumerable<IParameterValueConverter> customConverters2 = null)
+        private static ParameterType GetBestSuitableParameterType(object value, Type valueType, ParameterCollection additionalInfo, IEnumerable<IParameterValueConverter> customConverters1, IEnumerable<IParameterValueConverter> customConverters2 = null)
         {
             var acAttribute = valueType.GetCustomAttribute<AttributeConvertibleAttribute>();
             if (acAttribute != null)
@@ -740,7 +753,7 @@ namespace YngveHestem.GenericParameterCollection
             {
                 foreach (var type in (IEnumerable<ParameterType>)Enum.GetValues(typeof(ParameterType)))
                 {
-                    var converter = customConverters.FirstOrDefault(c => c.CanConvertFromValue(type, valueType, value, customConverters));
+                    var converter = customConverters.FirstOrDefault(c => c.CanConvertFromValue(type, valueType, value, additionalInfo, customConverters));
                     if (converter != null)
                     {
                         return type;
@@ -750,7 +763,7 @@ namespace YngveHestem.GenericParameterCollection
 
             foreach (var type in (IEnumerable<ParameterType>)Enum.GetValues(typeof(ParameterType)))
             {
-                var converter = DefaultParameterValueConverters.FirstOrDefault(c => c.CanConvertFromValue(type, valueType, value, customConverters));
+                var converter = DefaultParameterValueConverters.FirstOrDefault(c => c.CanConvertFromValue(type, valueType, value, additionalInfo, customConverters));
                 if (converter != null)
                 {
                     return type;
@@ -760,24 +773,24 @@ namespace YngveHestem.GenericParameterCollection
             throw new ArgumentException("Did not find any suitable ParameterType for the valuetype " + valueType);
         }
 
-        private IParameterValueConverter GetSuitableConverterFromValue(object value, Type valueType, ParameterType parameterType, IEnumerable<IParameterValueConverter> parameterValueConverters)
+        private IParameterValueConverter GetSuitableConverterFromValue(object value, Type valueType, ParameterType parameterType, ParameterCollection additionalInfo, IEnumerable<IParameterValueConverter> parameterValueConverters)
         {
             var allCustomConverters = parameterValueConverters.ConcatWithNullCheck(_customParameterValueConverters);
-            var converter = parameterValueConverters != null ? parameterValueConverters.FirstOrDefault(c => c.CanConvertFromValue(parameterType, valueType, value, allCustomConverters)) : null;
+            var converter = parameterValueConverters != null ? parameterValueConverters.FirstOrDefault(c => c.CanConvertFromValue(parameterType, valueType, value, additionalInfo, allCustomConverters)) : null;
 
             if (converter != null)
             {
                 return converter;
             }
 
-            converter = _customParameterValueConverters != null ? _customParameterValueConverters.FirstOrDefault(c => c.CanConvertFromValue(parameterType, valueType, value, allCustomConverters)) : null;
+            converter = _customParameterValueConverters != null ? _customParameterValueConverters.FirstOrDefault(c => c.CanConvertFromValue(parameterType, valueType, value, additionalInfo, allCustomConverters)) : null;
 
             if (converter != null)
             {
                 return converter;
             }
 
-            converter = DefaultParameterValueConverters.FirstOrDefault(c => c.CanConvertFromValue(parameterType, valueType, value, allCustomConverters));
+            converter = DefaultParameterValueConverters.FirstOrDefault(c => c.CanConvertFromValue(parameterType, valueType, value, additionalInfo, allCustomConverters));
 
             if (converter != null)
             {
