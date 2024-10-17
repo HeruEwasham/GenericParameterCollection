@@ -219,7 +219,7 @@ namespace YngveHestem.GenericParameterCollection.ParameterValueConverters
             var defaultValueKey = GetDefaultValueKey(value, additionalInfo, customConverters);
             if (defaultValueKey != null && !additionalInfo.HasKey(defaultValueKey))
             {
-                additionalInfo.Add(defaultValueKey, GetDefaultValue(value, additionalInfo, customConverters));
+                additionalInfo.Add(defaultValueKey, GetDefaultValue(value, additionalInfo, customConverters), null, customConverters);
             }
 
             return result;
