@@ -8,7 +8,7 @@ namespace YngveHestem.GenericParameterCollection.ParameterValueConverters
 {
     public class DecimalParameterConverter : IParameterValueConverter
     {
-        public bool CanConvertFromParameter(ParameterType sourceType, Type targetType, JToken rawValue, IEnumerable<IParameterValueConverter> customConverters, JsonSerializer jsonSerializer)
+        public bool CanConvertFromParameter(ParameterType sourceType, Type targetType, JToken rawValue, ParameterCollection additionalInfo, IEnumerable<IParameterValueConverter> customConverters, JsonSerializer jsonSerializer)
         {
             if (sourceType == ParameterType.Decimal)
             {
@@ -29,7 +29,7 @@ namespace YngveHestem.GenericParameterCollection.ParameterValueConverters
             }
         }
 
-        public bool CanConvertFromValue(ParameterType targetType, Type sourceType, object value, IEnumerable<IParameterValueConverter> customConverters)
+        public bool CanConvertFromValue(ParameterType targetType, Type sourceType, object value, ParameterCollection additionalInfo, IEnumerable<IParameterValueConverter> customConverters)
         {
             if (targetType == ParameterType.Decimal)
             {
@@ -46,34 +46,33 @@ namespace YngveHestem.GenericParameterCollection.ParameterValueConverters
             }
         }
 
-        public object ConvertFromParameter(ParameterType sourceType, Type targetType, JToken rawValue, IEnumerable<IParameterValueConverter> customConverters, JsonSerializer jsonSerializer)
+        public object ConvertFromParameter(ParameterType sourceType, Type targetType, JToken rawValue, ParameterCollection additionalInfo, IEnumerable<IParameterValueConverter> customConverters, JsonSerializer jsonSerializer)
         {
             if (sourceType == ParameterType.Decimal)
             {
-                var value = rawValue.ToObject<float>(jsonSerializer);
                 if (targetType == typeof(float))
                 {
-                    return value;
+                    return rawValue.ToObject<float>(jsonSerializer);
                 }
                 else if (targetType == typeof(int))
                 {
-                    return (int)value;
+                    return rawValue.ToObject<int>(jsonSerializer);
                 }
                 else if (targetType == typeof(double))
                 {
-                    return (double)value;
+                    return rawValue.ToObject<double>(jsonSerializer);
                 }
                 else if (targetType == typeof(long))
                 {
-                    return (long)value;
+                    return rawValue.ToObject<long>(jsonSerializer);
                 }
                 else if (targetType == typeof(decimal))
                 {
-                    return (decimal)value;
+                    return rawValue.ToObject<decimal>(jsonSerializer);
                 }
                 else if (targetType == typeof(string))
                 {
-                    return value.ToString();
+                    return rawValue.ToObject<string>(jsonSerializer);
                 }
             }
             else if (sourceType == ParameterType.Decimal_IEnumerable)
@@ -131,7 +130,7 @@ namespace YngveHestem.GenericParameterCollection.ParameterValueConverters
             throw new ArgumentException("The values was not supported to be converted by " + nameof(DecimalParameterConverter));
         }
 
-        public JToken ConvertFromValue(ParameterType targetType, Type sourceType, object value, IEnumerable<IParameterValueConverter> customConverters, JsonSerializer jsonSerializer)
+        public JToken ConvertFromValue(ParameterType targetType, Type sourceType, object value, ParameterCollection additionalInfo, IEnumerable<IParameterValueConverter> customConverters, JsonSerializer jsonSerializer)
         {
             if (targetType == ParameterType.Decimal)
             {

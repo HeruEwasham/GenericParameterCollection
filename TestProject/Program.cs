@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Diagnostics;
 using YngveHestem.GenericParameterCollection;
 
 namespace TestProject
@@ -66,10 +67,10 @@ namespace TestProject
 
             var example4 = new TestProject.ExampleWithAttributeConversion.ExampleWithAttributeConversion();
             var example4Params = example4.DefineExamplePerson();
-            Console.WriteLine(example4Params.ToJson());
+            Console.WriteLine(example4Params.ToJson(Newtonsoft.Json.Formatting.Indented));
             var example4PersonObject = example4.GetPersonObject(example4Params);
             var example4Params2 = example4.DefineExamplePersons();
-            Console.WriteLine(example4Params2.ToJson());
+            Console.WriteLine(example4Params2.ToJson(Newtonsoft.Json.Formatting.Indented));
             var example4PersonsArray = example4.GetPersonArrayFromParameterCollection(example4Params2);
             var example4PersonsList = example4.GetPersonListFromParameterCollection(example4Params2);
 
@@ -285,6 +286,44 @@ namespace TestProject
             var nullableEnumStartValueChoices = someMoreTests.GetParameterByKey("nullableEnumStartValue").GetChoices();
             var nullableEnumStartNull = someMoreTests.GetByKey<ParameterType?>("nullableEnumStartNull");
 
+            var testNumberBoundaries = new ParameterCollection
+            {
+                { "minInt", int.MinValue },
+                { "maxInt", int.MaxValue },
+                { "minFloat", float.MinValue },
+                { "maxFloat", float.MaxValue },
+                { "minDouble", double.MinValue },
+                { "maxDouble", double.MaxValue },
+                { "minLong", long.MinValue },
+                { "maxLong", long.MaxValue },
+                { "minDecimal", decimal.MinValue },
+                { "maxDecimal", decimal.MaxValue },
+            };
+
+            Console.WriteLine(Environment.NewLine + "TestNumberBoundaries:" + Environment.NewLine + testNumberBoundaries.ToJson(Newtonsoft.Json.Formatting.Indented));
+
+            var testNumberBoundaries_MinInt = testNumberBoundaries.GetByKey<int>("minInt");
+            var testNumberBoundaries_MaxInt = testNumberBoundaries.GetByKey<int>("maxInt");
+            var testNumberBoundaries_MinFloat = testNumberBoundaries.GetByKey<float>("minFloat");
+            var testNumberBoundaries_MaxFloat = testNumberBoundaries.GetByKey<float>("maxFloat");
+            var testNumberBoundaries_MinDouble = testNumberBoundaries.GetByKey<double>("minDouble");
+            var testNumberBoundaries_MaxDouble = testNumberBoundaries.GetByKey<double>("maxDouble");
+            var testNumberBoundaries_MinLong = testNumberBoundaries.GetByKey<long>("minLong");
+            var testNumberBoundaries_MaxLong = testNumberBoundaries.GetByKey<long>("maxLong");
+            var testNumberBoundaries_MinDecimal = testNumberBoundaries.GetByKey<decimal>("minDecimal");
+            var testNumberBoundaries_MaxDecimal = testNumberBoundaries.GetByKey<decimal>("maxDecimal");
+            var testNumberBoundaries_MinDecimalDirect = testNumberBoundaries.GetParameterByKey("minDecimal").GetValue<decimal>();
+
+
+            var testClassForAdditionalInfoPathSerialisation = new ExampleWithAttributeConversionWithManyAdditonalInfoLayers.ExampleWithAttributeConversionWithManyAdditonalInfoLayers();
+            var testClassForAdditionalInfoPathSerialisationResult = testClassForAdditionalInfoPathSerialisation.DefineExample();
+            Console.WriteLine("testClassForAdditionalInfoPathSerialisationResult:" + Environment.NewLine + testClassForAdditionalInfoPathSerialisationResult.ToJson(Newtonsoft.Json.Formatting.Indented));
+
+            var testClassForAdditionalInfoPathSerialisationWithOtherAdditionalinfoResult = testClassForAdditionalInfoPathSerialisation.DefineExampleWithPartlyPathAlreadyMadeWithSomeOtherParameters();
+            Console.WriteLine("testClassForAdditionalInfoPathSerialisationWithOtherAdditionalinfoResult:" + Environment.NewLine + testClassForAdditionalInfoPathSerialisationWithOtherAdditionalinfoResult.ToJson(Newtonsoft.Json.Formatting.Indented));
+            
+            var testClassForAdditionalInfoPathSerialisation2Result = testClassForAdditionalInfoPathSerialisation.DefineExampleWithClass2();
+            Console.WriteLine("testClassForAdditionalInfoPathSerialisation2Result:" + Environment.NewLine + testClassForAdditionalInfoPathSerialisation2Result.ToJson(Newtonsoft.Json.Formatting.Indented));
 
             Console.ReadLine();
         }

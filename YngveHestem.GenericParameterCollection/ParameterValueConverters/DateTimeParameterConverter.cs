@@ -9,7 +9,7 @@ namespace YngveHestem.GenericParameterCollection.ParameterValueConverters
 {
     public class DateTimeParameterConverter : IParameterValueConverter
     {
-        public bool CanConvertFromParameter(ParameterType sourceType, Type targetType, JToken rawValue, IEnumerable<IParameterValueConverter> customConverters, JsonSerializer jsonSerializer)
+        public bool CanConvertFromParameter(ParameterType sourceType, Type targetType, JToken rawValue, ParameterCollection additionalInfo, IEnumerable<IParameterValueConverter> customConverters, JsonSerializer jsonSerializer)
         {
             if (sourceType == ParameterType.DateTime || sourceType == ParameterType.Date)
             {
@@ -29,7 +29,7 @@ namespace YngveHestem.GenericParameterCollection.ParameterValueConverters
             }
         }
 
-        public bool CanConvertFromValue(ParameterType targetType, Type sourceType, object value, IEnumerable<IParameterValueConverter> customConverters)
+        public bool CanConvertFromValue(ParameterType targetType, Type sourceType, object value, ParameterCollection additionalInfo, IEnumerable<IParameterValueConverter> customConverters)
         {
             if (targetType == ParameterType.DateTime || targetType == ParameterType.Date)
             {
@@ -45,7 +45,7 @@ namespace YngveHestem.GenericParameterCollection.ParameterValueConverters
             }
         }
 
-        public object ConvertFromParameter(ParameterType sourceType, Type targetType, JToken rawValue, IEnumerable<IParameterValueConverter> customConverters, JsonSerializer jsonSerializer)
+        public object ConvertFromParameter(ParameterType sourceType, Type targetType, JToken rawValue, ParameterCollection additionalInfo, IEnumerable<IParameterValueConverter> customConverters, JsonSerializer jsonSerializer)
         {
             if (sourceType == ParameterType.DateTime || sourceType == ParameterType.Date)
             {
@@ -95,7 +95,7 @@ namespace YngveHestem.GenericParameterCollection.ParameterValueConverters
             throw new ArgumentException("The values was not supported to be converted by " + nameof(DateTimeParameterConverter));
         }
 
-        public JToken ConvertFromValue(ParameterType targetType, Type sourceType, object value, IEnumerable<IParameterValueConverter> customConverters, JsonSerializer jsonSerializer)
+        public JToken ConvertFromValue(ParameterType targetType, Type sourceType, object value, ParameterCollection additionalInfo, IEnumerable<IParameterValueConverter> customConverters, JsonSerializer jsonSerializer)
         {
             if (targetType == ParameterType.DateTime || targetType == ParameterType.Date)
             {

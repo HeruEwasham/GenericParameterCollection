@@ -61,6 +61,54 @@ Maybe the simplest possible way of creating converters on your own classes will 
 
 When using attributes, simple ienumerables of theese objects are also supported by default.
 
+#### Attributes you can use when creating a custom converter based on attributes
+
+Remember to look at the examples for how this is done.
+
+##### AttributeConvertibleAttribute
+
+To mark a class or struct as convertable via attributes, this has to be set on the given class/struct. If not set, it will not convert the class as this even if it has other attributes.
+
+This has a property where you can set which ParameterType it should preferably convert to. As of this writing, only the default ParameterCollection is supported.
+
+This has also some parameters regarding how the class wants to give a default value if some code asks for it (many of the editors may for instance need it if handling an IEnumerable of the class). The parameters are "DefaultValueHandling", "DefaultValueKey" and "DefaultValueArguments".
+
+DefaultValueHandling lets you decide if you want it to be any default value at all. Of course, the code that calls it might not respect it, but hopefully it does. The default value is InitializeNewObject, which means it will create a new object. But if that is not wanted, this propertycan be set to None.
+
+DefaultValueKey gives the wanted key that should be used if added to the additionalInfo of for instance the IEnumerable. The default value is "defaultValue", which is the key used on many of the knnown editors.
+
+DefaultValueArguments gives you a chance to set the arguments used on the constructor when creating that new object.
+
+The IEnumerable-converter for the AttributeConvertibles will use theese properties when deciding what to do with parameters that don't have the defaultValue set in additionalInfo.
+
+##### ParameterPropertyAttribute
+
+This attribute should be marked on any field or property in the class/struct that should be converted. Only the marked properties/fields are converted.
+
+This has a property "Key" and a property "ParameterType", and some constructors.
+
+None of the properties needs to be set though. If ParameterType is omitted, the converter will do it's best to find the correct ParameterType based on either the given value's type, or if value is null, the type is based on the property's Type. This means that if the property's type is an interface, and the value is Null, the interface-type is used to convert this property. But if it has a value, that implementation of the interface is used to find the best ParameterType.
+
+If the Key-property is omitted, the converter will use the name of the property/field as the key.
+
+##### AdditionalInfoAttribute
+
+This attribute can be used on both classes, structs, enums, properties and fields. This will as the name implies, add an AdditionalInfo-property to the given class/struct/enum/property/field. This can become handy if you want to tell something more than the value and name to the parts that use it (like and editor). For example if you have a property that can be in only a given range, this could be used.
+
+The attribute has the properties "Key", "Value", "OvverrideIfKeyExist", "ParameterType", "KeyIsPath", "KeyPathDivider" and "ParameterTypeIsSet".
+
+The Key- and Value-properties are of course mandatory.
+
+The property OverrideIfKeyExist has a default value of false. This property just says that if the additioalInfo already has a property with that name, should it override the value (if this property is true), or not.
+
+ParameterType just declares the ParameterType. If not set, the converter will do it's best to find the correct value. Since attributes has a very limited number of value-types, this means that if you for instance want to set a Date- or DateTime-value, you would need to define the value as string, and set the ParameterType directly, as the parameter else most likely would be set as string. The ParameterTypeIsSet is a get-parameter that is true if you set the ParameterType.
+
+The property KeyIsPath is by default false. If set to true, this will tell the converter that the key is not just defining the key for it's own property, that should be set in the additionalInfo, but is defining that the property should be in another property in the additionalInfo. The path can consist of many stages out from the additionalInfo, but will of course all need to be a ParameterCollection, except the property, which can be anything.
+
+The property KeyPathDivider is by default ".", and defines what the divider between the Path-parts should be.
+
+For different ways to use AdditionalInfo, look at the correct examples below, and in the TestProject.
+
 ### Create a converter-class to convert between values
 
 It is possible to convert a object to and from any ParameterType by creating a class that implement the IParameterValueConverter.
@@ -228,12 +276,12 @@ Since the Person-class converts to ParameterCollection, the converter-class deri
                 && value.HasKeyAndCanConvertTo("summary", typeof(string));
         }
 
-        protected override bool CanConvertToParameterCollection(Person value, IEnumerable<IParameterValueConverter> customConverters)
+        protected override bool CanConvertToParameterCollection(Person value, ParameterCollection additionalInfo, IEnumerable<IParameterValueConverter> customConverters)
         {
             return true;        // As the object type is already checked, and I currently have no other reason to check anything in the object to know if I can convert it or not, I just return true.
         }
 
-        protected override Person ConvertFromParameterCollection(ParameterCollection value, IEnumerable<IParameterValueConverter> customConverters)
+        protected override Person ConvertFromParameterCollection(ParameterCollection value, ParameterCollection additionalInfo, IEnumerable<IParameterValueConverter> customConverters)
         {
             return new Person
             {
@@ -244,7 +292,7 @@ Since the Person-class converts to ParameterCollection, the converter-class deri
             };
         }
 
-        protected override ParameterCollection ConvertToParameterCollection(Person value, IEnumerable<IParameterValueConverter> customConverters)
+        protected override ParameterCollection ConvertToParameterCollection(Person value, ParameterCollection additionalInfo, IEnumerable<IParameterValueConverter> customConverters)
         {
             return new ParameterCollection
             {
@@ -317,7 +365,7 @@ Since both the Person and School-classes converts to ParameterCollection, both t
 
     public class PersonConverter : ParameterCollectionParameterConverter<Person>
     {
-        protected override bool CanConvertFromParameterCollection(ParameterCollection value, IEnumerable<IParameterValueConverter> customConverters)
+        protected override bool CanConvertFromParameterCollection(ParameterCollection value, ParameterCollection additionalInfo, IEnumerable<IParameterValueConverter> customConverters)
         {
             return value.HasKeyAndCanConvertTo("name", typeof(string))
                 && value.HasKeyAndCanConvertTo("gender", typeof(Sex))
@@ -325,12 +373,12 @@ Since both the Person and School-classes converts to ParameterCollection, both t
                 && value.HasKeyAndCanConvertTo("summary", typeof(string));
         }
 
-        protected override bool CanConvertToParameterCollection(Person value, IEnumerable<IParameterValueConverter> customConverters)
+        protected override bool CanConvertToParameterCollection(Person value, ParameterCollection additionalInfo, IEnumerable<IParameterValueConverter> customConverters)
         {
             return true;        // As the object type is already checked, and I currently have no other reason to check anything in the object to know if I can convert it or not, I just return true.
         }
 
-        protected override Person ConvertFromParameterCollection(ParameterCollection value, IEnumerable<IParameterValueConverter> customConverters)
+        protected override Person ConvertFromParameterCollection(ParameterCollection value, ParameterCollection additionalInfo, IEnumerable<IParameterValueConverter> customConverters)
         {
             return new Person
             {
@@ -341,7 +389,7 @@ Since both the Person and School-classes converts to ParameterCollection, both t
             };
         }
 
-        protected override ParameterCollection ConvertToParameterCollection(Person value, IEnumerable<IParameterValueConverter> customConverters)
+        protected override ParameterCollection ConvertToParameterCollection(Person value, ParameterCollection additionalInfo, IEnumerable<IParameterValueConverter> customConverters)
         {
             return new ParameterCollection
             {
@@ -360,17 +408,17 @@ Since both the Person and School-classes converts to ParameterCollection, both t
             new PersonConverter()
         };
 
-        protected override bool CanConvertFromParameterCollection(ParameterCollection value, IEnumerable<IParameterValueConverter> customConverters)
+        protected override bool CanConvertFromParameterCollection(ParameterCollection value, ParameterCollection additionalInfo, IEnumerable<IParameterValueConverter> customConverters)
         {
             return value.HasKeyAndCanConvertTo("name", typeof(string)) && value.HasKeyAndCanConvertTo("headmaster", typeof(Person), _parameterValueConverters);
         }
 
-        protected override bool CanConvertToParameterCollection(School value, IEnumerable<IParameterValueConverter> customConverters)
+        protected override bool CanConvertToParameterCollection(School value, ParameterCollection additionalInfo, IEnumerable<IParameterValueConverter> customConverters)
         {
             return true;         // As the object type is already checked, and I currently have no other reason to check anything in the object to know if I can convert it or not, I just return true.
         }
 
-        protected override School ConvertFromParameterCollection(ParameterCollection value, IEnumerable<IParameterValueConverter> customConverters)
+        protected override School ConvertFromParameterCollection(ParameterCollection value, ParameterCollection additionalInfo, IEnumerable<IParameterValueConverter> customConverters)
         {
             return new School
             {
@@ -379,7 +427,7 @@ Since both the Person and School-classes converts to ParameterCollection, both t
             };
         }
 
-        protected override ParameterCollection ConvertToParameterCollection(School value, IEnumerable<IParameterValueConverter> customConverters)
+        protected override ParameterCollection ConvertToParameterCollection(School value, ParameterCollection additionalInfo, IEnumerable<IParameterValueConverter> customConverters)
         {
             return new ParameterCollection
             {
