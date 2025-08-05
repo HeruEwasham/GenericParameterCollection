@@ -1,0 +1,40 @@
+﻿@page "/"
+@using YngveHestem.GenericParameterCollection
+@using YngveHestem.GenericParameterCollection.Editor
+@using YngveHestem.GenericParameterCollection.RadzenBlazor
+
+<PageTitle>Editor Test</PageTitle>
+
+<h1>Editor</h1>
+
+<ParameterCollectionView @ref="@_parameterCollectionView"></ParameterCollectionView>
+
+@code 
+{
+    private ParameterCollection _parametersOriginal = new ParameterCollection 
+    {
+        { "test", "This is a test-string" }
+    };
+    private ParameterCollectionView? _parameterCollectionView;
+    private EditorEngine _editorEngine = new EditorEngine(new EditorEngineOptions {
+        SupportedEnumsToSelect = new List<Enum>
+            {
+                ParameterType.Bool,
+                HorizontalAlign.Center,
+                Orientation.Horizontal
+            }
+    });
+
+    protected override async Task OnAfterRenderAsync(bool firstRender)
+    {
+        if (firstRender)
+        {
+            var editedParameterCollection = _editorEngine.CreateEditorParameterCollection(_parametersOriginal, null);
+            while(_parameterCollectionView == null)
+            {
+                Thread.Sleep(100);
+            }
+            _parameterCollectionView.ParameterCollection = editedParameterCollection;
+        }
+    }
+}
