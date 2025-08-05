@@ -274,7 +274,7 @@ namespace YngveHestem.GenericParameterCollection
                 {
                     if (aInfoAttr.KeyIsPath)
                     {
-                        var parts = aInfoAttr.Key.Split(new string[] {aInfoAttr.KeyPathDivider}, StringSplitOptions.RemoveEmptyEntries );
+                        var parts = aInfoAttr.Key.Split(new string[] { aInfoAttr.KeyPathDivider }, StringSplitOptions.RemoveEmptyEntries);
                         CreatePathAndAddNewItem(ref additionalInfo, parts, aInfoAttr, customConverters);
                     }
                     else
@@ -305,7 +305,7 @@ namespace YngveHestem.GenericParameterCollection
             {
                 additionalInfo
             };
-            for(var i = 0; i < parts.Length-1; i++)
+            for (var i = 0; i < parts.Length - 1; i++)
             {
                 if (aInfoList[i].HasKey(parts[i]))
                 {
@@ -321,7 +321,7 @@ namespace YngveHestem.GenericParameterCollection
                 }
             }
 
-            var lastAInfoNumber = aInfoList.Count()-1;
+            var lastAInfoNumber = aInfoList.Count() - 1;
             if (!aInfoList[lastAInfoNumber].HasKey(parts[lastAInfoNumber]))
             {
                 if (aInfoAttr.ParameterTypeIsSet)
@@ -335,18 +335,18 @@ namespace YngveHestem.GenericParameterCollection
             }
             else if (aInfoAttr.OverrideIfKeyExist)
             {
-               aInfoList[lastAInfoNumber].GetParameterByKey(parts[lastAInfoNumber-1]).SetValue(aInfoAttr.Value, customConverters);
+                aInfoList[lastAInfoNumber].GetParameterByKey(parts[lastAInfoNumber - 1]).SetValue(aInfoAttr.Value, customConverters);
             }
 
-            for (var i = lastAInfoNumber-1; i > 0; i--)
+            for (var i = lastAInfoNumber - 1; i > 0; i--)
             {
                 if (aInfoList[i].HasKey(parts[i]))
                 {
-                    aInfoList[i].GetParameterByKey(parts[i]).SetValue(aInfoList[i+1], customConverters);
+                    aInfoList[i].GetParameterByKey(parts[i]).SetValue(aInfoList[i + 1], customConverters);
                 }
                 else
                 {
-                    aInfoList[i].Add(parts[i], aInfoList[i+1], ParameterType.ParameterCollection, null, customConverters);
+                    aInfoList[i].Add(parts[i], aInfoList[i + 1], ParameterType.ParameterCollection, null, customConverters);
                 }
             }
 
@@ -373,6 +373,82 @@ namespace YngveHestem.GenericParameterCollection
         internal static IEnumerable<T> ConcatWithNullCheck<T>(this IEnumerable<T> list1, IEnumerable<T> list2)
         {
             return (list1 ?? Enumerable.Empty<T>()).Concat(list2 ?? Enumerable.Empty<T>());
+        }
+
+        internal static ParameterType? GuessType(JToken token, bool skipNullValues)
+        {
+            switch (token.Type)
+            {
+                case JTokenType.Integer:
+                    return ParameterType.Int;
+    
+                case JTokenType.Float:
+                    return ParameterType.Decimal;
+    
+                case JTokenType.Boolean:
+                    return ParameterType.Bool;
+    
+                case JTokenType.String:
+                    var str = token.ToString();
+    
+                    if (DateTime.TryParse(str, out var dt))
+                        return dt.TimeOfDay == TimeSpan.Zero ? ParameterType.Date : ParameterType.DateTime;
+    
+                    try { Convert.FromBase64String(str); return ParameterType.Bytes; } catch { }
+    
+                    return str.Contains('\n') ? ParameterType.String_Multiline : ParameterType.String;
+    
+                case JTokenType.Array:
+                    var first = token.First;
+                    if (first != null)
+                    {
+                        switch (first.Type)
+                        {
+                            case JTokenType.String:
+                                bool hasMultiline = token.Any(t => t.Type == JTokenType.String && t.ToString().Contains('\n'));
+                                return hasMultiline ? ParameterType.String_Multiline_IEnumerable : ParameterType.String_IEnumerable;
+                            case JTokenType.Integer: return ParameterType.Int_IEnumerable;
+                            case JTokenType.Float: return ParameterType.Decimal_IEnumerable;
+                            case JTokenType.Boolean: return ParameterType.Bool_IEnumerable;
+                            case JTokenType.Date: return ParameterType.DateTime_IEnumerable;
+                            case JTokenType.Object: return ParameterType.ParameterCollection_IEnumerable;
+                        }
+                    }
+                    return ParameterType.String_IEnumerable;
+    
+                case JTokenType.Object:
+                    var obj = (JObject)token;
+
+                    if (obj.ContainsKey("value") && obj.ContainsKey("choices") && obj.ContainsKey("type"))
+                    {
+                        return ParameterType.Enum;
+                    }
+
+                    if (obj.ContainsKey("value") && obj["value"] is JArray && obj.ContainsKey("choices"))
+                    {
+                        return ParameterType.SelectMany;
+                    }
+
+                    if (obj.ContainsKey("value") && obj["value"] is JValue && obj.ContainsKey("choices"))
+                    {
+                        return ParameterType.SelectOne;
+                    }
+    
+                    return ParameterType.ParameterCollection;
+
+                case JTokenType.Null:
+                    if (skipNullValues)
+                    {
+                        return null;
+                    }
+                    else
+                    {
+                        return ParameterType.String;
+                    }
+
+                default:
+                    return ParameterType.String;
+            }
         }
     }
 }

@@ -39,7 +39,7 @@ namespace YngveHestem.GenericParameterCollection
             new AttributeParameterConverter(),
             new NullableParameterConverter()
         };
-        
+
         /// <summary>
         /// Save a new parameter with the given values. The value are converted to the raw JToken that is stored.
         /// </summary>
@@ -261,7 +261,7 @@ namespace YngveHestem.GenericParameterCollection
         /// <param name="parameterValueConverters">The converter(s) to add.</param>
         public void AddCustomConverter(IEnumerable<IParameterValueConverter> parameterValueConverters)
         {
-            foreach(var converter in parameterValueConverters)
+            foreach (var converter in parameterValueConverters)
             {
                 AddCustomConverter(converter);
             }
@@ -441,7 +441,7 @@ namespace YngveHestem.GenericParameterCollection
                 {
                     return false;
                 }
-                
+
             }
             catch (Exception e)
             {
@@ -830,6 +830,23 @@ namespace YngveHestem.GenericParameterCollection
             }
 
             return false;
+        }
+        
+        /// <summary>
+        /// Creates a new parameter based on the values. If skipNullValues is true and the value is null, it will return null, if false and the value is null, it will be created as a ParameterType.String.
+        /// </summary>
+        /// <param name="key"></param>
+        /// <param name="value"></param>
+        /// <param name="skipNullValues"></param>
+        /// <returns></returns>
+        public static Parameter CreateFromJToken(string key, JToken value, bool skipNullValues = false)
+        {
+            var type = ParameterConverterExtensions.GuessType(value, skipNullValues);
+            if (!type.HasValue)
+            {
+                return null;
+            }
+            return new Parameter(key, value, type.Value, null, null);
         }
     }
 }

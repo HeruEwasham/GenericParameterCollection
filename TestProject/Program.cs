@@ -4,7 +4,7 @@ using YngveHestem.GenericParameterCollection;
 
 namespace TestProject
 {
-    public static class TestClass
+    /*public static class TestClass
     {
         public static void Main(params string[] args)
         {
@@ -327,5 +327,5 @@ namespace TestProject
 
             Console.ReadLine();
         }
-    }
+    }*/
 }

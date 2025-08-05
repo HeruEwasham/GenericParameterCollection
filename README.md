@@ -33,6 +33,12 @@ Currently, these C#-types are supported out of the box, with some conversion bet
 - IEnumerable of objects of types that use attribute-converters
 - Nullable types of the one above (int?, double?, IEnumerable of int?, etc.)
 
+We have also implemented converters for theese types (theese will need to be added as a custom converter when needed):
+
+| Type(s)     | Converter-class |
+| ----------- | ----------- |
+| JToken      | JTokenParameterConverter |
+
 Converters for other types are easy to implement.
 
 It also supports selecting an entry between different choices. It also support to select multiple choices.
