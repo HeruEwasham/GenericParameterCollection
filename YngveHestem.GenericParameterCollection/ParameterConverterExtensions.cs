@@ -1,6 +1,5 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Globalization;
 using System.Linq;
 using System.Reflection;
 using Newtonsoft.Json;
@@ -138,6 +137,41 @@ namespace YngveHestem.GenericParameterCollection
                 };
         }
 
+        public static bool CanConvertFromValue(object value, Type type, ParameterCollection additionalInfo = null, IEnumerable<IParameterValueConverter> customConverters = null)
+        {
+            foreach (var parameterType in (ParameterType[])Enum.GetValues(typeof(ParameterType)))
+            {
+                if (CanConvertFromValue(value, type, parameterType, additionalInfo, customConverters))
+                {
+                    return true;
+                }
+            }
+            return false;
+        }
+
+        public static bool CanConvertFromValue(object value, Type type, ParameterType targetType, ParameterCollection additionalInfo = null, IEnumerable<IParameterValueConverter> customConverters = null)
+        {
+            if (additionalInfo == null)
+            {
+                additionalInfo = new ParameterCollection();
+            }
+
+            var acAttribute = type.GetCustomAttribute<AttributeConvertibleAttribute>();
+            if (acAttribute != null && acAttribute.ParameterType == targetType)
+            {
+                return true;
+            }
+
+            if (customConverters != null)
+            {
+                if (customConverters.Any(converter => converter.CanConvertFromValue(targetType, type, value, additionalInfo, customConverters)))
+                {
+                    return true;
+                }
+            }
+            return Parameter.DefaultParameterValueConverters.Any(converter => converter.CanConvertFromValue(targetType, type, value, additionalInfo, customConverters));
+        }
+
         internal static ParameterCollection SelectOneToParameterCollection(string value, IEnumerable<string> choices)
         {
             return new ParameterCollection
@@ -156,7 +190,7 @@ namespace YngveHestem.GenericParameterCollection
             };
         }
 
-        internal static JsonSerializer JsonSerializer = JsonSerializer.CreateDefault(ParameterConverterExtensions.GetJsonSerializerSettings());
+        internal static JsonSerializer JsonSerializer = JsonSerializer.CreateDefault(GetJsonSerializerSettings());
 
         internal static ParameterCollection GetParameterCollectionFromAttributes(this Type type, object value, IEnumerable<IParameterValueConverter> customConverters)
         {

@@ -35,9 +35,10 @@ Currently, these C#-types are supported out of the box, with some conversion bet
 
 We have also implemented converters for theese types (theese will need to be added as a custom converter when needed):
 
-| Type(s)     | Converter-class |
-| ----------- | ----------- |
-| JToken      | JTokenParameterConverter |
+| Type(s)     | Converter-class | Description |
+| ----------- | ----------- | --- |
+| JToken      | JTokenParameterConverter | |
+| IDictionary<,>/Dictionary<,> | DictionaryParameterConverter | Supports all generic dictionaries and types who either implement or inherit from IDictionary<,> or Dictionary<,>. All types with generic values who also is supported is supported. So both Dictionary<string, string>, Dictionary<int, bool>, and Dictionary<MyEnum, string> would work (if MyEnum is a enum that exist). If you for instance would like a Dictionary<string, MyClass>, you would need to create a converter for MyClass for this to be supported. |
 
 Converters for other types are easy to implement.
 
@@ -138,6 +139,37 @@ Here is a list of known packages that will provide an editor for a given framewo
 - [GenericParameterCollection.Avalonia](https://github.com/HeruEwasham/GenericParameterCollection.Avalonia)
 
 Have you made a package that will fit here? Create an issue with link or create a PR.
+
+## Other notable features
+
+Here comes some special features (besides the main features) that might be interesting to mention.
+
+### Converting to/from JSON
+
+#### "Normal" conversion
+
+The ParameterCollection can be converted to it's JSON structure by calling ToJson(..) on it's ParameterCollection and be converted from that structure by calling the static method ParameterCollection.FromJson(..).
+
+It will of course also be converted togheter with other data you convert via Newtonsoft.JSON or a compliant setting. If you do this you might want to use the same settings, and this can be found at ParameterConverterExtensions.JsonSerializer (or ParameterConverterExtensions.GetJsonSerializerSettings() if you only want the JsonSerializerSettings). Theese settings contain for instance how things are handled.
+
+#### From any JSON
+
+The static method ParameterCollection.FromAnyJson(..) will make a ParameterCollection of any inputted JSON. This will determine the type based on the value alone, so the result might be different based on how the values are.
+
+This means that you in theory can convert any normal json and show it in a ParameterCollection-view. Another possible use case is to get some specific values that might be quite different based on some values, without needing to make some complicated types, and you don't want to use JTokens and JObjects directly.
+
+#### To simple JSON
+
+The method ToSimpleJson(..) on ParameterCollection will translate the ParameterCollection to a json with key-value-pairs instead of the full ParameterColleection-structure.
+
+A ParameterCollection with a parameter named "name" and value "James", and has another parameter named "age" and value 36, might look like this:
+
+```
+{
+    { "name": "James" },
+    { "age": 36 }
+}
+```
 
 ## Code-Examples
 

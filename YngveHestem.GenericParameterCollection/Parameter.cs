@@ -846,6 +846,28 @@ namespace YngveHestem.GenericParameterCollection
             {
                 return null;
             }
+
+             if (type.Value == ParameterType.ParameterCollection && value is JObject obj)
+            {
+                var nestedCollection = ParameterCollection.FromAnyJson(obj.ToString());
+                return new Parameter(key, JToken.FromObject(nestedCollection), type.Value, null, null);
+            }
+        
+            if (type.Value == ParameterType.ParameterCollection_IEnumerable && value is JArray array)
+            {
+                var nestedCollections = new List<ParameterCollection>();
+                foreach (var item in array)
+                {
+                    if (item is JObject nestedObj)
+                    {
+                        var nestedCollection = ParameterCollection.FromAnyJson(nestedObj.ToString());
+                        nestedCollections.Add(nestedCollection);
+                    }
+                }
+        
+                return new Parameter(key, JToken.FromObject(nestedCollections), type.Value, null, null);
+            }
+        
             return new Parameter(key, value, type.Value, null, null);
         }
     }
