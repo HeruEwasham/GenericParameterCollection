@@ -7,8 +7,8 @@
     <PackageReleaseNotes>
         - Added a static FromAnyJson(..)-method to ParameterCollection, which try to convert any inputted json to a ParameterCollection.
         - Added a ToSimpleType(..)-method to ParameterCollection, which converts the given ParameterCollection to a simpler json as key-value-pairs. All other data is ignored.
-        - Added a new JTokenParameterConverter to convert JToken. This is not added to the default converters and need to be added as a customConverter.
-        - Added a new DictionaryParameterConverter to convert generic Dictionaries and other who implement generic IDictionary. This is not added to the default converters and need to be added as a customConverter.
+        - Added a new JTokenParameterConverter to convert JToken. This is not added to the default converters and need to be added as a customConverter to use.
+        - Added a new DictionaryParameterConverter to convert generic Dictionaries and other who implement generic IDictionary. This is not added to the default converters and need to be added as a customConverter to use.
     </PackageReleaseNotes>
     <Authors>Yngve J. K. Hestem</Authors>
     <Copyright>Copyright (c) Yngve J. K. Hestem 2023</Copyright>

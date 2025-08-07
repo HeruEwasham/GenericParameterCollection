@@ -677,7 +677,18 @@ namespace YngveHestem.GenericParameterCollection
             var result = new Dictionary<string, JToken>();
             foreach (var parameter in _parameters)
             {
-                result.Add(parameter.Key, parameter.GetValue<JToken>(customConverters));
+                if (parameter.Type == ParameterType.ParameterCollection)
+                {
+                    result.Add(parameter.Key, JToken.Parse(parameter.GetValue<ParameterCollection>(customConverters).ToSimpleJson(formatting)));
+                }
+                else if (parameter.Type == ParameterType.ParameterCollection_IEnumerable)
+                {
+                    result.Add(parameter.Key, JToken.FromObject(parameter.GetValue<IEnumerable<ParameterCollection>>(customConverters).Select(p => JToken.Parse(p.ToSimpleJson(formatting))), ParameterConverterExtensions.JsonSerializer));
+                }
+                else
+                {
+                    result.Add(parameter.Key, parameter.GetValue<JToken>(customConverters));
+                }
             }
             return JsonConvert.SerializeObject(result, formatting, ParameterConverterExtensions.GetJsonSerializerSettings());
         }
