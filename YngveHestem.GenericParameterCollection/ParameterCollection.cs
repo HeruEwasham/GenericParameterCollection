@@ -635,8 +635,9 @@ namespace YngveHestem.GenericParameterCollection
         /// <param name="json">The JSON you want to convert to a ParameterCollection.</param>
         /// <param name="defaultKey">If a key can not be decided from the json, this will be used as the key. This will most likely be used if the json starts as an array.</param>
         /// <param name="skipNullValues">If true, all parameters that contain null will be skipped, if not, it will be set as ParameterType.String.</param>
+        /// <param name="convertBase64ToBytesType">Should all that might be converted to base64 be converted to ParameterType.Bytes?</param>
         /// <returns></returns>
-        public static ParameterCollection FromAnyJson(string json, string defaultKey = "default", bool skipNullValues = false)
+        public static ParameterCollection FromAnyJson(string json, string defaultKey = "default", bool skipNullValues = false, bool convertBase64ToBytesType = false)
         {
             var token = JToken.Parse(json);
             var collection = new ParameterCollection();
@@ -646,7 +647,7 @@ namespace YngveHestem.GenericParameterCollection
                 var dict = token.ToObject<Dictionary<string, JToken>>();
                 foreach (var kvp in dict)
                 {
-                    var parameter = Parameter.CreateFromJToken(kvp.Key, kvp.Value, skipNullValues);
+                    var parameter = Parameter.CreateFromJToken(kvp.Key, kvp.Value, skipNullValues, convertBase64ToBytesType);
                     if (parameter != null)
                     {
                         collection.Add(parameter);
@@ -655,7 +656,7 @@ namespace YngveHestem.GenericParameterCollection
             }
             else if (token.Type == JTokenType.Array)
             {
-                var parameter = Parameter.CreateFromJToken(defaultKey, token, skipNullValues);
+                var parameter = Parameter.CreateFromJToken(defaultKey, token, skipNullValues, convertBase64ToBytesType);
                 if (parameter != null)
                 {
                     collection.Add(parameter);

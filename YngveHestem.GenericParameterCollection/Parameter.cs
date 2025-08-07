@@ -831,28 +831,29 @@ namespace YngveHestem.GenericParameterCollection
 
             return false;
         }
-        
+
         /// <summary>
-        /// Creates a new parameter based on the values. If skipNullValues is true and the value is null, it will return null, if false and the value is null, it will be created as a ParameterType.String.
+        /// Creates a new parameter based on the values.
         /// </summary>
-        /// <param name="key"></param>
-        /// <param name="value"></param>
-        /// <param name="skipNullValues"></param>
+        /// <param name="key">The key.</param>
+        /// <param name="value">The value.</param>
+        /// <param name="skipNullValues">If true and the value is null, it will return null, if false and the value is null, it will be created as a ParameterType.String.</param>
+        /// <param name="convertBase64ToBytesType">Should all that might be converted to base64 be converted to ParameterType.Bytes?</param>
         /// <returns></returns>
-        public static Parameter CreateFromJToken(string key, JToken value, bool skipNullValues = false)
+        public static Parameter CreateFromJToken(string key, JToken value, bool skipNullValues = false, bool convertBase64ToBytesType = false)
         {
-            var type = ParameterConverterExtensions.GuessType(value, skipNullValues);
+            var type = ParameterConverterExtensions.GuessType(value, skipNullValues, convertBase64ToBytesType);
             if (!type.HasValue)
             {
                 return null;
             }
 
-             if (type.Value == ParameterType.ParameterCollection && value is JObject obj)
+            if (type.Value == ParameterType.ParameterCollection && value is JObject obj)
             {
                 var nestedCollection = ParameterCollection.FromAnyJson(obj.ToString());
                 return new Parameter(key, JToken.FromObject(nestedCollection), type.Value, null, null);
             }
-        
+
             if (type.Value == ParameterType.ParameterCollection_IEnumerable && value is JArray array)
             {
                 var nestedCollections = new List<ParameterCollection>();
@@ -864,10 +865,10 @@ namespace YngveHestem.GenericParameterCollection
                         nestedCollections.Add(nestedCollection);
                     }
                 }
-        
+
                 return new Parameter(key, JToken.FromObject(nestedCollections), type.Value, null, null);
             }
-        
+
             return new Parameter(key, value, type.Value, null, null);
         }
     }

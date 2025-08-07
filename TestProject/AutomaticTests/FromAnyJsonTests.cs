@@ -19,6 +19,30 @@ public class FromAnyJsonTests
     }
 
     [Test]
+    public void Date_ShouldParseCorrectly()
+    {
+        string json = "{\"name\": \"John\", \"birthdate\": \"1995-05-20\"}";
+        var collection = ParameterCollection.FromAnyJson(json);
+
+        ClassicAssert.AreEqual(2, collection.Count());
+        ClassicAssert.AreEqual(ParameterType.String, collection.GetParameterType("name"));
+        ClassicAssert.AreEqual(ParameterType.Date, collection.GetParameterType("birthdate"));
+        ClassicAssert.AreEqual(DateTime.Parse("1995-05-20"), collection.GetByKey<DateTime>("birthdate"));
+    }
+
+    [Test]
+    public void DateTime_ShouldParseCorrectly()
+    {
+        string json = "{\"name\": \"John\", \"birthtime\": \"1995-05-20 20:55:00\"}";
+        var collection = ParameterCollection.FromAnyJson(json);
+
+        ClassicAssert.AreEqual(2, collection.Count());
+        ClassicAssert.AreEqual(ParameterType.String, collection.GetParameterType("name"));
+        ClassicAssert.AreEqual(ParameterType.DateTime, collection.GetParameterType("birthtime"));
+        ClassicAssert.AreEqual(DateTime.Parse("1995-05-20 20:55:00"), collection.GetByKey<DateTime>("birthtime"));
+    }
+
+    [Test]
     public void ArrayRoot_DefaultKey_ShouldParseAsParameterCollection_IEnumerable()
     {
         string json = "[{\"id\": 1, \"title\": \"A\"}, {\"id\": 2, \"title\": \"B\"}]";
@@ -76,7 +100,7 @@ public class FromAnyJsonTests
     public void Base64String_ShouldBeParsedAsBytes()
     {
         string json = "{ \"file\": \"SGVsbG8gd29ybGQ=\" }"; // "Hello world" in base64
-        var collection = ParameterCollection.FromAnyJson(json);
+        var collection = ParameterCollection.FromAnyJson(json, "default", false, true);
 
         ClassicAssert.AreEqual(1, collection.Count());
         ClassicAssert.AreEqual("file", collection.First().Key);

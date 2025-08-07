@@ -409,7 +409,7 @@ namespace YngveHestem.GenericParameterCollection
             return (list1 ?? Enumerable.Empty<T>()).Concat(list2 ?? Enumerable.Empty<T>());
         }
 
-        internal static ParameterType? GuessType(JToken token, bool skipNullValues)
+        internal static ParameterType? GuessType(JToken token, bool skipNullValues, bool convertBase64ToBytesType)
         {
             switch (token.Type)
             {
@@ -424,11 +424,16 @@ namespace YngveHestem.GenericParameterCollection
     
                 case JTokenType.String:
                     var str = token.ToString();
-    
+
                     if (DateTime.TryParse(str, out var dt))
+                    {
                         return dt.TimeOfDay == TimeSpan.Zero ? ParameterType.Date : ParameterType.DateTime;
-    
-                    try { Convert.FromBase64String(str); return ParameterType.Bytes; } catch { }
+                    }
+
+                    if (convertBase64ToBytesType)
+                    {
+                        try { Convert.FromBase64String(str); return ParameterType.Bytes; } catch { }
+                    }
     
                     return str.Contains('\n') ? ParameterType.String_Multiline : ParameterType.String;
     
