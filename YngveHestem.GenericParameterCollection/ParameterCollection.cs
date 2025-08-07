@@ -6,6 +6,7 @@ using System.Reflection;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
 using YngveHestem.GenericParameterCollection.ParameterValueConverters;
+using YngveHestem.GenericParameterCollection.ParameterValueConverters.CustomConverters;
 
 namespace YngveHestem.GenericParameterCollection
 {
@@ -223,7 +224,7 @@ namespace YngveHestem.GenericParameterCollection
             {
                 _customParameterValueConverters = new List<IParameterValueConverter>();
             }
-            
+
             _customParameterValueConverters.Add(parameterValueConverter);
 
             if (addToExisting)
@@ -247,7 +248,7 @@ namespace YngveHestem.GenericParameterCollection
                 return;
             }
 
-            foreach(var converter in parameterValueConverters)
+            foreach (var converter in parameterValueConverters)
             {
                 AddCustomConverter(converter, addToExisting);
             }
@@ -626,6 +627,70 @@ namespace YngveHestem.GenericParameterCollection
             ParameterCollection additionalInfo = new ParameterCollection();
             var converter = GetSuitableConverterFromValue(value, ParameterType.ParameterCollection, additionalInfo, customConverters);
             return converter.ConvertFromValue(ParameterType.ParameterCollection, valueType, value, additionalInfo, customConverters, ParameterConverterExtensions.JsonSerializer).ToObject<ParameterCollection>(ParameterConverterExtensions.JsonSerializer);
+        }
+
+        /// <summary>
+        /// Creates a ParameterCollection from any inputted json. This will try it's best to determine the type, but that depends on how good the values in the json are.
+        /// </summary>
+        /// <param name="json">The JSON you want to convert to a ParameterCollection.</param>
+        /// <param name="defaultKey">If a key can not be decided from the json, this will be used as the key. This will most likely be used if the json starts as an array.</param>
+        /// <param name="skipNullValues">If true, all parameters that contain null will be skipped, if not, it will be set as ParameterType.String.</param>
+        /// <param name="convertBase64ToBytesType">Should all that might be converted to base64 be converted to ParameterType.Bytes?</param>
+        /// <returns></returns>
+        public static ParameterCollection FromAnyJson(string json, string defaultKey = "default", bool skipNullValues = false, bool convertBase64ToBytesType = false)
+        {
+            var token = JToken.Parse(json);
+            var collection = new ParameterCollection();
+
+            if (token.Type == JTokenType.Object)
+            {
+                var dict = token.ToObject<Dictionary<string, JToken>>();
+                foreach (var kvp in dict)
+                {
+                    var parameter = Parameter.CreateFromJToken(kvp.Key, kvp.Value, skipNullValues, convertBase64ToBytesType);
+                    if (parameter != null)
+                    {
+                        collection.Add(parameter);
+                    }
+                }
+            }
+            else if (token.Type == JTokenType.Array)
+            {
+                var parameter = Parameter.CreateFromJToken(defaultKey, token, skipNullValues, convertBase64ToBytesType);
+                if (parameter != null)
+                {
+                    collection.Add(parameter);
+                }
+            }
+
+            return collection;
+        }
+
+        /// <summary>
+        /// Convert the ParameterCollection to json in the form of { "key": "value" }. This will omit everything in additionalInfo, etc.
+        /// </summary>
+        /// <param name="formatting">Any special formatting?</param>
+        /// <returns></returns>
+        public string ToSimpleJson(Formatting formatting = Formatting.None)
+        {
+            var customConverters = new IParameterValueConverter[] { new JTokenParameterConverter() };
+            var result = new Dictionary<string, JToken>();
+            foreach (var parameter in _parameters)
+            {
+                if (parameter.Type == ParameterType.ParameterCollection)
+                {
+                    result.Add(parameter.Key, JToken.Parse(parameter.GetValue<ParameterCollection>(customConverters).ToSimpleJson(formatting)));
+                }
+                else if (parameter.Type == ParameterType.ParameterCollection_IEnumerable)
+                {
+                    result.Add(parameter.Key, JToken.FromObject(parameter.GetValue<IEnumerable<ParameterCollection>>(customConverters).Select(p => JToken.Parse(p.ToSimpleJson(formatting))), ParameterConverterExtensions.JsonSerializer));
+                }
+                else
+                {
+                    result.Add(parameter.Key, parameter.GetValue<JToken>(customConverters));
+                }
+            }
+            return JsonConvert.SerializeObject(result, formatting, ParameterConverterExtensions.GetJsonSerializerSettings());
         }
     }
 }

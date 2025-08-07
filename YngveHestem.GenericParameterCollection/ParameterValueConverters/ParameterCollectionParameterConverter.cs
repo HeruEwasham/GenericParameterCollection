@@ -118,7 +118,7 @@ namespace YngveHestem.GenericParameterCollection.ParameterValueConverters
                 return false;
             }
 
-            foreach(var item in value)
+            foreach (var item in value)
             {
                 if (!CanConvertFromParameterCollection(item, additionalInfo, customConverters))
                 {
@@ -183,7 +183,7 @@ namespace YngveHestem.GenericParameterCollection.ParameterValueConverters
         {
             var result = new List<TValueType>();
 
-            foreach(var item in value)
+            foreach (var item in value)
             {
                 result.Add(ConvertFromParameterCollection(item, additionalInfo, customConverters));
             }
