@@ -2,23 +2,13 @@
 
   <PropertyGroup>
     <TargetFramework>netstandard2.0</TargetFramework>
-    <Version>1.1.7</Version>
+    <Version>1.1.8</Version>
     <Description>ParameterCollection is a simple to use collection for different parameters and types defined with a key. It supports many of the standard types like int, string, double, float, long, DateTime, bool, byte[], enums and more. It can also support nearly every other objects by easy converting the object to it´s own ParameterCollection, which can be nested togheter as parameters. It also supports many of the parameters as IEnumerables (List, Array, etc.). Methods to convert to and from JSON is also included.</Description>
     <PackageReleaseNotes>
-        Breaking change:
-        - Added additionalInfo as an input to the IParameterValueConverter-methods.
-
-        Other changes:
-        - Added an optional parameter to the ToJson()-method in ParameterCollection, so you can get an indented/readable version of the JSON if wanted.
-        - Added an optional parameter to the AdditionalInfoAttribute, which will make it possible to ddefine the ParameterType. As Attributes only support a limited set of c#-types, something that should maybe be of a type like Date, the code would think is normal string without this specification. Mark that the code stll will get the suggested ParameterType if not specified.
-        - Added other parameters to the AdditionalInfoAttribute to help deciding how DefaultValues are handled.
-        - Added a couple of virtual methods on ParameterCollectionParameterConverter to let the default virtual handling of the IEnumerables set a default value in additionalInfo if not already set.
-        - Added the possibillity to set a path in the AdditionalInfoAttribute-Key. This means that if you want to set a parameter in another ParameterCollection inside the AdditionalInfo, this is now possible.
-        - Changed the json-serializer to have setting FloatParseHandling as FloatParseHandling.Decimal not the default FloatParseHandling.Double. This so the values are saved accuratly.
-        - Fixed a small bug that made it so AttributeConvertibles fields that was null, made a big error on conversion.
-        - Fixed also some other bugs that were found around null-conversion that was not caught before.
-        - On AttributeConvertibles, fixed so a property or field that has a value, uses that value to determine the type, and only use the property's direct type if the value is null. This will make it so a property with for example interface, will give the concrete type that implements it, as long as it is not null.
-        - Fixed a small bug that did so big/small numbers in some number-types gave an error when converting from parameter.
+        - Added a static FromAnyJson(..)-method to ParameterCollection, which try to convert any inputted json to a ParameterCollection.
+        - Added a ToSimpleType(..)-method to ParameterCollection, which converts the given ParameterCollection to a simpler json as key-value-pairs. All other data is ignored.
+        - Added a new JTokenParameterConverter to convert JToken. This is not added to the default converters and need to be added as a customConverter to use.
+        - Added a new DictionaryParameterConverter to convert generic Dictionaries and other who implement generic IDictionary. This is not added to the default converters and need to be added as a customConverter to use.
     </PackageReleaseNotes>
     <Authors>Yngve J. K. Hestem</Authors>
     <Copyright>Copyright (c) Yngve J. K. Hestem 2023</Copyright>
