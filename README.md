@@ -166,8 +166,8 @@ A ParameterCollection with a parameter named "name" and value "James", and has a
 
 ```
 {
-    { "name": "James" },
-    { "age": 36 }
+    "name": "James",
+    "age": 36
 }
 ```
 
