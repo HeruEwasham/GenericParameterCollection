@@ -24,7 +24,7 @@ namespace YngveHestem.GenericParameterCollection.Editor
                 _options = options;
             }
         }
-
+        #region  CreateEditorParameterCollection
         public ParameterCollection CreateEditorParameterCollection(ParameterCollection parameters, IEnumerable<IParameterValueConverter> customConverters = null)
         {
             var result = new ParameterCollection();
@@ -141,7 +141,7 @@ namespace YngveHestem.GenericParameterCollection.Editor
                                 aInfo.Add(EditorConstants.ExistingValueKey, parameterValue, null, customConverters);
                             }
                         }
-                        
+
                         result.Add(string.Format(_options.SelectableExtraParametersKey, GetCorrectTypeName(type)), new ParameterCollection
                         {
                             { _options.ParameterCollectionIEnumerableVisibleDefaultValueKey, parameter.Type == type ? parameter.GetValue(type.GetDefaultValueTypeWithNullableTypes(), customConverters) : Array.Empty<ParameterCollection>(), ParameterType.ParameterCollection_IEnumerable, aInfo, customConverters }
@@ -263,5 +263,118 @@ namespace YngveHestem.GenericParameterCollection.Editor
                 { _options.DescriptionOfParameterKey, _options.ValueInputDescription, null, customConverters }
             };
         }
+        #endregion
+
+        #region CreateEditorParameterCollectionToOriginal_AI_made
+        /// <summary>
+        /// Konverterer en editor-ParameterCollection (fra CreateEditorParameterCollection) tilbake til original ParameterCollection.
+        /// </summary>
+        /// <param name="editorCollection">Den endrede ParameterCollection fra editor.</param>
+        /// <param name="customConverters">Eventuelle custom converters.</param>
+        /// <returns>En ParameterCollection med brukerens endringer.</returns>
+        public ParameterCollection ConvertEditorParameterCollectionToOriginal(ParameterCollection editorCollection, IEnumerable<IParameterValueConverter> customConverters = null)
+        {
+            var result = new ParameterCollection();
+            // Hent ut "parameters"-listen fra editorCollection
+            var parametersList = editorCollection.GetByKey<List<ParameterCollection>>(_options.ParametersKey);
+            foreach (var editorParam in parametersList)
+            {
+                var originalParam = ConvertEditorParameterToOriginal(editorParam, customConverters);
+                if (originalParam != null)
+                {
+                    result.Add(originalParam);
+                }
+            }
+            return result;
+        }
+
+        // Hjelpemetode for å konvertere én editor-parameter til original Parameter
+        private Parameter ConvertEditorParameterToOriginal(ParameterCollection editorParam, IEnumerable<IParameterValueConverter> customConverters)
+        {
+            // Hent key
+            var key = editorParam.GetByKey<string>(_options.KeyKey);
+            // Hent valgt type
+            var typeName = editorParam.GetByKey<string>(_options.ParameterTypeKey);
+            var type = GetParameterTypeFromName(typeName);
+
+            // Finn value
+            object value = null;
+            ParameterType valueType = type;
+            if (type == ParameterType.ParameterCollection)
+            {
+                // Value er en ParameterCollection (nested)
+                var valueEditor = GetValueParameterCollection(editorParam, _options.ValueKey);
+                if (valueEditor != null)
+                {
+                    value = ConvertEditorParameterCollectionToOriginal(valueEditor, customConverters);
+                }
+            }
+            else if (type == ParameterType.ParameterCollection_IEnumerable)
+            {
+                // Value er en liste av ParameterCollection
+                var valueEditorList = GetValueParameterCollectionList(editorParam, _options.ParameterCollectionIEnumerableVisibleDefaultValueKey);
+                if (valueEditorList != null)
+                {
+                    var list = new List<ParameterCollection>();
+                    foreach (var item in valueEditorList)
+                    {
+                        list.Add(ConvertEditorParameterCollectionToOriginal(item, customConverters));
+                    }
+                    value = list;
+                }
+            }
+            else
+            {
+                // Value er en enkel verdi
+                value = GetSimpleValue(editorParam, type, customConverters);
+            }
+
+            // Lag Parameter
+            return new Parameter(key, value, valueType);
+        }
+
+        // Hjelpemetode for å hente ParameterType fra navn
+        private ParameterType GetParameterTypeFromName(string typeName)
+        {
+            foreach (var t in _options.SupportedTypes)
+            {
+                if (GetCorrectTypeName(t) == typeName)
+                    return t;
+            }
+            // fallback
+            return ParameterType.String;
+        }
+
+        // Hjelpemetode for å hente nested ParameterCollection (for ParameterCollection-type)
+        private ParameterCollection GetValueParameterCollection(ParameterCollection editorParam, string valueKey)
+        {
+            if (editorParam.HasKey(valueKey))
+            {
+                return editorParam.GetByKey<ParameterCollection>(valueKey);
+            }
+            return null;
+        }
+
+        // Hjelpemetode for å hente liste av ParameterCollection (for ParameterCollection_IEnumerable-type)
+        private List<ParameterCollection> GetValueParameterCollectionList(ParameterCollection editorParam, string valueKey)
+        {
+            if (editorParam.HasKey(valueKey))
+            {
+                return editorParam.GetByKey<List<ParameterCollection>>(valueKey);
+            }
+            return null;
+        }
+
+        // Hjelpemetode for å hente enkel verdi
+        private object GetSimpleValue(ParameterCollection editorParam, ParameterType type, IEnumerable<IParameterValueConverter> customConverters)
+        {
+            if (editorParam.HasKey(_options.ValueKey))
+            {
+                // Bruk GetValue med type
+                return editorParam.GetByKey(_options.ValueKey, type, customConverters);
+            }
+            return null;
+        }
+        #endregion
     }
 }
