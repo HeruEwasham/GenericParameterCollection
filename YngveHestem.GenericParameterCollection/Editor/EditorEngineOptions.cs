@@ -179,12 +179,20 @@ namespace YngveHestem.GenericParameterCollection.Editor
         [ParameterProperty]
         [AdditionalInfo("desc", "How should an ParameeterCollectionIEnumerable-parameter behave? Should it let the user define the default value simply by a parameter, or should the user need to add it directly in the additional-info-part of the parameter. Mark that the parameter to add default value will not override if the user adds a parameter manually to the additional info. But if it already exist a defaultValue-parameter, this will be used as the value for that parameter and not be shown in the additionalInfo. If the default value should be manually added, it will bee shown in additional info if exist as normal.")]
         public ParameterCollectionIEnumerablesBehavior ParameterCollectionIEnumerablesBehavior = ParameterCollectionIEnumerablesBehavior.ShowParameterToSetDefaultValue;
+
         /// <summary>
-        /// How many layers would you want to max give an additional info. If 0, it is the same as ShowAdditionalInfo set to false. Default is 3.
+        /// How many layers would you want to max give an additional info. Default is 3.
         /// </summary>
         [ParameterProperty]
-        [AdditionalInfo("desc", "How many layers would you want to max give an additional info. If 0, it is the same as not giving any additionalInfo, which might be wanted in some casees. Default is 3.")]
+        [AdditionalInfo("desc", "How many layers would you want to max give an additional info. Default is 3.")]
         public int AdditionalInfoMaxRenderValue = 3;
+
+        /// <summary>
+        /// Do you want to let users add AdditionalInfo? Default is true.
+        /// </summary>
+        [ParameterProperty]
+        [AdditionalInfo("desc", "Do you want to let users add AdditionalInfo? Default is true.")]
+        public bool ShowAdditionalInfo = true;
 
         /// <summary>
         /// Select the default parameter. This parameter will be used when a new entry of a parameter is created.

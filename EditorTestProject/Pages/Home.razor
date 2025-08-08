@@ -1,11 +1,16 @@
 ﻿@page "/"
+@using EditorTestProject.Dialogs
 @using YngveHestem.GenericParameterCollection
 @using YngveHestem.GenericParameterCollection.Editor
 @using YngveHestem.GenericParameterCollection.RadzenBlazor
 
+@inject DialogService DialogService
+
 <PageTitle>Editor Test</PageTitle>
 
 <h1>Editor</h1>
+
+<RadzenButton Click="() => GetParameterCollectionAsJson()">Get editor-parameterCollection as json</RadzenButton>
 
 <ParameterCollectionView @ref="@_parameterCollectionView"></ParameterCollectionView>
 
@@ -18,11 +23,13 @@
     private ParameterCollectionView? _parameterCollectionView;
     private EditorEngine _editorEngine = new EditorEngine(new EditorEngineOptions {
         SupportedEnumsToSelect = new List<Enum>
-            {
-                ParameterType.Bool,
-                HorizontalAlign.Center,
-                Orientation.Horizontal
-            }
+        {
+            ParameterType.Bool,
+            HorizontalAlign.Center,
+            Orientation.Horizontal
+        },
+        //AdditionalInfoMaxRenderValue = 5,
+        ShowAdditionalInfo = false,
     });
 
     protected override async Task OnAfterRenderAsync(bool firstRender)
@@ -35,6 +42,18 @@
                 Thread.Sleep(100);
             }
             _parameterCollectionView.ParameterCollection = editedParameterCollection;
+        }
+    }
+
+    private void GetParameterCollectionAsJson()
+    {
+        if (_parameterCollectionView?.ParameterCollection != null)
+        {
+            var json = _parameterCollectionView.ParameterCollection.ToJson(Newtonsoft.Json.Formatting.Indented);
+            DialogService.Open<DialogJsonViewer>("ParameterCollection as JSON", new Dictionary<string, object>
+            {
+                { "Json", json }
+            });
         }
     }
 }

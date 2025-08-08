@@ -31,11 +31,11 @@ namespace YngveHestem.GenericParameterCollection.Editor
             var resultParameters = new List<ParameterCollection>();
             foreach (var parameter in parameters)
             {
-                resultParameters.Add(CreateParameterAsEditableParameterCollection(parameter, _options.AdditionalInfoMaxRenderValue/*_options.AdditionalInfoMaxRenderValue*/, customConverters));
+                resultParameters.Add(CreateParameterAsEditableParameterCollection(parameter, _options.AdditionalInfoMaxRenderValue, customConverters));
             }
             result.Add(_options.ParametersKey, resultParameters, typeof(List<ParameterCollection>), new ParameterCollection
             {
-                { _options.DefaultValueKey, CreateParameterAsEditableParameterCollection(_options.DefaultParameter, 0, customConverters) }
+                { _options.DefaultValueKey, CreateParameterAsEditableParameterCollection(_options.DefaultParameter, _options.AdditionalInfoMaxRenderValue, customConverters) }
             }, customConverters);
             return result;
         }
@@ -57,18 +57,18 @@ namespace YngveHestem.GenericParameterCollection.Editor
                 },
                 { _options.ParameterTypeKey, GetCorrectTypeName(parameter.Type), GetCorrectTypeNameList(), SetAdditionalInfoForParameterType(parameter, depthLeft-1, customConverters), customConverters }
             };
-            if (depthLeft > 0)
+            if (depthLeft > 0 && _options.ShowAdditionalInfo)
             {
-                result.Add(_options.AdditionalInfoKey, GetParametersAdditionalInfo(parameter, customConverters), new ParameterCollection
+                result.Add(_options.AdditionalInfoKey, GetParametersAdditionalInfo(parameter, depthLeft, customConverters), new ParameterCollection
                     {
-                        { _options.DefaultValueKey, CreateParameterAsEditableParameterCollection(_options.DefaultParameter, 0, customConverters) }
+                        { _options.DefaultValueKey, CreateParameterAsEditableParameterCollection(_options.DefaultParameter, depthLeft - 1, customConverters) }
                     },
                     customConverters);
             }
             return result;
         }
 
-        private List<ParameterCollection> GetParametersAdditionalInfo(Parameter parameter, IEnumerable<IParameterValueConverter> customConverters)
+        private List<ParameterCollection> GetParametersAdditionalInfo(Parameter parameter, int depthLeft, IEnumerable<IParameterValueConverter> customConverters)
         {
             var result = new List<ParameterCollection>();
             if (!parameter.HasAdditionalInfo())
@@ -81,7 +81,7 @@ namespace YngveHestem.GenericParameterCollection.Editor
                 {
                     continue;
                 }
-                var p = CreateParameterAsEditableParameterCollection(aInfoParameeter, _options.AdditionalInfoMaxRenderValue, customConverters);
+                var p = CreateParameterAsEditableParameterCollection(aInfoParameeter, depthLeft - 1, customConverters);
                 if (p != null)
                 {
                     result.Add(p);
@@ -120,21 +120,18 @@ namespace YngveHestem.GenericParameterCollection.Editor
                         {
                             { _options.DescriptionOfParameterKey, _options.ParameterCollectionIEnumerableVisibleDefaultValueInputDescription}
                         };
+                        ParameterCollection p = null;
                         if (parameter.HasAdditionalInfo() && parameter.GetAdditionalInfo().HasKeyAndCanConvertTo(_options.DefaultValueKey, typeof(ParameterCollection)))
                         {
-                            var p = CreateParameterAsEditableParameterCollection(parameter.GetAdditionalInfo().GetParameterByKey(_options.DefaultValueKey), depthLeft, customConverters);
-                            if (p != null)
-                            {
-                                aInfo.Add(_options.DefaultValueKey, p, null, customConverters);
-                            }
+                            p = CreateParameterAsEditableParameterCollection(parameter.GetAdditionalInfo().GetParameterByKey(_options.DefaultValueKey), depthLeft - 1, customConverters);
                         }
                         else
                         {
-                            var p = CreateParameterAsEditableParameterCollection(_options.DefaultParameter, depthLeft, customConverters);
-                            if (p != null)
-                            {
-                                aInfo.Add(_options.DefaultValueKey, p, null, customConverters);
-                            }
+                            p = CreateParameterAsEditableParameterCollection(_options.DefaultParameter, depthLeft - 1, customConverters);
+                        }
+                        if (p != null)
+                        {
+                            aInfo.Add(_options.DefaultValueKey, p, null, customConverters);
                         }
                         if (parameter.Type == ParameterType.ParameterCollection_IEnumerable)
                         {
@@ -172,7 +169,7 @@ namespace YngveHestem.GenericParameterCollection.Editor
                             customConverters
                         },
                         {
-                            _options.SelectValueKey, parameter.Type == ParameterType.SelectOne ? parameter.GetValue<string>() : string.Empty, ParameterType.String_IEnumerable, new ParameterCollection
+                            _options.SelectValueKey, parameter.Type == ParameterType.SelectOne ? parameter.GetValue<string>() : string.Empty, ParameterType.String, new ParameterCollection
                             {
                                 { _options.DescriptionOfParameterKey, _options.SelectOneValueInputDescription, null, customConverters }
                             },

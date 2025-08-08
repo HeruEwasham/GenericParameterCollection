@@ -1,0 +1,9 @@
+﻿@inject DialogService DialogService
+<RadzenTextArea @bind-Value="@Json" Style="width: 100%; height: 500px;" ReadOnly="true" />
+
+<RadzenButton Text="OK" Click="@(() => DialogService.Close())" Style="margin-top: 10px;" />
+
+@code {
+    [Parameter]
+    public required string Json { get; set; }
+}
