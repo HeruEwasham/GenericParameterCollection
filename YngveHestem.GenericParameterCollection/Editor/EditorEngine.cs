@@ -302,26 +302,24 @@ namespace YngveHestem.GenericParameterCollection.Editor
             ParameterType valueType = type;
             if (type == ParameterType.ParameterCollection)
             {
-                // Value er en ParameterCollection (nested)
-                var valueEditor = GetValueParameterCollection(editorParam, _options.ValueKey);
-                if (valueEditor != null)
+                var valueEditorList = GetValueParameterCollectionParameterList(editorParam, _options.ValueKey, type, customConverters);
+                var list = new ParameterCollection();
+                foreach (var item in valueEditorList)
                 {
-                    value = ConvertEditorParameterCollectionToOriginal(valueEditor, customConverters);
+                    list.Add(ConvertEditorParameterToOriginal(item, customConverters));
                 }
+                value = list;
             }
             else if (type == ParameterType.ParameterCollection_IEnumerable)
             {
-                // Value er en liste av ParameterCollection
-                var valueEditorList = GetValueParameterCollectionList(editorParam, _options.ParameterCollectionIEnumerableVisibleDefaultValueKey);
-                if (valueEditorList != null)
+                var valueEditorList = GetValueParameterCollectionParameterList(editorParam, _options.ParameterCollectionIEnumerableVisibleDefaultValueKey, type, customConverters);
+                var list = new ParameterCollection();
+                foreach (var item in valueEditorList)
                 {
-                    var list = new List<ParameterCollection>();
-                    foreach (var item in valueEditorList)
-                    {
-                        list.Add(ConvertEditorParameterCollectionToOriginal(item, customConverters));
-                    }
-                    value = list;
+                    list.Add(ConvertEditorParameterToOriginal(item, customConverters));
                 }
+                value = list;
+                return new Parameter(key, Array.Empty<ParameterCollection>(), type, new ParameterCollection { { _options.DefaultValueKey, value } }, null, customConverters);
             }
             else
             {
@@ -330,7 +328,7 @@ namespace YngveHestem.GenericParameterCollection.Editor
             }
 
             // Lag Parameter
-            return new Parameter(key, value, valueType);
+            return new Parameter(key, value, valueType, null, null, customConverters);
         }
 
         // Hjelpemetode for å hente ParameterType fra navn
@@ -339,28 +337,21 @@ namespace YngveHestem.GenericParameterCollection.Editor
             foreach (var t in _options.SupportedTypes)
             {
                 if (GetCorrectTypeName(t) == typeName)
+                {
                     return t;
+                }
             }
             // fallback
             return ParameterType.String;
         }
 
         // Hjelpemetode for å hente nested ParameterCollection (for ParameterCollection-type)
-        private ParameterCollection GetValueParameterCollection(ParameterCollection editorParam, string valueKey)
+        private List<ParameterCollection> GetValueParameterCollectionParameterList(ParameterCollection editorParam, string valueKey, ParameterType type, IEnumerable<IParameterValueConverter> customConverters)
         {
-            if (editorParam.HasKey(valueKey))
+            var valueParam = GetValuesParameterCollection(editorParam, type, customConverters);
+            if (valueParam.HasKey(valueKey))
             {
-                return editorParam.GetByKey<ParameterCollection>(valueKey);
-            }
-            return null;
-        }
-
-        // Hjelpemetode for å hente liste av ParameterCollection (for ParameterCollection_IEnumerable-type)
-        private List<ParameterCollection> GetValueParameterCollectionList(ParameterCollection editorParam, string valueKey)
-        {
-            if (editorParam.HasKey(valueKey))
-            {
-                return editorParam.GetByKey<List<ParameterCollection>>(valueKey);
+                return valueParam.GetByKey<List<ParameterCollection>>(valueKey);
             }
             return null;
         }
@@ -368,13 +359,19 @@ namespace YngveHestem.GenericParameterCollection.Editor
         // Hjelpemetode for å hente enkel verdi
         private object GetSimpleValue(ParameterCollection editorParam, ParameterType type, IEnumerable<IParameterValueConverter> customConverters)
         {
-            if (editorParam.HasKey(_options.ValueKey))
+            var valueParam = GetValuesParameterCollection(editorParam, type, customConverters);
+            if (valueParam.HasKey(_options.ValueKey))
             {
                 // Bruk GetValue med type
-                return editorParam.GetByKey(_options.ValueKey, type, customConverters);
+                return valueParam.GetByKey(_options.ValueKey, type.GetDefaultValueType(), customConverters);
             }
             return null;
         }
         #endregion
+
+        private ParameterCollection GetValuesParameterCollection(ParameterCollection editorParam, ParameterType type, IEnumerable<IParameterValueConverter> customConverters)
+        {
+            return editorParam.GetParameterByKey(_options.ParameterTypeKey).GetAdditionalInfo().GetByKey<ParameterCollection>(string.Format(_options.SelectableExtraParametersKey, Enum.GetName(typeof(ParameterType), type)), customConverters);
+        }
     }
 }

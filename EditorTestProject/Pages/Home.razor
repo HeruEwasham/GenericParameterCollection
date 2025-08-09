@@ -11,6 +11,7 @@
 <h1>Editor</h1>
 
 <RadzenButton Click="() => GetParameterCollectionAsJson()">Get editor-parameterCollection as json</RadzenButton>
+<RadzenButton Click="() => GetParameterCollectionConvertedFromEditorAsJson()">Get parameterCollection converted from editor to normal as json</RadzenButton>
 
 <ParameterCollectionView @ref="@_parameterCollectionView"></ParameterCollectionView>
 
@@ -51,6 +52,19 @@
         {
             var json = _parameterCollectionView.ParameterCollection.ToJson(Newtonsoft.Json.Formatting.Indented);
             DialogService.Open<DialogJsonViewer>("ParameterCollection as JSON", new Dictionary<string, object>
+            {
+                { "Json", json }
+            });
+        }
+    }
+
+    private void GetParameterCollectionConvertedFromEditorAsJson()
+    {
+        if (_parameterCollectionView?.ParameterCollection != null)
+        {
+            var converted = _editorEngine.ConvertEditorParameterCollectionToOriginal(_parameterCollectionView.ParameterCollection);
+            var json = converted.ToJson(Newtonsoft.Json.Formatting.Indented);
+            DialogService.Open<DialogJsonViewer>("Converted ParameterCollection as JSON", new Dictionary<string, object>
             {
                 { "Json", json }
             });
