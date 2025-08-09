@@ -246,7 +246,8 @@ namespace YngveHestem.GenericParameterCollection
             {
                 TypeNameHandling = TypeNameHandling.Auto,
                 Converters = GetJsonConverters(),
-                FloatParseHandling = FloatParseHandling.Decimal
+                FloatParseHandling = FloatParseHandling.Decimal,
+                MaxDepth = 256
             };
         }
 

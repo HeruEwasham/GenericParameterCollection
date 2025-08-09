@@ -1,8 +1,6 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
-using System.Runtime.CompilerServices;
-using System.Timers;
 using YngveHestem.GenericParameterCollection.ParameterValueConverters;
 
 namespace YngveHestem.GenericParameterCollection.Editor
@@ -24,9 +22,13 @@ namespace YngveHestem.GenericParameterCollection.Editor
                 _options = options;
             }
         }
-        #region  CreateEditorParameterCollection
+
         public ParameterCollection CreateEditorParameterCollection(ParameterCollection parameters, IEnumerable<IParameterValueConverter> customConverters = null)
         {
+            if (parameters == null)
+            {
+                parameters = new ParameterCollection();
+            }
             var result = new ParameterCollection();
             var resultParameters = new List<ParameterCollection>();
             foreach (var parameter in parameters)
@@ -108,7 +110,7 @@ namespace YngveHestem.GenericParameterCollection.Editor
                     }
                     result.Add(string.Format(_options.SelectableExtraParametersKey, GetCorrectTypeName(type)), new ParameterCollection
                     {
-                        { _options.ValueKey, parameter.Type == type ? parameter.GetValue(type.GetDefaultValueTypeWithNullableTypes(), customConverters) : Array.Empty<ParameterCollection>(), ParameterType.ParameterCollection_IEnumerable, aInfo, customConverters }
+                        { _options.ValueKey, parameter.Type == type ? GetAsParameterEditableParameterCollection_IEnumerable(parameter.GetValue<ParameterCollection>(customConverters), customConverters) : Array.Empty<ParameterCollection>(), ParameterType.ParameterCollection_IEnumerable, aInfo, customConverters }
                     },
                     null, customConverters);
                 }
@@ -144,7 +146,7 @@ namespace YngveHestem.GenericParameterCollection.Editor
 
                         result.Add(string.Format(_options.SelectableExtraParametersKey, GetCorrectTypeName(type)), new ParameterCollection
                         {
-                            { _options.ParameterCollectionIEnumerableVisibleDefaultValueKey, parameter.Type == type ? parameter.GetValue(type.GetDefaultValueTypeWithNullableTypes(), customConverters) : Array.Empty<ParameterCollection>(), ParameterType.ParameterCollection_IEnumerable, aInfo, customConverters }
+                            { _options.ParameterCollectionIEnumerableVisibleDefaultValueKey, parameter.Type == type ? GetAsParameterEditableParameterCollection_IEnumerable(parameter.HasAdditionalInfo() && parameter.GetAdditionalInfo().HasKey(_options.DefaultValueKey) ? parameter.GetAdditionalInfo().GetByKey<ParameterCollection>(_options.DefaultValueKey) : parameter.GetValue<ParameterCollection[]>(customConverters).FirstOrDefault(), customConverters) : Array.Empty<ParameterCollection>(), ParameterType.ParameterCollection_IEnumerable, aInfo, customConverters }
                         },
                         null, customConverters);
                     }
@@ -153,7 +155,7 @@ namespace YngveHestem.GenericParameterCollection.Editor
                 {
                     result.Add(string.Format(_options.SelectableExtraParametersKey, GetCorrectTypeName(type)), new ParameterCollection
                     {
-                        { _options.EnumSelectKey, parameter.Type == ParameterType.Enum ? parameter.GetValue<ParameterCollection>().GetByKey<string>("type") : _options.SupportedEnumsToSelect.FirstOrDefault().GetType().AssemblyQualifiedName, _options.SupportedEnumsToSelect.Select(v => v.GetType().AssemblyQualifiedName), GetAdditionalInfoForEnums(parameter, customConverters), customConverters }
+                        { _options.EnumSelectKey, parameter.Type == ParameterType.Enum ? parameter.GetValue<ParameterCollection>().GetByKey<string>("type") : _options.SupportedEnumsToSelect.FirstOrDefault().GetType().FullName, _options.SupportedEnumsToSelect.Select(v => v.GetType().FullName), GetAdditionalInfoForEnums(parameter, customConverters), customConverters }
                     },
                     null, customConverters);
                 }
@@ -211,6 +213,16 @@ namespace YngveHestem.GenericParameterCollection.Editor
             return result;
         }
 
+        private ParameterCollection[] GetAsParameterEditableParameterCollection_IEnumerable(ParameterCollection parameters, IEnumerable<IParameterValueConverter> customConverters)
+        {
+            var result = new List<ParameterCollection>();
+            foreach (var parameter in parameters)
+            {
+                result.Add(CreateParameterAsEditableParameterCollection(parameter, _options.AdditionalInfoMaxRenderValue, customConverters));
+            }
+            return result.ToArray();
+        }
+
         private ParameterCollection GetAdditionalInfoForEnums(Parameter parameter, IEnumerable<IParameterValueConverter> customConverters)
         {
             var result = new ParameterCollection();
@@ -218,7 +230,7 @@ namespace YngveHestem.GenericParameterCollection.Editor
             foreach (var type in _options.SupportedEnumsToSelect)
             {
                 var t = type.GetType();
-                result.Add(string.Format(_options.SelectableExtraParametersKey, t.AssemblyQualifiedName), new ParameterCollection
+                result.Add(string.Format(_options.SelectableExtraParametersKey, t.FullName), new ParameterCollection
                 {
                     {
                         _options.SelectValueKey, parameter.Type == ParameterType.Enum && parameterType == t ? parameter.GetValue<string>(customConverters) : Enum.GetNames(t)[0], Enum.GetNames(t), new ParameterCollection
@@ -263,23 +275,20 @@ namespace YngveHestem.GenericParameterCollection.Editor
                 { _options.DescriptionOfParameterKey, _options.ValueInputDescription, null, customConverters }
             };
         }
-        #endregion
 
-        #region CreateEditorParameterCollectionToOriginal_AI_made
         /// <summary>
-        /// Konverterer en editor-ParameterCollection (fra CreateEditorParameterCollection) tilbake til original ParameterCollection.
+        /// Converts an editor-ParameterCollection (from CreateEditorParameterCollection) back to a normal ParameterCollection.
         /// </summary>
-        /// <param name="editorCollection">Den endrede ParameterCollection fra editor.</param>
-        /// <param name="customConverters">Eventuelle custom converters.</param>
-        /// <returns>En ParameterCollection med brukerens endringer.</returns>
-        public ParameterCollection ConvertEditorParameterCollectionToOriginal(ParameterCollection editorCollection, IEnumerable<IParameterValueConverter> customConverters = null)
+        /// <param name="editorCollection">The ParameterCollection from editor-mode.</param>
+        /// <param name="customConverters">Any custom converters to use.</param>
+        /// <returns>A new ParameterCollection.</returns>
+        public ParameterCollection ConvertEditorParameterCollectionToNormal(ParameterCollection editorCollection, IEnumerable<IParameterValueConverter> customConverters = null)
         {
             var result = new ParameterCollection();
-            // Hent ut "parameters"-listen fra editorCollection
             var parametersList = editorCollection.GetByKey<List<ParameterCollection>>(_options.ParametersKey);
             foreach (var editorParam in parametersList)
             {
-                var originalParam = ConvertEditorParameterToOriginal(editorParam, customConverters);
+                var originalParam = ConvertEditorParameterToNormal(editorParam, customConverters);
                 if (originalParam != null)
                 {
                     result.Add(originalParam);
@@ -288,25 +297,36 @@ namespace YngveHestem.GenericParameterCollection.Editor
             return result;
         }
 
-        // Hjelpemetode for å konvertere én editor-parameter til original Parameter
-        private Parameter ConvertEditorParameterToOriginal(ParameterCollection editorParam, IEnumerable<IParameterValueConverter> customConverters)
+        private Parameter ConvertEditorParameterToNormal(ParameterCollection editorParam, IEnumerable<IParameterValueConverter> customConverters)
         {
-            // Hent key
+            // Get key
             var key = editorParam.GetByKey<string>(_options.KeyKey);
-            // Hent valgt type
+
+            // Get type
             var typeName = editorParam.GetByKey<string>(_options.ParameterTypeKey);
             var type = GetParameterTypeFromName(typeName);
 
-            // Finn value
-            object value = null;
+            //Get additionalInfo if exists
+            ParameterCollection additionalInfo = null;
+            if (editorParam.HasKey(_options.AdditionalInfoKey))
+            {
+                additionalInfo = new ParameterCollection();
+                foreach (var item in editorParam.GetByKey<ParameterCollection[]>(_options.AdditionalInfoKey))
+                {
+                    additionalInfo.Add(ConvertEditorParameterToNormal(item, customConverters));
+                }
+            }
+
+            // Find value
+                object value = null;
             ParameterType valueType = type;
             if (type == ParameterType.ParameterCollection)
             {
                 var valueEditorList = GetValueParameterCollectionParameterList(editorParam, _options.ValueKey, type, customConverters);
                 var list = new ParameterCollection();
-                foreach (var item in valueEditorList)
+                foreach (var item in valueEditorList.Item1)
                 {
-                    list.Add(ConvertEditorParameterToOriginal(item, customConverters));
+                    list.Add(ConvertEditorParameterToNormal(item, customConverters));
                 }
                 value = list;
             }
@@ -314,24 +334,76 @@ namespace YngveHestem.GenericParameterCollection.Editor
             {
                 var valueEditorList = GetValueParameterCollectionParameterList(editorParam, _options.ParameterCollectionIEnumerableVisibleDefaultValueKey, type, customConverters);
                 var list = new ParameterCollection();
-                foreach (var item in valueEditorList)
+                foreach (var item in valueEditorList.Item1)
                 {
-                    list.Add(ConvertEditorParameterToOriginal(item, customConverters));
+                    list.Add(ConvertEditorParameterToNormal(item, customConverters));
                 }
                 value = list;
-                return new Parameter(key, Array.Empty<ParameterCollection>(), type, new ParameterCollection { { _options.DefaultValueKey, value } }, null, customConverters);
+                if (additionalInfo == null)
+                {
+                    additionalInfo = new ParameterCollection();
+                }
+                if (!additionalInfo.HasKey(_options.DefaultValueKey))
+                {
+                    additionalInfo.Add(_options.DefaultValueKey, value, null, customConverters);
+                }
+                var currentValue = Array.Empty<ParameterCollection>();
+                if (valueEditorList.Item2.HasKey(EditorConstants.ExistingValueKey))
+                {
+                    currentValue = valueEditorList.Item2.GetByKey<ParameterCollection[]>(EditorConstants.ExistingValueKey);
+                }
+                return new Parameter(key, currentValue, type, additionalInfo, null, customConverters);
+            }
+            else if (type == ParameterType.Enum)
+            {
+                var valueParam = GetValuesParameterCollection(editorParam, type, customConverters);
+                var enumTypeName = valueParam.GetByKey<string>(_options.EnumSelectKey);
+                var specifiedEnumValues = valueParam.GetParameterByKey(_options.EnumSelectKey).GetAdditionalInfo().GetByKey<ParameterCollection>(string.Format(_options.SelectableExtraParametersKey,  enumTypeName), customConverters);
+                var enumValue = specifiedEnumValues.GetByKey<string>(_options.SelectValueKey);
+                var enumChoices = specifiedEnumValues.GetParameterByKey(_options.SelectValueKey).GetChoices();
+                var enumParamCollection = new ParameterCollection
+                {
+                    { "value", enumValue, ParameterType.String, null, customConverters },
+                    { "type", enumTypeName, ParameterType.String, null, customConverters },
+                    { "choices", enumChoices, ParameterType.String_IEnumerable, null, customConverters }
+                };
+                value = enumParamCollection;
+            }
+            else if (type == ParameterType.SelectOne)
+            {
+                var valueParam = GetValuesParameterCollection(editorParam, type, customConverters);
+                var selectedValue = valueParam.GetByKey<string>(_options.SelectValueKey);
+                var choices = valueParam.GetByKey<string[]>(_options.SelectChoicesKey);
+                var selectOneParamCollection = new ParameterCollection
+                {
+                    { "value", selectedValue, ParameterType.String, null, customConverters },
+                    { "choices", choices, ParameterType.String_IEnumerable, null, customConverters }
+                };
+                value = selectOneParamCollection;
+            }
+            else if (type == ParameterType.SelectMany)
+            {
+                var valueParam = GetValuesParameterCollection(editorParam, type, customConverters);
+                var selectedValues = valueParam.GetByKey<string[]>(_options.SelectValueKey);
+                var choices = valueParam.GetByKey<string[]>(_options.SelectChoicesKey);
+                var selectManyParamCollection = new ParameterCollection
+                {
+                    { "value", selectedValues, ParameterType.String_IEnumerable, null, customConverters },
+                    { "choices", choices, ParameterType.String_IEnumerable, null, customConverters }
+                };
+                value = selectManyParamCollection;
             }
             else
             {
-                // Value er en enkel verdi
+                // Value is a simple value
                 value = GetSimpleValue(editorParam, type, customConverters);
             }
 
-            // Lag Parameter
-            return new Parameter(key, value, valueType, null, null, customConverters);
+            // Make Parameter
+            return new Parameter(key, value, valueType, additionalInfo, null, customConverters);
         }
 
-        // Hjelpemetode for å hente ParameterType fra navn
+        // Get ParameterType from name
         private ParameterType GetParameterTypeFromName(string typeName)
         {
             foreach (var t in _options.SupportedTypes)
@@ -345,29 +417,25 @@ namespace YngveHestem.GenericParameterCollection.Editor
             return ParameterType.String;
         }
 
-        // Hjelpemetode for å hente nested ParameterCollection (for ParameterCollection-type)
-        private List<ParameterCollection> GetValueParameterCollectionParameterList(ParameterCollection editorParam, string valueKey, ParameterType type, IEnumerable<IParameterValueConverter> customConverters)
+        private Tuple<List<ParameterCollection>, ParameterCollection> GetValueParameterCollectionParameterList(ParameterCollection editorParam, string valueKey, ParameterType type, IEnumerable<IParameterValueConverter> customConverters)
         {
             var valueParam = GetValuesParameterCollection(editorParam, type, customConverters);
             if (valueParam.HasKey(valueKey))
             {
-                return valueParam.GetByKey<List<ParameterCollection>>(valueKey);
+                return new Tuple<List<ParameterCollection>, ParameterCollection>(valueParam.GetByKey<List<ParameterCollection>>(valueKey), valueParam.GetParameterByKey(valueKey).GetAdditionalInfo());
             }
             return null;
         }
 
-        // Hjelpemetode for å hente enkel verdi
         private object GetSimpleValue(ParameterCollection editorParam, ParameterType type, IEnumerable<IParameterValueConverter> customConverters)
         {
             var valueParam = GetValuesParameterCollection(editorParam, type, customConverters);
             if (valueParam.HasKey(_options.ValueKey))
             {
-                // Bruk GetValue med type
                 return valueParam.GetByKey(_options.ValueKey, type.GetDefaultValueType(), customConverters);
             }
             return null;
         }
-        #endregion
 
         private ParameterCollection GetValuesParameterCollection(ParameterCollection editorParam, ParameterType type, IEnumerable<IParameterValueConverter> customConverters)
         {

@@ -12,6 +12,7 @@
 
 <RadzenButton Click="() => GetParameterCollectionAsJson()">Get editor-parameterCollection as json</RadzenButton>
 <RadzenButton Click="() => GetParameterCollectionConvertedFromEditorAsJson()">Get parameterCollection converted from editor to normal as json</RadzenButton>
+<RadzenButton Click="() => Preview()">Preview</RadzenButton>
 
 <ParameterCollectionView @ref="@_parameterCollectionView"></ParameterCollectionView>
 
@@ -31,6 +32,7 @@
         },
         //AdditionalInfoMaxRenderValue = 5,
         ShowAdditionalInfo = false,
+        DescriptionOfParameterKey = "tooltip"
     });
 
     protected override async Task OnAfterRenderAsync(bool firstRender)
@@ -62,12 +64,20 @@
     {
         if (_parameterCollectionView?.ParameterCollection != null)
         {
-            var converted = _editorEngine.ConvertEditorParameterCollectionToOriginal(_parameterCollectionView.ParameterCollection);
+            var converted = _editorEngine.ConvertEditorParameterCollectionToNormal(_parameterCollectionView.ParameterCollection);
             var json = converted.ToJson(Newtonsoft.Json.Formatting.Indented);
             DialogService.Open<DialogJsonViewer>("Converted ParameterCollection as JSON", new Dictionary<string, object>
             {
                 { "Json", json }
             });
         }
+    }
+
+    private void Preview()
+    {
+        DialogService.Open<DialogParameterCollectionView>("Converted ParameterCollection as JSON", new Dictionary<string, object>
+        {
+            { "ParameterCollection", _editorEngine.ConvertEditorParameterCollectionToNormal(_parameterCollectionView.ParameterCollection) }
+        });
     }
 }

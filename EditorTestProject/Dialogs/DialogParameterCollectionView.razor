@@ -1,0 +1,10 @@
+﻿@using YngveHestem.GenericParameterCollection
+@inject DialogService DialogService
+<YngveHestem.GenericParameterCollection.RadzenBlazor.ParameterCollectionView ParameterCollection="@ParameterCollection" />
+
+<RadzenButton Text="OK" Click="@(() => DialogService.Close())" Style="margin-top: 10px;" />
+
+@code {
+    [Parameter]
+    public required ParameterCollection ParameterCollection { get; set; }
+}
