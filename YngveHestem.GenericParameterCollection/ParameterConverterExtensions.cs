@@ -101,11 +101,131 @@ namespace YngveHestem.GenericParameterCollection
             }
             else if (type == ParameterType.ParameterCollection_IEnumerable)
             {
-                return typeof(IEnumerable<Parameter>);
+                return typeof(IEnumerable<ParameterCollection>);
             }
             else
             {
                 return typeof(string);
+            }
+        }
+
+        public static Type GetDefaultValueTypeWithNullableTypes(this ParameterType type)
+        {
+            if (type == ParameterType.Int)
+            {
+                return typeof(long?);
+            }
+            else if (type == ParameterType.String || type == ParameterType.String_Multiline)
+            {
+                return typeof(string);
+            }
+            else if (type == ParameterType.Decimal)
+            {
+                return typeof(decimal?);
+            }
+            else if (type == ParameterType.Bool)
+            {
+                return typeof(bool?);
+            }
+            else if (type == ParameterType.Bytes)
+            {
+                return typeof(byte[]);
+            }
+            else if (type == ParameterType.Date || type == ParameterType.DateTime)
+            {
+                return typeof(DateTime?);
+            }
+            else if (type == ParameterType.ParameterCollection)
+            {
+                return typeof(ParameterCollection);
+            }
+            else if (type == ParameterType.String_IEnumerable || type == ParameterType.String_Multiline_IEnumerable || type == ParameterType.SelectMany)
+            {
+                return typeof(IEnumerable<string>);
+            }
+            else if (type == ParameterType.Int_IEnumerable)
+            {
+                return typeof(IEnumerable<long?>);
+            }
+            else if (type == ParameterType.Decimal_IEnumerable)
+            {
+                return typeof(IEnumerable<decimal?>);
+            }
+            else if (type == ParameterType.Bool_IEnumerable)
+            {
+                return typeof(IEnumerable<bool?>);
+            }
+            else if (type == ParameterType.Date_IEnumerable || type == ParameterType.DateTime_IEnumerable)
+            {
+                return typeof(IEnumerable<DateTime?>);
+            }
+            else if (type == ParameterType.ParameterCollection_IEnumerable)
+            {
+                return typeof(IEnumerable<ParameterCollection>);
+            }
+            else
+            {
+                return typeof(string);
+            }
+        }
+
+        public static object GetDefaultValue(this ParameterType type)
+        {
+            if (type == ParameterType.Int)
+            {
+                return 0;
+            }
+            else if (type == ParameterType.String || type == ParameterType.String_Multiline)
+            {
+                return string.Empty;
+            }
+            else if (type == ParameterType.Decimal)
+            {
+                return 0.0m;
+            }
+            else if (type == ParameterType.Bool)
+            {
+                return false;
+            }
+            else if (type == ParameterType.Bytes)
+            {
+                return Array.Empty<byte>();
+            }
+            else if (type == ParameterType.Date || type == ParameterType.DateTime)
+            {
+                return DateTime.Now;
+            }
+            else if (type == ParameterType.ParameterCollection)
+            {
+                return new ParameterCollection();
+            }
+            else if (type == ParameterType.String_IEnumerable || type == ParameterType.String_Multiline_IEnumerable || type == ParameterType.SelectMany)
+            {
+                return Array.Empty<string>();
+            }
+            else if (type == ParameterType.Int_IEnumerable)
+            {
+                return Array.Empty<int>();
+            }
+            else if (type == ParameterType.Decimal_IEnumerable)
+            {
+                return Array.Empty<decimal>();
+            }
+            else if (type == ParameterType.Bool_IEnumerable)
+            {
+                return Array.Empty<bool>();
+            }
+            else if (type == ParameterType.Date_IEnumerable || type == ParameterType.DateTime_IEnumerable)
+            {
+                return Array.Empty<DateTime>();
+            }
+            else if (type == ParameterType.ParameterCollection_IEnumerable)
+            {
+                return Array.Empty<ParameterCollection>();
+            }
+            else
+            {
+                return string.Empty;
             }
         }
 
@@ -126,7 +246,8 @@ namespace YngveHestem.GenericParameterCollection
             {
                 TypeNameHandling = TypeNameHandling.Auto,
                 Converters = GetJsonConverters(),
-                FloatParseHandling = FloatParseHandling.Decimal
+                FloatParseHandling = FloatParseHandling.Decimal,
+                MaxDepth = 256
             };
         }
 

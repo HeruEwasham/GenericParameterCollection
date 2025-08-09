@@ -166,10 +166,34 @@ A ParameterCollection with a parameter named "name" and value "James", and has a
 
 ```
 {
-    { "name": "James" },
-    { "age": 36 }
+    "name": "James",
+    "age": 36
 }
 ```
+
+### Editor (EditorEngine)
+
+In the namespace YngveHestem.GenericParameterCollection.Editor, it exist an "Editor". This creates a ParameterCollection where you in a viewer can edit an inputted ParameterCollection (which of course can be empty for a clean "editor").
+
+This functionality might be in handy if you for instance create something where a user can create their own forms or other input, for instance.
+
+Mark that this based on the viewer and configuration might be some slow. If you configure it to not allow creating ParameterCollections (and ParameterCollections_IEnumerable) inside the editor, it might fasten it up.
+
+#### Required configuration
+
+To use this, you have at least to configure/change at least one of the following parameters in the options:
+
+1. Edit SupportedEnumsToSelect with the given Enum-types you want to support. As you most likely would not allow the user to use all enums it might find, this is at default set to null.
+2. If you do not want to use any enums, edit SupportedTypes to not contain the Enum-type. If you want all other types, you can set it to EditorConstants.AllParameterTypesExceptEnum.
+
+#### Requirements for the ParameterCollectionViewer
+
+While we have tried to make it available to so many viewers as possible, it is some "features" that need to be able to do with the editor for this to be used as intended when showing to users. This is:
+
+- Supporting showing parameters based on the value of another. This to show different input-types based on the type.
+- Support to set "default value" for ParameterCollection_IEnumerable. This is needed so when you click to add a new parameter, the needed values are shown.
+
+When writing this (august 2025), both the RadzenBlazor-view and the Avalonia-view should support this.
 
 ## Code-Examples
 
