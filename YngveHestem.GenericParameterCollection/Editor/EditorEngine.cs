@@ -221,7 +221,7 @@ namespace YngveHestem.GenericParameterCollection.Editor
                 result.Add(string.Format(_options.SelectableExtraParametersKey, t.AssemblyQualifiedName), new ParameterCollection
                 {
                     {
-                        _options.SelectValueKey, parameterType == t ? parameter.GetValue<string>(customConverters) : Enum.GetNames(t)[0], Enum.GetNames(t), new ParameterCollection
+                        _options.SelectValueKey, parameter.Type == ParameterType.Enum && parameterType == t ? parameter.GetValue<string>(customConverters) : Enum.GetNames(t)[0], Enum.GetNames(t), new ParameterCollection
                         {
                             { _options.DescriptionOfParameterKey, _options.SelectEnumValueInputDescription, null, customConverters }
                         },
