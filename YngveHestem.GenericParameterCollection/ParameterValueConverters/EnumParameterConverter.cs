@@ -43,7 +43,8 @@ namespace YngveHestem.GenericParameterCollection.ParameterValueConverters
             {
                 if (targetType == typeof(string))
                 {
-                    return rawValue.ToObject<ParameterCollection>(jsonSerializer).GetByKey<string>("value");
+                    var parameters = rawValue.ToObject<ParameterCollection>(jsonSerializer);
+                    return ((Enum)Enum.Parse(Type.GetType(parameters.GetByKey<string>("type")), parameters.GetByKey<string>("value"))).ToString(GetFormat(additionalInfo));
                 }
                 else if (targetType == typeof(int))
                 {
@@ -110,6 +111,15 @@ namespace YngveHestem.GenericParameterCollection.ParameterValueConverters
             {
                 return false;
             }
+        }
+
+        private string GetFormat(ParameterCollection parameters)
+        {
+            if (parameters.HasKeyAndCanConvertTo("format", typeof(string)))
+            {
+                return parameters.GetByKey<string>("format");
+            }
+            return "G";
         }
     }
 }
