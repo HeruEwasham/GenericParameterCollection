@@ -72,7 +72,7 @@ namespace YngveHestem.GenericParameterCollection.ParameterValueConverters
                 }
                 else if (targetType == typeof(string))
                 {
-                    return rawValue.ToObject<string>(jsonSerializer);
+                    return rawValue.ToObject<decimal>(jsonSerializer).ToString(GetFormat(additionalInfo));
                 }
             }
             else if (sourceType == ParameterType.Decimal_IEnumerable)
@@ -103,7 +103,7 @@ namespace YngveHestem.GenericParameterCollection.ParameterValueConverters
                 }
                 else if (typeof(IEnumerable<string>).IsAssignableFrom(targetType))
                 {
-                    return rawValue.ToObject<IEnumerable<string>>(jsonSerializer).ToCorrectIEnumerable(targetType);
+                    return rawValue.ToObject<IEnumerable<decimal>>(jsonSerializer).Select(x => x.ToString(GetFormat(additionalInfo))).ToCorrectIEnumerable(targetType);
                 }
                 else if (typeof(IEnumerable<float?>).IsAssignableFrom(targetType))
                 {
@@ -169,6 +169,15 @@ namespace YngveHestem.GenericParameterCollection.ParameterValueConverters
             }
 
             throw new ArgumentException("The values was not supported to be converted by " + nameof(DecimalParameterConverter));
+        }
+
+        private string GetFormat(ParameterCollection parameters)
+        {
+            if (parameters.HasKeyAndCanConvertTo("format", typeof(string)))
+            {
+                return parameters.GetByKey<string>("format");
+            }
+            return "G";
         }
     }
 }

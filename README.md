@@ -48,6 +48,18 @@ For the possibillity to differentiate if it should be possible to write multilin
 
 It is also possible to add multiple parameters to a parameter, which can be used to send much more information togheter with a parameter, or be used to validate the input the way a backend wants it in GUI-level.
 
+### Support for formatting
+
+Both numbers, DateTime, and Enums can be formatted when gotten back as strings.
+
+This is done by adding a parameter named "format" and a string value of a supported format to the additional info. This means that if you want to show different formats on some values, you don't need to check everything manually, but can just return everything you want as strings, and get it with different formats. You can for instance show a number as a currency instead of the default.
+
+This can especially be useful if you get a ParameterCollection from a method from an interface or abstract class. As the visual layer don't necessarry need to know the parameters in any other way.
+
+Check the documentation for each C# type to know what formats is supported. If not defined, default value is used.
+
+But mark that if the value given in "format" are not valid, an exception or other strange behavior may occur.
+
 ## When should I use this?
 
 The ParameterCollection was not written to be used instead of classes. This was primarly written to be used with Interfaces or other similar situations where the classes who implements an interface can get nearly any number and different type of response from a user. It is also suitable in other situations where much input from a user is required. This as it is relatively easy to create a GUI with reusable controls for the user that can be used over and over again, instead of manually define the controls for each parameter/input by hand.

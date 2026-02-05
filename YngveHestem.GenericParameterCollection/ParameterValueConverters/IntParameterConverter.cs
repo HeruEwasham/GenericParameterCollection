@@ -72,7 +72,7 @@ namespace YngveHestem.GenericParameterCollection.ParameterValueConverters
                 }
                 else if (targetType == typeof(string))
                 {
-                    return rawValue.ToObject<string>(jsonSerializer);
+                    return rawValue.ToObject<long>(jsonSerializer).ToString(GetFormat(additionalInfo));
                 }
             }
             else if (sourceType == ParameterType.Int_IEnumerable)
@@ -103,7 +103,7 @@ namespace YngveHestem.GenericParameterCollection.ParameterValueConverters
                 }
                 else if (typeof(IEnumerable<string>).IsAssignableFrom(targetType))
                 {
-                    return rawValue.ToObject<IEnumerable<string>>(jsonSerializer).ToCorrectIEnumerable(targetType);
+                    return rawValue.ToObject<IEnumerable<long>>(jsonSerializer).Select(x => x.ToString(GetFormat(additionalInfo))).ToCorrectIEnumerable(targetType);
                 }
                 else if (typeof(IEnumerable<int?>).IsAssignableFrom(targetType))
                 {
@@ -128,6 +128,15 @@ namespace YngveHestem.GenericParameterCollection.ParameterValueConverters
             }
 
             throw new ArgumentException("The values was not supported to be converted by " + nameof(IntParameterConverter));
+        }
+
+        private string GetFormat(ParameterCollection parameters)
+        {
+            if (parameters.HasKeyAndCanConvertTo("format", typeof(string)))
+            {
+                return parameters.GetByKey<string>("format");
+            }
+            return "G";
         }
 
         public JToken ConvertFromValue(ParameterType targetType, Type sourceType, object value, ParameterCollection additionalInfo, IEnumerable<IParameterValueConverter> customConverters, JsonSerializer jsonSerializer)

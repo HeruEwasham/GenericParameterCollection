@@ -55,12 +55,7 @@ namespace YngveHestem.GenericParameterCollection.ParameterValueConverters
                 }
                 else if (targetType == typeof(string))
                 {
-                    var pattern = "D";
-                    if (sourceType == ParameterType.DateTime)
-                    {
-                        pattern = "F";
-                    }
-                    return rawValue.ToObject<DateTime>(jsonSerializer).ToString(pattern, CultureInfo.CurrentCulture);
+                    return rawValue.ToObject<DateTime>(jsonSerializer).ToString(GetPattern(additionalInfo, sourceType), CultureInfo.CurrentCulture);
                 }
                 else if (typeof(IEnumerable<DateTime>).IsAssignableFrom(targetType))
                 {
@@ -79,12 +74,7 @@ namespace YngveHestem.GenericParameterCollection.ParameterValueConverters
                 }
                 else if (typeof(IEnumerable<string>).IsAssignableFrom(targetType))
                 {
-                    var pattern = "D";
-                    if (sourceType == ParameterType.DateTime_IEnumerable)
-                    {
-                        pattern = "F";
-                    }
-                    return rawValue.ToObject<IEnumerable<DateTime>>(jsonSerializer).Select(v => v.ToString(pattern, CultureInfo.CurrentCulture)).ToCorrectIEnumerable(targetType);
+                    return rawValue.ToObject<IEnumerable<DateTime>>(jsonSerializer).Select(v => v.ToString(GetPattern(additionalInfo, sourceType), CultureInfo.CurrentCulture)).ToCorrectIEnumerable(targetType);
                 }
                 else if (typeof(IEnumerable<DateTime?>).IsAssignableFrom(targetType))
                 {
@@ -121,6 +111,20 @@ namespace YngveHestem.GenericParameterCollection.ParameterValueConverters
             }
 
             throw new ArgumentException("The values was not supported to be converted by " + nameof(DateTimeParameterConverter));
+        }
+
+        private string GetPattern(ParameterCollection parameters, ParameterType type)
+        {
+            if (parameters.HasKeyAndCanConvertTo("format", typeof(string)))
+            {
+                return parameters.GetByKey<string>("format");
+            }
+            var pattern = "D";
+            if (type == ParameterType.DateTime)
+            {
+                pattern = "F";
+            }
+            return pattern;
         }
     }
 }
