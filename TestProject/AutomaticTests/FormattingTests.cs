@@ -54,4 +54,21 @@ public class FormattingTests
         ClassicAssert.AreEqual("2005-05-01", parameters.GetByKey<string>("dateWith"));
         ClassicAssert.AreEqual("01 05 2005 12:05", parameters.GetByKey<string>("dateTimeWith"));
     }
+
+    [Test]
+    public void TestEnum()
+    {
+        var parameters = new ParameterCollection
+        {
+            { "enumWithout", ParameterType.Date },
+            { "enumWith", ParameterType.ParameterCollection, new ParameterCollection
+                {
+                    { "format", "D" }
+                }
+            }
+        };
+        
+        ClassicAssert.AreEqual("Date", parameters.GetByKey<string>("enumWithout"));
+        ClassicAssert.AreEqual("15", parameters.GetByKey<string>("enumWith"));
+    }
 }
