@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Linq;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
 
@@ -44,7 +45,11 @@ namespace YngveHestem.GenericParameterCollection.ParameterValueConverters
                 if (targetType == typeof(string))
                 {
                     var parameters = rawValue.ToObject<ParameterCollection>(jsonSerializer);
-                    return ((Enum)Enum.Parse(Type.GetType(parameters.GetByKey<string>("type")), parameters.GetByKey<string>("value"))).ToString(GetFormat(additionalInfo));
+                    if (additionalInfo.HasKeyAndCanConvertTo("format", typeof(string)))
+                    {
+                        return ((Enum)Enum.Parse(ResolveType(parameters.GetByKey<string>("type")), parameters.GetByKey<string>("value"))).ToString(additionalInfo.GetByKey<string>("format"));
+                    }
+                    return parameters.GetByKey<string>("value");
                 }
                 else if (targetType == typeof(int))
                 {
@@ -113,13 +118,12 @@ namespace YngveHestem.GenericParameterCollection.ParameterValueConverters
             }
         }
 
-        private string GetFormat(ParameterCollection parameters)
+        public static Type ResolveType(string typeName)
         {
-            if (parameters.HasKeyAndCanConvertTo("format", typeof(string)))
-            {
-                return parameters.GetByKey<string>("format");
-            }
-            return "G";
+            return AppDomain.CurrentDomain
+                .GetAssemblies()
+                .Select(a => a.GetType(typeName, throwOnError: false))
+                .FirstOrDefault(t => t != null);
         }
     }
 }

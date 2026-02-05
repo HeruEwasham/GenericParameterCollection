@@ -2,9 +2,6 @@ using NUnit.Framework;
 using YngveHestem.GenericParameterCollection;
 using YngveHestem.GenericParameterCollection.Editor;
 using YngveHestem.GenericParameterCollection.ParameterValueConverters;
-using System;
-using System.Collections.Generic;
-using System.Linq;
 
 namespace TestProject.AutomaticTests
 {
