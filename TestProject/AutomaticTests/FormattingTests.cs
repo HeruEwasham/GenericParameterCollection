@@ -88,4 +88,39 @@ public class FormattingTests
         ClassicAssert.AreEqual("Default", parameters.GetByKey<string>("enumWithout"));
         ClassicAssert.AreEqual("1", parameters.GetByKey<string>("enumWith"));
     }
+
+    [Test]
+    public void TestBool()
+    {
+        var parameters = new ParameterCollection
+        {
+            { "boolWithout", true },
+            { "boolWithStringTrue", true, new ParameterCollection
+                {
+                    { "format", "Yes:::No" }
+                }
+            },
+            { "boolWithStringFalse", false, new ParameterCollection
+                {
+                    { "format", "Yes:::No" }
+                }
+            },
+            { "boolWithPCTrue", true, new ParameterCollection
+                {
+                    { "format", new ParameterCollection { { "true", "Correct" }, { "false", "Fail" } } }
+                }
+            },
+            { "boolWithPCFalse", false, new ParameterCollection
+                {
+                    { "format", new ParameterCollection { { "true", "Correct" }, { "false", "Fail" } } }
+                }
+            }
+        };
+        
+        ClassicAssert.AreEqual("True", parameters.GetByKey<string>("boolWithout"));
+        ClassicAssert.AreEqual("Yes", parameters.GetByKey<string>("boolWithStringTrue"));
+        ClassicAssert.AreEqual("No", parameters.GetByKey<string>("boolWithStringFalse"));
+        ClassicAssert.AreEqual("Correct", parameters.GetByKey<string>("boolWithPCTrue"));
+        ClassicAssert.AreEqual("Fail", parameters.GetByKey<string>("boolWithPCFalse"));
+    }
 }

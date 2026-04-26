@@ -82,7 +82,7 @@ namespace YngveHestem.GenericParameterCollection.ParameterValueConverters
                 }
                 else if (targetType == typeof(string))
                 {
-                    return value.ToString();
+                    return GetStringValue(value, additionalInfo);
                 }
                 else if (typeof(IEnumerable<bool>).IsAssignableFrom(targetType))
                 {
@@ -109,7 +109,7 @@ namespace YngveHestem.GenericParameterCollection.ParameterValueConverters
                 }
                 else if (typeof(IEnumerable<string>).IsAssignableFrom(targetType))
                 {
-                    rawValue.ToObject<IEnumerable<bool>>(jsonSerializer).Select(v => v.ToString()).ToCorrectIEnumerable(targetType);
+                    rawValue.ToObject<IEnumerable<bool>>(jsonSerializer).Select(v => GetStringValue(v, additionalInfo)).ToCorrectIEnumerable(targetType);
                 }
                 else if (typeof(IEnumerable<bool?>).IsAssignableFrom(targetType))
                 {
@@ -194,6 +194,50 @@ namespace YngveHestem.GenericParameterCollection.ParameterValueConverters
             }
 
             throw new ArgumentException("The values was not supported to be converted by " + nameof(BoolParameterConverter));
+        }
+
+        private string GetStringValue(bool value, ParameterCollection additionalInfo)
+        {
+            Tuple<string,string> format = null;
+            if (additionalInfo.HasKeyAndCanConvertTo("format", typeof(string)))
+            {
+                var str = additionalInfo.GetByKey<string>("format");
+                var array = str.Split(new [] { ":::" }, StringSplitOptions.None);
+                if (array.Length == 2)
+                {
+                    format = new Tuple<string, string>(array[0], array[1]);
+                }
+                else if (str == "{lower}")
+                {
+                    format = new Tuple<string, string>("true", "false");
+                }
+                else if (str == "{upper}")
+                {
+                    format = new Tuple<string, string>("TRUE", "FALSE");
+                }
+            }
+            else if (additionalInfo.HasKeyAndCanConvertTo("format", typeof(ParameterCollection)))
+            {
+                var pc = additionalInfo.GetByKey<ParameterCollection>("format");
+                if (pc.HasKeyAndCanConvertTo("true", typeof(string)) && pc.HasKeyAndCanConvertTo("false", typeof(string)))
+                {
+                    format = new Tuple<string, string>(pc.GetByKey<string>("true"), pc.GetByKey<string>("false"));
+                }
+            }
+            
+            if (format == null)
+            {
+                return value.ToString();
+            }
+
+            if (value)
+            {
+                return format.Item1;
+            }
+            else
+            {
+                return format.Item2;
+            }
         }
     }
 }
