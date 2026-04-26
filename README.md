@@ -50,15 +50,29 @@ It is also possible to add multiple parameters to a parameter, which can be used
 
 ### Support for formatting
 
-Both numbers, DateTime, and Enums can be formatted when gotten back as strings.
+Both numbers, DateTime, Bool and Enums can be formatted when gotten back as strings.
 
 This is done by adding a parameter named "format" and a string value of a supported format to the additional info. This means that if you want to show different formats on some values, you don't need to check everything manually, but can just return everything you want as strings, and get it with different formats. You can for instance show a number as a currency instead of the default.
 
 This can especially be useful if you get a ParameterCollection from a method from an interface or abstract class. As the visual layer don't necessarry need to know the parameters in any other way.
 
-Check the documentation for each C# type to know what formats is supported. If not defined, default value is used.
+Check the documentation for each C# type to know what formats is supported (for bool, check below). If a format is not defined, default ToString-value is used.
 
 But mark that if the value given in "format" are not valid, an exception or other strange behavior may occur.
+
+To get examples on how formats is used, check the Format-tests in the test-project.
+
+#### Formatting bool
+
+The bool-type has not any built-in format-parameter thats easy to use in ToString(). Therefore, a custom implementation has been made.
+
+To define a format, you add a format-parameter to the parameters additional info, as the others. But it is a few ways to define the values:
+
+- As a string-parameter: Write a string where you add write what you will write in this format "TRUE:::FALSE" where TRUE andd FALSE is replaced with what should be outputted. For example "Yes:::No". Mark that it is three : between them.
+- As a ParameterCollection-parameter with the parameters "true" and "false".
+- As a string-parameter where you write "{lower}" to get it written as "true" and "false", or "{upper}" to get it written as "TRUE" and "FALSE".
+
+The default value returned by ToString() is "True" and "False".
 
 ## When should I use this?
 
