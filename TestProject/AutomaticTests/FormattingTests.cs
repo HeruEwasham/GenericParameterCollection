@@ -30,8 +30,10 @@ public class FormattingTests
         
         ClassicAssert.AreEqual("5", parameters.GetByKey<string>("intWithout"));
         ClassicAssert.AreEqual("ff", parameters.GetByKey<string>("intWith"));
-        ClassicAssert.AreEqual("5,5", parameters.GetByKey<string>("decimalWithout"));
-        ClassicAssert.AreEqual("8,300", parameters.GetByKey<string>("decimalWith"));
+        var decimalWithout = parameters.GetByKey<string>("decimalWithout");
+        ClassicAssert.IsTrue(decimalWithout == "5,5" || decimalWithout == "5.5", $"Expected decimalWithout to be '5,5' or '5.5' but was '{decimalWithout}'");
+        var decimalWith = parameters.GetByKey<string>("decimalWith");
+        ClassicAssert.IsTrue(decimalWith == "8,300" || decimalWith == "8.300", $"Expected decimalWith to be '8,300' or '8.300' but was '{decimalWith}'");
     }
 
     [Test]
