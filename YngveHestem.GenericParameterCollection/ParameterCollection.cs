@@ -692,5 +692,106 @@ namespace YngveHestem.GenericParameterCollection
             }
             return JsonConvert.SerializeObject(result, formatting, ParameterConverterExtensions.GetJsonSerializerSettings());
         }
+
+        /// <summary>
+        /// Get a value based on a path containing keys.
+        /// </summary>
+        /// <param name="path">The given path of keys.</param>
+        /// <param name="parameterValueConverters">Some converters. The function will try these converters first before it will check the other converters.</param>
+        /// <param name="pathDivider">The divider between the keys in the path.</param>
+        /// <param name="listMarker">The special key to mark a list. Use {0} in the marker to specify where the item number of list item to get (starts at 0). If you don't use this and the parameter is a list, it will either return only the first occurence of the final parameter, or, if the return-type given is a list, and the final parameter to get is not a list (or an inner list), it will return all occurences found.</param>
+        /// <param name="additionalInfoMarker">The special key to say that the rest of the path is in the additionalInfo-value of the previous key.</param>
+        /// <returns>Returns the value as the wanted type.</returns>
+        public T GetByPath<T>(string path, IEnumerable<IParameterValueConverter> parameterValueConverters = null, string pathDivider = ".", string listMarker = "$$item{0}$$", string additionalInfoMarker = "$$ADDITIONAL_IMFO$$")
+        {
+            return (T)GetByPath(path, typeof(T), parameterValueConverters, pathDivider, listMarker, additionalInfoMarker);
+        }
+
+        /// <summary>
+        /// Get a value based on a path containing keys.
+        /// </summary>
+        /// <param name="path">The given path of keys.</param>
+        /// <param name="type">The wanted type.</param>
+        /// <param name="parameterValueConverters">Some converters. The function will try these converters first before it will check the other converters.</param>
+        /// <param name="pathDivider">The divider between the keys in the path.</param>
+        /// <param name="listMarker">The special key to mark a list. Use {0} in the marker to specify where the item number of list item to get (starts at 0). If you don't use this and the parameter is a list, it will either return only the first occurence of the final parameter, or, if the return-type given is a list, and the final parameter to get is not a list (or an inner list), it will return all occurences found.</param>
+        /// <param name="additionalInfoMarker">The special key to say that the rest of the path is in the additionalInfo-value of the previous key.</param>
+        /// <returns>Returns the value as a generic object.</returns>
+        public object GetByPath(string path, Type type, IEnumerable<IParameterValueConverter> parameterValueConverters = null, string pathDivider = ".", string listMarker = "$$item{0}$$", string additionalInfoMarker = "$$ADDITIONAL_IMFO$$")
+        {
+            var pathDivided = path.Split(new string[] {pathDivider}, StringSplitOptions.RemoveEmptyEntries);
+            
+            if (pathDivided.Length == 0 || string.IsNullOrEmpty(pathDivided[0]))
+            {
+                throw new ArgumentException("The path can't be empty.");
+            }
+            
+            if (pathDivided.Length > 1)
+            {
+                if (pathDivided[1] == additionalInfoMarker)
+                {
+                    var additionalInfo = GetParameterByKey(pathDivided[0]).GetAdditionalInfo();
+                    if (additionalInfo == null)
+                    {
+                        throw new ArgumentException($"Key \"{pathDivided[0]}\" has no additionalInfo, but you wanted that.");
+                    }
+                    return additionalInfo.GetByPath(path.RemoveFirstOccurence(pathDivided[0] + "." + pathDivided[1]), type, parameterValueConverters, pathDivider, listMarker, additionalInfoMarker);
+                }
+                if (HasKeyWithType(pathDivided[0], ParameterType.ParameterCollection))
+                {
+                    return GetByKey<ParameterCollection>(pathDivided[0], parameterValueConverters).GetByPath(path.RemoveFirstOccurence(pathDivided[0]), type, parameterValueConverters, pathDivider, listMarker, additionalInfoMarker);
+                }
+                if (HasKeyWithType(pathDivided[0], ParameterType.ParameterCollection_IEnumerable))
+                {
+                    return GetByKey<ParameterCollection[]>(pathDivided[0], parameterValueConverters).GetByPath(path.RemoveFirstOccurence(pathDivided[0]), type, parameterValueConverters, pathDivider, listMarker, additionalInfoMarker);
+                }
+            }
+            
+            return GetByKey(pathDivided[0], type, parameterValueConverters);
+        }
+
+        /// <summary>
+        /// Get a value based on a path containing keys.
+        /// </summary>
+        /// <param name="path">The given path of keys.</param>
+        /// <param name="defaultValue">The default value to use if something fails.</param>
+        /// <param name="allowNull">Should null be considered a legal output, or should ddefaltValue be sent if null is returned. If true, only on exception defauultValue will be sent.</param>
+        /// <param name="parameterValueConverters">Some converters. The function will try these converters first before it will check the other converters.</param>
+        /// <param name="pathDivider">The divider between the keys in the path.</param>
+        /// <param name="listMarker">The special key to mark a list. Use {0} in the marker to specify where the item number of list item to get (starts at 0). If you don't use this and the parameter is a list, it will either return only the first occurence of the final parameter, or, if the return-type given is a list, and the final parameter to get is not a list (or an inner list), it will return all occurences found.</param>
+        /// <param name="additionalInfoMarker">The special key to say that the rest of the path is in the additionalInfo-value of the previous key.</param>
+        /// <returns>Returns the value as the wanted type.</returns>
+        public T GetByPath<T>(string path, T defaultValue, bool allowNull, IEnumerable<IParameterValueConverter> parameterValueConverters = null, string pathDivider = ".", string listMarker = "$$item{0}$$", string additionalInfoMarker = "$$ADDITIONAL_IMFO$$")
+        {
+            return (T)GetByPathOrDefault(path, typeof(T), defaultValue, allowNull, parameterValueConverters, pathDivider, listMarker, additionalInfoMarker);
+        }
+
+        /// <summary>
+        /// Get a value based on a path containing keys.
+        /// </summary>
+        /// <param name="path">The given path of keys.</param>
+        /// <param name="type">The wanted type.</param>
+        /// <param name="defaultValue">The default value to use if something fails. This must be of the ssame type ass type.</param>
+        /// <param name="allowNull">Should null be considered a legal output, or should ddefaltValue be sent if null is returned. If true, only on exception defauultValue will be sent.</param>
+        /// <param name="parameterValueConverters">Some converters. The function will try these converters first before it will check the other converters.</param>
+        /// <param name="pathDivider">The divider between the keys in the path.</param>
+        /// <param name="listMarker">The special key to mark a list. Use {0} in the marker to specify where the item number of list item to get (starts at 0). If you don't use this and the parameter is a list, it will either return only the first occurence of the final parameter, or, if the return-type given is a list, and the final parameter to get is not a list (or an inner list), it will return all occurences found.</param>
+        /// <param name="additionalInfoMarker">The special key to say that the rest of the path is in the additionalInfo-value of the previous key.</param>
+        /// <returns>Returns the value as a generic object.</returns>
+        public object GetByPathOrDefault(string path, Type type, object defaultValue, bool allowNull = true, IEnumerable<IParameterValueConverter> parameterValueConverters = null, string pathDivider = ".", string listMarker = "$$item{0}$$", string additionalInfoMarker = "$$ADDITIONAL_IMFO$$")
+        {
+            try
+            {
+                var res = GetByPath(path, type, parameterValueConverters, pathDivider, listMarker, additionalInfoMarker);
+
+                if (allowNull || res != null)
+                {
+                    return res;
+                }
+            }
+            catch {}
+
+            return defaultValue;
+        }
     }
 }
