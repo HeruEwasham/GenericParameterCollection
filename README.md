@@ -221,6 +221,23 @@ While we have tried to make it available to so many viewers as possible, it is s
 
 When writing this (august 2025), both the RadzenBlazor-view and the Avalonia-view should support this.
 
+### Use paths to get values
+
+By using the method GetByPath(..) on ParameterCollection, you can get a value inside a complex ParameterCollection (including AditionalInfo). This might simplify coding significantly if you either need a few parameters inside a big ParameterCollection or for instance use the functionality of showing different values based on other values, which some viewers support. In the latter case, you can instead of first getting the full Parameter-object, checking if AdditionalInfo exists and then trying to get correct
+value (which when using a lot of them quickly can get quite messy). Instead you only need to write a little path like "isChild.$$ADITIONAL_INFO$$.parametersIf:true", or if only a few parameters, you can get the value directly by writing a path like "isChild.$$ADITIONAL_INFO$$.parametersIf:true.age".
+
+Mark that with each call to GetByPath(..), the whole ParameterColleection is parsed each time, so the best will be to find a balance between practicality and performance.
+
+#### PathMapperEngine
+
+You can map quite a lot with GetByPath(..) (and it is excellent at situations mentioned above). If you instead want to quickly map some values into another structure (ie. you have a ParameterCollection with a lot of values in complex ways, and need a ParameterCollection with only some of theese values), it might need a lot of code to do if complex enough (especially if wanting to map Parameter_IEnumerables), but you can simplify the process by using PathMapperEngine.
+
+Here you can input the "source" (the complex ParameterCollection to get values from), and also input a ParameterCollection with the structure you want the resulting ParameterCollection should look like, but that has the paths as string values. This also support structures containing ParameterCollection and even ParameterCollection_IEnumerables. Nesting is supported.
+
+To define how a ParameterCollection_IEnumerables-item should look like, you add a single ParameterCollection-entry to the ParameterCollection_Inumerables, which has the values of that part inside.
+
+Mark that, as with GetByPath(..), each parameter will need to traverse the whole path, so here, simplicity vs mapping another way should be taken into consideration.
+
 ## Code-Examples
 
 ### Simple use
