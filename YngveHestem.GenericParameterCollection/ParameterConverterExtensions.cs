@@ -691,7 +691,6 @@ namespace YngveHestem.GenericParameterCollection
                 }
                 else if (type.IsGenericType)
                 {
-                    // Use GetGenericArguments() for Lists or other generic collections (e.g., List<int>)
                     innerType = type.GetGenericArguments()[0]; 
                 }
 
@@ -699,15 +698,37 @@ namespace YngveHestem.GenericParameterCollection
                 {
                     throw new ArgumentException("Did not expect innerType to still be null. Should have gotten a value.", nameof(innerType));
                 }
+
                 var listOfResults = (IList)Activator.CreateInstance(typeof(List<>).MakeGenericType(innerType));
 
                 foreach(var item in list)
                 {
-                    /*if (item.HasKeyWithType(pathDivided[0], ParameterType.ParameterCollection))
-                    {*/
+                    if (pathDivided.Length > 1)
+                    {
                         try
                         {
-                            var res = item/*.GetByKey<ParameterCollection>(pathDivided[0], parameterValueConverters)*/.GetByPath(path/*.RemoveFirstOccurence(pathDivided[0])*/, innerType, parameterValueConverters, pathDivider, listMarker, additionalInfoMarker);
+                            var res = item.GetByPath(path, type, parameterValueConverters, pathDivider, listMarker, additionalInfoMarker);
+                            if (res is IEnumerable enumerableResult && !(res is string))
+                            {
+                                foreach(var resItem in enumerableResult)
+                                {
+                                    listOfResults.Add(resItem);
+                                }
+                            }
+                            else if (res != null)
+                            {
+                                listOfResults.Add(res);
+                            }
+                        }
+                        catch
+                        {
+                        }
+                    }
+                    else
+                    {
+                        try
+                        {
+                            var res = item.GetByPath(path, innerType, parameterValueConverters, pathDivider, listMarker, additionalInfoMarker);
                             if (res != null)
                             {
                                 listOfResults.Add(res);
@@ -715,54 +736,8 @@ namespace YngveHestem.GenericParameterCollection
                         }
                         catch
                         {
-                            try
-                            {
-                                var res1 = item/*.GetByKey<ParameterCollection>(pathDivided[0], parameterValueConverters)*/.GetByPath(path/*.RemoveFirstOccurence(pathDivided[0])*/, type, parameterValueConverters, pathDivider, listMarker, additionalInfoMarker);
-                                if (res1 != null)
-                                {
-                                    foreach(var resItem in (IEnumerable)res1)
-                                    {
-                                        listOfResults.Add(resItem);
-                                    }
-                                }
-                            }
-                            catch {}
                         }
-                    /*}
-                    else if (item.HasKeyWithType(pathDivided[0], ParameterType.ParameterCollection_IEnumerable))
-                    {
-                        try
-                        {
-                            var res = item/*.GetByKey<ParameterCollection[]>(pathDivided[0], parameterValueConverters)*///.GetByPath(path.RemoveFirstOccurence(pathDivided[0]), innerType, parameterValueConverters, pathDivider, listMarker, additionalInfoMarker);
-                            /*if (res != null)
-                            {
-                                listOfResults.Add(res);
-                            }
-                        }
-                        catch
-                        {
-                            try
-                            {
-                                var res1 = item/*.GetByKey<ParameterCollection[]>(pathDivided[0], parameterValueConverters)*///.GetByPath(path.RemoveFirstOccurence(pathDivided[0]), type, parameterValueConverters, pathDivider, listMarker, additionalInfoMarker);
-                                /*if (res1 != null)
-                                {
-                                    foreach(var resItem in (IEnumerable)res1)
-                                    {
-                                        listOfResults.Add(resItem);
-                                    }
-                                }
-                            }
-                            catch {}
-                        }
-                    }*/
-                    /*else if (pathDivided.Length == 1)
-                    {
-                        try
-                        {
-                            listOfResults.Add(item.GetByKey(pathDivided[0], innerType, parameterValueConverters));
-                        }
-                        catch {}
-                    }*/
+                    }
                 }
 
                 if (type.IsArray)
