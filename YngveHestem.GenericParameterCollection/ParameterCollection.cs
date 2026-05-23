@@ -287,7 +287,17 @@ namespace YngveHestem.GenericParameterCollection
         /// <returns>Returns the value as the given type.</returns>
         public T GetByKey<T>(string key)
         {
-            return (T)_parameters.Find(p => p != null && p.Key == key).GetValue<T>();
+            var p = _parameters.Find(q => q != null && q.Key == key);
+            if (p == null || !p.HasValue())
+            {
+                var t = typeof(T);
+                if (t.IsValueType && Nullable.GetUnderlyingType(t) == null)
+                {
+                    throw new KeyNotFoundException($"Parameter with key '{key}' not found or has null value but requested type {t.Name} is non-nullable.");
+                }
+                return default(T);
+            }
+            return p.GetValue<T>();
         }
 
         /// <summary>
@@ -299,7 +309,17 @@ namespace YngveHestem.GenericParameterCollection
         /// <returns>Returns the value as the given type.</returns>
         public T GetByKey<T>(string key, IEnumerable<IParameterValueConverter> parameterValueConverters)
         {
-            return (T)_parameters.Find(p => p != null && p.Key == key).GetValue<T>(parameterValueConverters);
+            var p = _parameters.Find(q => q != null && q.Key == key);
+            if (p == null || !p.HasValue())
+            {
+                var t = typeof(T);
+                if (t.IsValueType && Nullable.GetUnderlyingType(t) == null)
+                {
+                    throw new KeyNotFoundException($"Parameter with key '{key}' not found or has null value but requested type {t.Name} is non-nullable.");
+                }
+                return default(T);
+            }
+            return (T)p.GetValue<T>(parameterValueConverters);
         }
 
         /// <summary>
@@ -310,7 +330,17 @@ namespace YngveHestem.GenericParameterCollection
         /// <returns>Returns the value as a generic object.</returns>
         public object GetByKeyAndType(string key, ParameterType type)
         {
-            return _parameters.Find(p => p != null && p.Key == key && p.Type == type).GetValue(type.GetDefaultValueType());
+            var p = _parameters.Find(q => q != null && q.Key == key && q.Type == type);
+            if (p == null || !p.HasValue())
+            {
+                var t = type.GetDefaultValueType();
+                if (t.IsValueType && Nullable.GetUnderlyingType(t) == null)
+                {
+                    throw new KeyNotFoundException($"Parameter with key '{key}' not found or has null value but requested type {t.Name} is non-nullable.");
+                }
+                return null;
+            }
+            return p.GetValue(type.GetDefaultValueType());
         }
 
         /// <summary>
@@ -322,7 +352,17 @@ namespace YngveHestem.GenericParameterCollection
         /// <returns>Returns the value as a generic object.</returns>
         public object GetByKeyAndType(string key, ParameterType type, IEnumerable<IParameterValueConverter> parameterValueConverters)
         {
-            return _parameters.Find(p => p != null && p.Key == key && p.Type == type).GetValue(type.GetDefaultValueType(), parameterValueConverters);
+            var p = _parameters.Find(q => q != null && q.Key == key && q.Type == type);
+            if (p == null || !p.HasValue())
+            {
+                var t = type.GetDefaultValueType();
+                if (t.IsValueType && Nullable.GetUnderlyingType(t) == null)
+                {
+                    throw new KeyNotFoundException($"Parameter with key '{key}' not found or has null value but requested type {t.Name} is non-nullable.");
+                }
+                return null;
+            }
+            return p.GetValue(type.GetDefaultValueType(), parameterValueConverters);
         }
 
         /// <summary>
@@ -334,7 +374,17 @@ namespace YngveHestem.GenericParameterCollection
         /// <returns>Returns the value as the given type.</returns>
         public T GetByKeyAndType<T>(string key, ParameterType type)
         {
-            return _parameters.Find(p => p != null && p.Key == key && p.Type == type).GetValue<T>();
+            var p = _parameters.Find(q => q != null && q.Key == key && q.Type == type);
+            if (p == null || !p.HasValue())
+            {
+                var t = typeof(T);
+                if (t.IsValueType && Nullable.GetUnderlyingType(t) == null)
+                {
+                    throw new KeyNotFoundException($"Parameter with key '{key}' not found or has null value but requested type {t.Name} is non-nullable.");
+                }
+                return default(T);
+            }
+            return p.GetValue<T>();
         }
 
         /// <summary>
@@ -347,7 +397,17 @@ namespace YngveHestem.GenericParameterCollection
         /// <returns>Returns the value as the given type.</returns>
         public T GetByKeyAndType<T>(string key, ParameterType type, IEnumerable<IParameterValueConverter> parameterValueConverters)
         {
-            return _parameters.Find(p => p != null && p.Key == key && p.Type == type).GetValue<T>(parameterValueConverters);
+            var p = _parameters.Find(q => q != null && q.Key == key && q.Type == type);
+            if (p == null || !p.HasValue())
+            {
+                var t = typeof(T);
+                if (t.IsValueType && Nullable.GetUnderlyingType(t) == null)
+                {
+                    throw new KeyNotFoundException($"Parameter with key '{key}' not found or has null value but requested type {t.Name} is non-nullable.");
+                }
+                return default(T);
+            }
+            return p.GetValue<T>(parameterValueConverters);
         }
 
         /// <summary>
@@ -358,7 +418,10 @@ namespace YngveHestem.GenericParameterCollection
         /// <returns>Returns the value as a generic object.</returns>
         public object GetByKey(string key, Type type)
         {
-            return _parameters.Find(p => p != null && p.Key == key).GetValue(type);
+            var p = _parameters.Find(q => q != null && q.Key == key);
+            if (p == null) return null;
+            if (!p.HasValue()) return null;
+            return p.GetValue(type);
         }
 
         /// <summary>
@@ -370,7 +433,10 @@ namespace YngveHestem.GenericParameterCollection
         /// <returns>Returns the value as a generic object.</returns>
         public object GetByKey(string key, Type type, IEnumerable<IParameterValueConverter> parameterValueConverters)
         {
-            return _parameters.Find(p => p != null && p.Key == key).GetValue(type, parameterValueConverters);
+            var p = _parameters.Find(q => q != null && q.Key == key);
+            if (p == null) return null;
+            if (!p.HasValue()) return null;
+            return p.GetValue(type, parameterValueConverters);
         }
 
         /// <summary>

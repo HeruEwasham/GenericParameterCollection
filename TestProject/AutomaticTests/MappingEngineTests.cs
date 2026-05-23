@@ -84,5 +84,58 @@ namespace TestProject.AutomaticTests
             Assert.That(details.GetByKey<string>("userId"), Is.EqualTo("42"));
             Assert.That(details.GetByKey<string>("userName"), Is.EqualTo("Charlie"));
         }
+
+        [Test]
+        public void Map_SimplePaths_ReturnsNullWhenPathNotExists()
+        {
+            var source = new ParameterCollection
+            {
+                { "id", 123 },
+                { "name", "Alice" },
+                { "nested", new ParameterCollection { { "city", "Oslo" } } }
+            };
+
+            var mapping = new ParameterCollection
+            {
+                { "userId", "id" },
+                { "userName", "name" },
+                { "usserEmail", "email" },
+                { "userCity", "nested.city" },
+                { "userCountry", "nested.country" }
+            };
+
+            var result = PathMappingEngine.Map(source, mapping, PathMappingErrorHandling.Null);
+
+            Assert.That(result.GetByKey<string>("userId"), Is.EqualTo("123"));
+            Assert.That(result.GetByKey<string>("userName"), Is.EqualTo("Alice"));
+            Assert.That(result.GetByKey<string>("userCity"), Is.EqualTo("Oslo"));
+            
+            Assert.That(result.GetByKey<string>("userEmail"), Is.Null);
+            Assert.That(result.GetByKey<string>("userCountry"), Is.Null);
+        }
+
+        [Test]
+        public void Map_SimplePaths_ReturnsNullWhenSourceParamIsNull()
+        {
+            var source = new ParameterCollection
+            {
+                { "id", 123 },
+                { "name", null, typeof(string) },
+                { "nested", new ParameterCollection { { "city", "Oslo" } } }
+            };
+
+            var mapping = new ParameterCollection
+            {
+                { "userId", "id" },
+                { "userName", "name" },
+                { "userCity", "nested.city" }
+            };
+
+            var result = PathMappingEngine.Map(source, mapping, PathMappingErrorHandling.Null);
+
+            Assert.That(result.GetByKey<string>("userId"), Is.EqualTo("123"));
+            Assert.That(result.GetByKey<string>("userName"), Is.Null);
+            Assert.That(result.GetByKey<string>("userCity"), Is.EqualTo("Oslo"));
+        }
     }
 }
