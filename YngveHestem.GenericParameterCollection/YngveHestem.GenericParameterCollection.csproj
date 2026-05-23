@@ -7,7 +7,7 @@
     <PackageReleaseNotes>
         - Added the posssibillity to get values by paths.
         - Added PathMappingEngine to help mapping between ParameterCollections.
-        - Fixed a bug that caused that when null values, it crashed even when the return type supported null values when sing ParameterCollection.GetByKey<T>(..) (or any of the similar methods)
+        - Fixed a bug that caused that when null values, it crashed even when the return type supported null values when calling ParameterCollection.GetByKey(..)
     </PackageReleaseNotes>
     <Authors>Yngve J. K. Hestem</Authors>
     <Copyright>Copyright (c) Yngve J. K. Hestem 2023</Copyright>
