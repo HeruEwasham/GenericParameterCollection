@@ -43,6 +43,21 @@ public class FromAnyJsonTests
     }
 
     [Test]
+    public void ObjectRoot_WithNullValue_ShouldParseWithoutCrash()
+    {
+        string json = "{\"name\": \"John\", \"nickname\": null, \"age\": 30}";
+        var collection = ParameterCollection.FromAnyJson(json);
+
+        ClassicAssert.AreEqual(3, collection.Count());
+        ClassicAssert.AreEqual(ParameterType.String, collection.GetParameterType("name"));
+        ClassicAssert.AreEqual(ParameterType.String, collection.GetParameterType("nickname"));
+        ClassicAssert.AreEqual(ParameterType.Int, collection.GetParameterType("age"));
+        ClassicAssert.AreEqual("John", collection.GetByKey<string>("name"));
+        ClassicAssert.AreEqual(null, collection.GetByKey<string>("nickname"));
+        ClassicAssert.AreEqual(30, collection.GetByKey<int>("age"));
+    }
+
+    [Test]
     public void ArrayRoot_DefaultKey_ShouldParseAsParameterCollection_IEnumerable()
     {
         string json = "[{\"id\": 1, \"title\": \"A\"}, {\"id\": 2, \"title\": \"B\"}]";
