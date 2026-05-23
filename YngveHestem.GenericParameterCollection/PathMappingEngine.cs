@@ -46,7 +46,7 @@ namespace YngveHestem.GenericParameterCollection
                             }
                             else
                             {
-                                result.Add(key, val);
+                                result.Add(key, val, resolvedParameterType.Value);
                             }
                         }
                         break;
@@ -112,7 +112,7 @@ namespace YngveHestem.GenericParameterCollection
                         // For other types, if mappingDefinition contains non-string literal (numbers etc.), copy as-is
                         try
                         {
-                            var literal = mapParam.GetValue<object>(converters);
+                            var literal = mapParam.GetValue(mapParam.Type.GetDefaultValueTypeWithNullableTypes(), converters);
                             result.Add(key, literal);
                         }
                         catch
@@ -130,72 +130,18 @@ namespace YngveHestem.GenericParameterCollection
         {
             if (string.IsNullOrEmpty(path)) return (null, null);
 
-            // Try ParameterCollection
-            try
+            var paramType = source.GetParameterTypeByPath(path, converters, pathDivider, listMarker, additionalInfoMarker);
+            var type = typeof(string);
+            if (paramType == ParameterType.Enum || paramType == ParameterType.SelectOne || paramType == ParameterType.SelectMany)
             {
-                var pc = source.GetByPath(path, typeof(ParameterCollection), converters, pathDivider, listMarker, additionalInfoMarker) as ParameterCollection;
-                if (pc != null)
-                {
-                    return (pc, ParameterType.ParameterCollection);
-                }
+                type = typeof(ParameterCollection);
             }
-            catch {}
-
-            // Try arrays / lists of common types
-            var pathSegments = path.Split(new[] { pathDivider }, StringSplitOptions.RemoveEmptyEntries);
-            var listMarkerPattern = "^" + Regex.Escape(listMarker).Replace("\\{0\\}", "(\\d+)") + "$";
-            var containsListMarker = pathSegments.Any(p => Regex.IsMatch(p, listMarkerPattern));
-
-            var arrayTypes = new (Type clrType, ParameterType paramType)[]
+            else
             {
-                (typeof(ParameterCollection[]), ParameterType.ParameterCollection_IEnumerable),
-                (typeof(string[]), ParameterType.String_IEnumerable),
-                (typeof(int[]), ParameterType.Int_IEnumerable),
-                (typeof(decimal[]), ParameterType.Decimal_IEnumerable),
-                (typeof(bool[]), ParameterType.Bool_IEnumerable),
-                (typeof(DateTime[]), ParameterType.DateTime_IEnumerable)
-            };
-
-            if (!containsListMarker)
-            {
-                foreach (var (clrType, paramType) in arrayTypes)
-                {
-                    try
-                    {
-                        var arr = source.GetByPath(path, clrType, converters, pathDivider, listMarker, additionalInfoMarker);
-                        if (arr != null)
-                        {
-                            return (arr, paramType);
-                        }
-                    }
-                    catch {}
-                }
+                type = paramType.GetDefaultValueTypeWithNullableTypes();
             }
-
-            // Try scalar types
-            var scalarTypes = new (Type clrType, ParameterType paramType)[]
-            {
-                (typeof(string), ParameterType.String),
-                (typeof(int), ParameterType.Int),
-                (typeof(decimal), ParameterType.Decimal),
-                (typeof(bool), ParameterType.Bool),
-                (typeof(DateTime), ParameterType.DateTime),
-            };
-
-            foreach (var (clrType, paramType) in scalarTypes)
-            {
-                try
-                {
-                    var v = source.GetByPath(path, clrType, converters, pathDivider, listMarker, additionalInfoMarker);
-                    if (v != null)
-                    {
-                        return (v, paramType);
-                    }
-                }
-                catch {}
-            }
-
-            return (null, null);
+            var value = source.GetByPath(path, type, converters, pathDivider, listMarker, additionalInfoMarker);
+            return (value, paramType);
         }
 
         private static string[] CollectStringPaths(ParameterCollection template)
@@ -329,7 +275,7 @@ namespace YngveHestem.GenericParameterCollection
                     }
                     else
                     {
-                        resultItem.Add(key, val);
+                        resultItem.Add(key, val, resolvedParamType.Value);
                     }
                 }
                 else if (p.Type == ParameterType.ParameterCollection)
@@ -378,7 +324,7 @@ namespace YngveHestem.GenericParameterCollection
                     // literal or other: copy value
                     try
                     {
-                        var val = p.GetValue<object>(converters);
+                        var val = p.GetValue(p.Type.GetDefaultValueTypeWithNullableTypes(), converters);
                         resultItem.Add(key, val);
                     }
                     catch

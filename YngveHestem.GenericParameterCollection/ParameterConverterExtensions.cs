@@ -756,44 +756,67 @@ namespace YngveHestem.GenericParameterCollection
                 {
                     continue;
                 }
-
-                /*var paramType = item.GetParameterByKey(pathDivided[0]).Type;
-                if (paramType == ParameterType.ParameterCollection)
-                {*/
-                    try
-                    {
-                        return item/*.GetByKey<ParameterCollection>(pathDivided[0], parameterValueConverters)*/.GetByPath(path/*.RemoveFirstOccurence(pathDivided[0])*/, type, parameterValueConverters, pathDivider, listMarker, additionalInfoMarker);
-                    }
-                    catch
-                    {
-                        continue;
-                    }
-                /*}
-                else if (paramType == ParameterType.ParameterCollection_IEnumerable)
+                try
                 {
-                    try
-                    {
-                        return item/*.GetByKey<ParameterCollection[]>(pathDivided[0], parameterValueConverters)*///.GetByPath(path.RemoveFirstOccurence(pathDivided[0]), type, parameterValueConverters, pathDivider, listMarker, additionalInfoMarker);
-                    /*}
-                    catch
-                    {
-                        continue;
-                    }
-                }/*
-                /*else if (pathDivided.Length == 1)
+                    return item.GetByPath(path, type, parameterValueConverters, pathDivider, listMarker, additionalInfoMarker);
+                }
+                catch
                 {
-                    try
-                    {
-                        return item.GetByKey(pathDivided[0], type, parameterValueConverters);
-                    }
-                    catch(Exception ex)
-                    {
-                        throw new ArgumentException("Could not get a value for given path. Error was: " + ex.Message, ex);
-                    }
-                }*/
+                    continue;
+                }
             }
 
             throw new ArgumentException("Could not get a value for given path.");
+        }
+
+
+        /// <summary>
+        /// Get a type based on a path containing keys.
+        /// </summary>
+        /// <param name="list">The list of ParameterCollection</param>
+        /// <param name="path">The given path of keys.</param>
+        /// <param name="parameterValueConverters">Some converters. The function will try these converters first before it will check the other converters.</param>
+        /// <param name="pathDivider">The divider between the keys in the path.</param>
+        /// <param name="listMarker">The special key to mark a list. Use {0} in the marker to specify where the item number of list item to get (starts at 0). If you don't use this and the parameter is a list, it will either return only the first occurence of the final parameter, or, if the return-type given is a list, and the final parameter to get is not a list (or an inner list), it will return all occurences found.</param>
+        /// <param name="additionalInfoMarker">The special key to say that the rest of the path is in the additionalInfo-value of the previous key.</param>
+        /// <returns>Returns the parameter type.</returns>
+        public static ParameterType GetParameterTypeByPath(this IEnumerable<ParameterCollection> list, string path, IEnumerable<IParameterValueConverter> parameterValueConverters = null, string pathDivider = ".", string listMarker = "$$item{0}$$", string additionalInfoMarker = "$$ADDITIONAL_IMFO$$")
+        {
+            var pathDivided = path.Split(new string[] {pathDivider}, StringSplitOptions.RemoveEmptyEntries);
+            
+            if (pathDivided.Length == 0 || string.IsNullOrEmpty(pathDivided[0]))
+            {
+                throw new ArgumentException("The path can't be empty.");
+            }
+
+            var listMarkerPattern = "^" + Regex.Escape(listMarker).Replace(@"\{0}", @"(\d+)") + "$";
+
+            var isListMarker = Regex.Match(pathDivided[0], listMarkerPattern);
+
+            int.TryParse(isListMarker.Groups[1].Value, out int listMarkerNumber);
+
+            if (isListMarker.Success && pathDivided.Length > 1)
+            {
+                if (listMarkerNumber >= list.Count())
+                {
+                    throw new ArgumentOutOfRangeException("The item number given is bigger than the list itself.");
+                }
+
+                return list.ToArray()[listMarkerNumber].GetParameterTypeByPath(path.RemoveFirstOccurence(pathDivided[0]), parameterValueConverters, pathDivider, listMarker, additionalInfoMarker);
+            }
+
+            if (isListMarker.Success && pathDivided.Length == 1)
+            {
+                throw new ArgumentException("To just get an entry of the root ParameterCollection-list, please use normal list/array/linq functionality. Support of getting a whole entry of a ParameterCollection-list is supported as long as it is not the root list you try to get.");
+            }
+            
+            var array = list.ToArray();
+            if (array.Length > 0)
+            {
+                return array[0].GetParameterTypeByPath(path.RemoveFirstOccurence(pathDivided[0]), parameterValueConverters, pathDivider, listMarker, additionalInfoMarker);
+            }
+
+            return ParameterType.String;
         }
     }
 }

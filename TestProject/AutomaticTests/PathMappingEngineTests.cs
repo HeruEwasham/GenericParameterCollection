@@ -4,7 +4,7 @@ using YngveHestem.GenericParameterCollection;
 namespace TestProject.AutomaticTests
 {
     [TestFixture]
-    public class MappingEngineTests
+    public class PathMappingEngineTests
     {
         [Test]
         public void Map_SimplePaths_ReturnsScalarValues()
@@ -136,6 +136,39 @@ namespace TestProject.AutomaticTests
             Assert.That(result.GetByKey<string>("userId"), Is.EqualTo("123"));
             Assert.That(result.GetByKey<string>("userName"), Is.Null);
             Assert.That(result.GetByKey<string>("userCity"), Is.EqualTo("Oslo"));
+        }
+
+        [Test]
+        public void Map_SimplePaths_UseSourceTypes()
+        {
+            var source = new ParameterCollection
+            {
+                { "id", 123 },
+                { "name", "Alice" },
+                { "nested", new ParameterCollection { { "city", "Oslo" } } },
+                { "paramType", ParameterType.Date }
+            };
+
+            var mapping = new ParameterCollection
+            {
+                { "userId", "id" },
+                { "userName", "name" },
+                { "userCity", "nested.city" },
+                { "parameterType", "paramType" }
+            };
+
+            var result = PathMappingEngine.Map(source, mapping, PathMappingErrorHandling.Null);
+
+            Assert.That(source.GetParameterByKey("id").Type, Is.EqualTo(ParameterType.Int));
+            Assert.That(source.GetParameterByKey("paramType").Type, Is.EqualTo(ParameterType.Enum));
+
+            Assert.That(result.GetParameterByKey("userId").Type, Is.EqualTo(ParameterType.Int));
+            Assert.That(result.GetParameterByKey("parameterType").Type, Is.EqualTo(ParameterType.Enum));
+
+            Assert.That(result.GetByKey<int>("userId"), Is.EqualTo(123));
+            Assert.That(result.GetByKey<string>("userName"), Is.EqualTo("Alice"));
+            Assert.That(result.GetByKey<string>("userCity"), Is.EqualTo("Oslo"));
+            Assert.That(result.GetByKey<ParameterType>("parameterType"), Is.EqualTo(ParameterType.Date));
         }
     }
 }

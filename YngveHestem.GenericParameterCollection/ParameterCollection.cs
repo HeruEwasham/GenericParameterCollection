@@ -859,5 +859,52 @@ namespace YngveHestem.GenericParameterCollection
 
             return defaultValue;
         }
+
+        /// <summary>
+        /// Get a parameter type based on a path containing keys. If a path goes through a list, first occurence is used.
+        /// </summary>
+        /// <param name="path">The given path of keys.</param>
+        /// <param name="parameterValueConverters">Some converters. The function will try these converters first before it will check the other converters.</param>
+        /// <param name="pathDivider">The divider between the keys in the path.</param>
+        /// <param name="listMarker">The special key to mark a list. Use {0} in the marker to specify where the item number of list item to get (starts at 0). If you don't use this and the parameter is a list, it will either return only the first occurence of the final parameter, or, if the return-type given is a list, and the final parameter to get is not a list (or an inner list), it will return all occurences found.</param>
+        /// <param name="additionalInfoMarker">The special key to say that the rest of the path is in the additionalInfo-value of the previous key.</param>
+        /// <returns>Returns the value as a generic object.</returns>
+        public ParameterType GetParameterTypeByPath(string path, IEnumerable<IParameterValueConverter> parameterValueConverters = null, string pathDivider = ".", string listMarker = "$$item{0}$$", string additionalInfoMarker = "$$ADDITIONAL_IMFO$$")
+        {
+            var pathDivided = path.Split(new string[] {pathDivider}, StringSplitOptions.RemoveEmptyEntries);
+            
+            if (pathDivided.Length == 0 || string.IsNullOrEmpty(pathDivided[0]))
+            {
+                throw new ArgumentException("The path can't be empty.");
+            }
+            
+            if (pathDivided.Length > 1)
+            {
+                if (pathDivided[1] == additionalInfoMarker)
+                {
+                    var additionalInfo = GetParameterByKey(pathDivided[0]).GetAdditionalInfo();
+                    if (additionalInfo == null)
+                    {
+                        throw new ArgumentException($"Key \"{pathDivided[0]}\" has no additionalInfo, but you wanted that.");
+                    }
+                    return additionalInfo.GetParameterTypeByPath(path.RemoveFirstOccurence(pathDivided[0] + "." + pathDivided[1]), parameterValueConverters, pathDivider, listMarker, additionalInfoMarker);
+                }
+                if (HasKeyWithType(pathDivided[0], ParameterType.ParameterCollection))
+                {
+                    return GetByKey<ParameterCollection>(pathDivided[0], parameterValueConverters).GetParameterTypeByPath(path.RemoveFirstOccurence(pathDivided[0]), parameterValueConverters, pathDivider, listMarker, additionalInfoMarker);
+                }
+                if (HasKeyWithType(pathDivided[0], ParameterType.ParameterCollection_IEnumerable))
+                {
+                    return GetByKey<ParameterCollection[]>(pathDivided[0], parameterValueConverters).GetParameterTypeByPath(path.RemoveFirstOccurence(pathDivided[0]), parameterValueConverters, pathDivider, listMarker, additionalInfoMarker);
+                }
+            }
+            
+            var p = GetParameterByKey(pathDivided[0]);
+            if (p == null)
+            {
+                return ParameterType.String;
+            }
+            return p.Type;
+        }
     }
 }
