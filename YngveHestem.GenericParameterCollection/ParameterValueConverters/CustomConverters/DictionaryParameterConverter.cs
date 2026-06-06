@@ -46,8 +46,8 @@ namespace YngveHestem.GenericParameterCollection.ParameterValueConverters.Custom
 
             var firstEntriesOrDefault = ExtractFirstEntryOrDefault(value, keyType, valueType);
 
-            return ParameterConverterExtensions.CanConvertFromValue(firstEntriesOrDefault.Key, keyType, null, customConverters)
-                && ParameterConverterExtensions.CanConvertFromValue(firstEntriesOrDefault.Value, valueType, null, customConverters);
+            return ParameterCollectionExtensions.CanConvertFromValue(firstEntriesOrDefault.Key, keyType, null, customConverters)
+                && ParameterCollectionExtensions.CanConvertFromValue(firstEntriesOrDefault.Value, valueType, null, customConverters);
         }
 
         public JToken ConvertFromValue(

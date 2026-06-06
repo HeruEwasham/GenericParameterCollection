@@ -35,7 +35,7 @@ namespace YngveHestem.GenericParameterCollection
 		public bool KeyIsPath { get; set; } = false;
 
 		/// <summary>
-		/// If key is a path to a sub-AdditionalInfo, what is the dividder between the key-parts.
+		/// If key is a path to a sub-AdditionalInfo, what is the divider between the key-parts.
 		/// </summary>
 		public string KeyPathDivider { get; set; } = ".";
 

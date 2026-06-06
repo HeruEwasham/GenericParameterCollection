@@ -54,7 +54,7 @@ namespace YngveHestem.GenericParameterCollection.ParameterValueConverters
                 else if (targetType == typeof(int))
                 {
                     var obj = rawValue.ToObject<ParameterCollection>(jsonSerializer);
-                    return (int)Enum.Parse(ParameterConverterExtensions.GetTypeByName(obj.GetByKeyAndType<string>("type", ParameterType.String)), obj.GetByKeyAndType<string>("value", ParameterType.String), true);
+                    return (int)Enum.Parse(ParameterCollectionExtensions.GetTypeByName(obj.GetByKeyAndType<string>("type", ParameterType.String)), obj.GetByKeyAndType<string>("value", ParameterType.String), true);
                 }
                 else if (targetType == typeof(ParameterCollection))
                 {

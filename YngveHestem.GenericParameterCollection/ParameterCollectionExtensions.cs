@@ -11,7 +11,7 @@ using YngveHestem.GenericParameterCollection.ParameterValueConverters;
 
 namespace YngveHestem.GenericParameterCollection
 {
-    public static class ParameterConverterExtensions
+    public static class ParameterCollectionExtensions
     {
         public static Type GetTypeByName(string name)
         {
@@ -318,6 +318,7 @@ namespace YngveHestem.GenericParameterCollection
         internal static ParameterCollection GetParameterCollectionFromAttributes(this Type type, object value, IEnumerable<IParameterValueConverter> customConverters)
         {
             var parameterCollection = new ParameterCollection();
+            var aInfoAttrTempList = new Dictionary<string, ParameterCollection>();
             foreach (var property in type.GetRuntimeProperties())
             {
                 var ppa = property.GetCustomAttribute<ParameterPropertyAttribute>();
@@ -329,6 +330,10 @@ namespace YngveHestem.GenericParameterCollection
                         key = property.Name;
                     }
                     ParameterCollection aInfo = null;
+                    if (aInfoAttrTempList.ContainsKey(key))
+                    {
+                        aInfo = aInfoAttrTempList[key];
+                    }
                     GetAdditionalInfoFromAttributes(property.GetCustomAttributes<AdditionalInfoAttribute>(), ref aInfo, customConverters);
                     var pValue = property.GetValue(value);
                     if (ppa.ParameterType.HasValue)
@@ -342,6 +347,35 @@ namespace YngveHestem.GenericParameterCollection
                     else
                     {
                         parameterCollection.Add(key, pValue, property.PropertyType, aInfo, customConverters);
+                    }
+                }
+                var aippa = property.GetCustomAttribute<AdditionalInfoParameterPropertyAttribute>();
+                if (aippa != null)
+                {
+                    var key = aippa.Key;
+                    if (key == null)
+                    {
+                        key = property.Name;
+                    }
+                    ParameterCollection aInfo = null;
+                    GetAdditionalInfoFromAttributes(property.GetCustomAttributes<AdditionalInfoAttribute>(), ref aInfo, customConverters);
+                    var pValue = property.GetValue(value);
+                    var aInfoAttr = new AdditionalInfoAttribute(key, pValue)
+                    {
+                        OverrideIfKeyExist = aippa.OverrideIfKeyExist,
+                        KeyIsPath = aippa.KeyIsPath,
+                        KeyPathDivider = aippa.KeyPathDivider
+                    };
+                    if (parameterCollection.HasKey(aippa.AdditionalInfoParameterKey))
+                    {
+                        var additionalInfoForParameter = parameterCollection.GetParameterByKey(aippa.AdditionalInfoParameterKey).GetAdditionalInfo();
+                        GetAdditionalInfoFromAttributes(new AdditionalInfoAttribute[] {aInfoAttr}, ref additionalInfoForParameter, customConverters);
+                    }
+                    else
+                    {
+                        ParameterCollection additionalInfoForParameter = null;
+                        GetAdditionalInfoFromAttributes(new AdditionalInfoAttribute[] {aInfoAttr}, ref additionalInfoForParameter, customConverters);
+                        aInfoAttrTempList.Add(aippa.AdditionalInfoParameterKey, additionalInfoForParameter);
                     }
                 }
             }
@@ -371,6 +405,35 @@ namespace YngveHestem.GenericParameterCollection
                         parameterCollection.Add(key, fValue, field.FieldType, aInfo, customConverters);
                     }
                 }
+                var aippa = field.GetCustomAttribute<AdditionalInfoParameterPropertyAttribute>();
+                if (aippa != null)
+                {
+                    var key = aippa.Key;
+                    if (key == null)
+                    {
+                        key = field.Name;
+                    }
+                    ParameterCollection aInfo = null;
+                    GetAdditionalInfoFromAttributes(field.GetCustomAttributes<AdditionalInfoAttribute>(), ref aInfo, customConverters);
+                    var pValue = field.GetValue(value);
+                    var aInfoAttr = new AdditionalInfoAttribute(key, pValue)
+                    {
+                        OverrideIfKeyExist = aippa.OverrideIfKeyExist,
+                        KeyIsPath = aippa.KeyIsPath,
+                        KeyPathDivider = aippa.KeyPathDivider
+                    };
+                    if (parameterCollection.HasKey(aippa.AdditionalInfoParameterKey))
+                    {
+                        var additionalInfoForParameter = parameterCollection.GetParameterByKey(aippa.AdditionalInfoParameterKey).GetAdditionalInfo();
+                        GetAdditionalInfoFromAttributes(new AdditionalInfoAttribute[] {aInfoAttr}, ref additionalInfoForParameter, customConverters);
+                    }
+                    else
+                    {
+                        ParameterCollection additionalInfoForParameter = null;
+                        GetAdditionalInfoFromAttributes(new AdditionalInfoAttribute[] {aInfoAttr}, ref additionalInfoForParameter, customConverters);
+                        aInfoAttrTempList.Add(aippa.AdditionalInfoParameterKey, additionalInfoForParameter);
+                    }
+                }
             }
             return parameterCollection;
         }
@@ -397,6 +460,31 @@ namespace YngveHestem.GenericParameterCollection
                             property.SetValue(obj, parameterCollection.GetByKey(key, property.PropertyType, customConverters));
                         }
                     }
+                    var aippa = property.GetCustomAttribute<AdditionalInfoParameterPropertyAttribute>();
+                    if (aippa != null)
+                    {
+                        var key = aippa.Key;
+                        if (key == null)
+                        {
+                            key = property.Name;
+                        }
+                        if (parameterCollection.HasKey(aippa.AdditionalInfoParameterKey))
+                        {
+                            var aInfo = parameterCollection.GetParameterByKey(aippa.AdditionalInfoParameterKey).GetAdditionalInfo();
+                            if (aInfo != null)
+                            {
+                                if (!aippa.KeyIsPath && aInfo.HasKeyAndCanConvertTo(key, property.PropertyType, customConverters))
+                                {
+                                    property.SetValue(obj, aInfo.GetByKey(key, property.PropertyType, customConverters));
+                                }
+                                else if (aippa.KeyIsPath)
+                                {
+                                    property.SetValue(obj, aInfo.GetByPath(key, property.PropertyType, customConverters, aippa.KeyPathDivider));
+                                }
+                            }
+                            
+                        }
+                    }
                 }
                 foreach (var field in typeToGet.GetRuntimeFields())
                 {
@@ -411,6 +499,30 @@ namespace YngveHestem.GenericParameterCollection
                         if (parameterCollection.HasKeyAndCanConvertTo(key, field.FieldType, customConverters))
                         {
                             field.SetValue(obj, parameterCollection.GetByKey(key, field.FieldType, customConverters));
+                        }
+                    }
+                    var aippa = field.GetCustomAttribute<AdditionalInfoParameterPropertyAttribute>();
+                    if (aippa != null)
+                    {
+                        var key = aippa.Key;
+                        if (key == null)
+                        {
+                            key = field.Name;
+                        }
+                        if (parameterCollection.HasKey(aippa.AdditionalInfoParameterKey))
+                        {
+                            var aInfo = parameterCollection.GetParameterByKey(aippa.AdditionalInfoParameterKey).GetAdditionalInfo();
+                            if (aInfo != null)
+                            {
+                                if (!aippa.KeyIsPath && aInfo.HasKeyAndCanConvertTo(key, field.FieldType, customConverters))
+                                {
+                                    field.SetValue(obj, aInfo.GetByKey(key, field.FieldType, customConverters));
+                                }
+                                else if (aippa.KeyIsPath)
+                                {
+                                    field.SetValue(obj, aInfo.GetByPath(key, field.FieldType, customConverters, aippa.KeyPathDivider));
+                                }
+                            }
                         }
                     }
                 }
@@ -817,6 +929,16 @@ namespace YngveHestem.GenericParameterCollection
             }
 
             return ParameterType.String;
+        }
+
+        public static string ToSimpleJson(this IEnumerable<ParameterCollection> parameters, Formatting formatting = Formatting.None)
+        {
+            var jsonList = new JArray();
+            foreach(var parameterCollection in parameters)
+            {
+                jsonList.Add(JObject.Parse(parameterCollection.ToSimpleJson(formatting)));
+            }
+            return jsonList.ToString();
         }
     }
 }

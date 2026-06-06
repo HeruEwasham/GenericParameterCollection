@@ -142,6 +142,10 @@ The property KeyPathDivider is by default ".", and defines what the divider betw
 
 For different ways to use AdditionalInfo, look at the correct examples below, and in the TestProject.
 
+##### AdditionalInfoParameterPropertyAttribute
+
+This is the same as ParameterPropertyAttribute, except that instead of adding the property to the ParameterCollection, you add it to the additionalInfo of another specified property in the same class. This might be great if you for instance need some AdditionalInfo on a property that may change based on a property, or if for instance the viewer you use spport conditional-properties (like "parametersIf:"), like some do.
+
 ### Create a converter-class to convert between values
 
 It is possible to convert a object to and from any ParameterType by creating a class that implement the IParameterValueConverter.

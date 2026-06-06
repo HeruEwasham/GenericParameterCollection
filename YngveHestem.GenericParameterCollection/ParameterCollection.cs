@@ -539,7 +539,7 @@ namespace YngveHestem.GenericParameterCollection
         /// <returns></returns>
         public string ToJson(Formatting formatting = Formatting.None)
         {
-            return JsonConvert.SerializeObject(this, formatting, ParameterConverterExtensions.GetJsonSerializerSettings());
+            return JsonConvert.SerializeObject(this, formatting, ParameterCollectionExtensions.GetJsonSerializerSettings());
         }
 
         /// <summary>
@@ -566,11 +566,11 @@ namespace YngveHestem.GenericParameterCollection
                 var acAttribute = type.GetCustomAttribute<AttributeConvertibleAttribute>();
                 if (acAttribute != null)
                 {
-                    return type.GetObjectFromAttributes(JToken.FromObject(this, ParameterConverterExtensions.JsonSerializer), acAttribute, customConverters);
+                    return type.GetObjectFromAttributes(JToken.FromObject(this, ParameterCollectionExtensions.JsonSerializer), acAttribute, customConverters);
                 }
                 ParameterCollection additionalInfo = new ParameterCollection();
 
-                return GetSuitableConverterToValue(type, additionalInfo, customConverters).ConvertFromParameter(ParameterType.ParameterCollection, type, JToken.FromObject(this), additionalInfo, customConverters.ConcatWithNullCheck(_customParameterValueConverters), ParameterConverterExtensions.JsonSerializer);
+                return GetSuitableConverterToValue(type, additionalInfo, customConverters).ConvertFromParameter(ParameterType.ParameterCollection, type, JToken.FromObject(this), additionalInfo, customConverters.ConcatWithNullCheck(_customParameterValueConverters), ParameterCollectionExtensions.JsonSerializer);
             }
             catch (Exception e)
             {
@@ -605,14 +605,14 @@ namespace YngveHestem.GenericParameterCollection
         private IParameterValueConverter GetSuitableConverterToValue(Type typeToGet, ParameterCollection additionalInfo, IEnumerable<IParameterValueConverter> customConverters)
         {
             var allCustomConverters = customConverters.ConcatWithNullCheck(_customParameterValueConverters);
-            var converter = allCustomConverters.FirstOrDefault(c => c.CanConvertFromParameter(ParameterType.ParameterCollection, typeToGet, JToken.FromObject(this), additionalInfo, allCustomConverters, ParameterConverterExtensions.JsonSerializer));
+            var converter = allCustomConverters.FirstOrDefault(c => c.CanConvertFromParameter(ParameterType.ParameterCollection, typeToGet, JToken.FromObject(this), additionalInfo, allCustomConverters, ParameterCollectionExtensions.JsonSerializer));
 
             if (converter != null)
             {
                 return converter;
             }
 
-            converter = Parameter.DefaultParameterValueConverters.FirstOrDefault(c => c.CanConvertFromParameter(ParameterType.ParameterCollection, typeToGet, JToken.FromObject(this), additionalInfo, allCustomConverters, ParameterConverterExtensions.JsonSerializer));
+            converter = Parameter.DefaultParameterValueConverters.FirstOrDefault(c => c.CanConvertFromParameter(ParameterType.ParameterCollection, typeToGet, JToken.FromObject(this), additionalInfo, allCustomConverters, ParameterCollectionExtensions.JsonSerializer));
 
             if (converter != null)
             {
@@ -649,7 +649,7 @@ namespace YngveHestem.GenericParameterCollection
         /// <returns>A new ParameterCollection-instance based on the json-settings.</returns>
         public static ParameterCollection FromJson(string json)
         {
-            return JsonConvert.DeserializeObject<ParameterCollection>(json, ParameterConverterExtensions.GetJsonSerializerSettings());
+            return JsonConvert.DeserializeObject<ParameterCollection>(json, ParameterCollectionExtensions.GetJsonSerializerSettings());
         }
 
         /// <summary>
@@ -692,13 +692,13 @@ namespace YngveHestem.GenericParameterCollection
 
             ParameterCollection additionalInfo = new ParameterCollection();
             var converter = GetSuitableConverterFromValue(value, ParameterType.ParameterCollection, additionalInfo, customConverters);
-            return converter.ConvertFromValue(ParameterType.ParameterCollection, valueType, value, additionalInfo, customConverters, ParameterConverterExtensions.JsonSerializer).ToObject<ParameterCollection>(ParameterConverterExtensions.JsonSerializer);
+            return converter.ConvertFromValue(ParameterType.ParameterCollection, valueType, value, additionalInfo, customConverters, ParameterCollectionExtensions.JsonSerializer).ToObject<ParameterCollection>(ParameterCollectionExtensions.JsonSerializer);
         }
 
         /// <summary>
         /// Creates a ParameterCollection from any inputted json. This will try it's best to determine the type, but that depends on how good the values in the json are.
         /// </summary>
-        /// <param name="json">The JSON you want to convert to a ParameterCollection.</param>
+        /// <param name="json">The JSON you want to convert to a ParameterCollection. If json-list inptted as root, default key will most likely be used as the only key in it's own root-ParameterCollection. If json starts as a list instead of an object, or you will rather that json is returned as a list of ParameterCollections anyway, FromAnyJsonList(..) may be better based on use-case.</param>
         /// <param name="defaultKey">If a key can not be decided from the json, this will be used as the key. This will most likely be used if the json starts as an array.</param>
         /// <param name="skipNullValues">If true, all parameters that contain null will be skipped, if not, it will be set as ParameterType.String.</param>
         /// <param name="convertBase64ToBytesType">Should all that might be converted to base64 be converted to ParameterType.Bytes?</param>
@@ -706,6 +706,19 @@ namespace YngveHestem.GenericParameterCollection
         public static ParameterCollection FromAnyJson(string json, string defaultKey = "default", bool skipNullValues = false, bool convertBase64ToBytesType = false)
         {
             var token = JToken.Parse(json);
+            return FromAnyJson(token, defaultKey, skipNullValues, convertBase64ToBytesType);
+        }
+
+        /// <summary>
+        /// Creates a ParameterCollection from any inputted json. This will try it's best to determine the type, but that depends on how good the values in the json are.
+        /// </summary>
+        /// <param name="token">The JToken you want to convert to a ParameterCollection. If JToken inptted is an array, default key will most likely be used as the only key in it's own root-ParameterCollection. If json starts as a list instead of an object, or you will rather that json is returned as a list of ParameterCollections anyway, FromAnyJsonList(..) may be better based on use-case.</param>
+        /// <param name="defaultKey">If a key can not be decided from the json, this will be used as the key. This will most likely be used if the json starts as an array.</param>
+        /// <param name="skipNullValues">If true, all parameters that contain null will be skipped, if not, it will be set as ParameterType.String.</param>
+        /// <param name="convertBase64ToBytesType">Should all that might be converted to base64 be converted to ParameterType.Bytes?</param>
+        /// <returns></returns>
+        public static ParameterCollection FromAnyJson(JToken token, string defaultKey = "default", bool skipNullValues = false, bool convertBase64ToBytesType = false)
+        {
             var collection = new ParameterCollection();
 
             if (token.Type == JTokenType.Object)
@@ -733,6 +746,47 @@ namespace YngveHestem.GenericParameterCollection
         }
 
         /// <summary>
+        /// Creates a ParameterCollection from any inputted json. This will try it's best to determine the type, but that depends on how good the values in the json are.
+        /// </summary>
+        /// <param name="json">The JSON you want to convert to a ParameterCollection. If json inptted has an object as root (and not a list), one ParameterCollection will be created in list, so it is safe to usse it with any json. Bt if you rather want it as a single ParameterCollection, FromAnyJson(..) might be better bassed on use case.</param>
+        /// <param name="defaultKey">If a key can not be decided from the json, this will be used as the key. This will most likely be used if the json starts as an array.</param>
+        /// <param name="skipNullValues">If true, all parameters that contain null will be skipped, if not, it will be set as ParameterType.String.</param>
+        /// <param name="convertBase64ToBytesType">Should all that might be converted to base64 be converted to ParameterType.Bytes?</param>
+        /// <returns></returns>
+        public static List<ParameterCollection> FromAnyJsonList(string json, string defaultKey = "default", bool skipNullValues = false, bool convertBase64ToBytesType = false)
+        {
+            var token = JToken.Parse(json);
+            return FromAnyJsonList(token, defaultKey, skipNullValues, convertBase64ToBytesType);
+        }
+
+        /// <summary>
+        /// Creates a ParameterCollection from any inputted json. This will try it's best to determine the type, but that depends on how good the values in the json are.
+        /// </summary>
+        /// <param name="token">The JToken you want to convert to a ParameterCollection. If JTokeen inptted is an object (and not an array), one ParameterCollection will be created in the list, so it is safe to usse it with any json. But if you rather want it as a single ParameterCollection, FromAnyJson(..) might be better bassed on use case.</param>
+        /// <param name="defaultKey">If a key can not be decided from the json, this will be used as the key. This will most likely be used if the json starts as an array.</param>
+        /// <param name="skipNullValues">If true, all parameters that contain null will be skipped, if not, it will be set as ParameterType.String.</param>
+        /// <param name="convertBase64ToBytesType">Should all that might be converted to base64 be converted to ParameterType.Bytes?</param>
+        /// <returns></returns>
+        public static List<ParameterCollection> FromAnyJsonList(JToken token, string defaultKey = "default", bool skipNullValues = false, bool convertBase64ToBytesType = false)
+        {
+            var collectionList = new List<ParameterCollection>();
+
+            if (token.Type == JTokenType.Array)
+            {
+                foreach(var jObject in token)
+                {
+                    collectionList.Add(FromAnyJson(jObject, defaultKey, skipNullValues, convertBase64ToBytesType));
+                }
+            }
+            else if (token.Type == JTokenType.Object)
+            {
+                collectionList.Add(FromAnyJson(token, defaultKey, skipNullValues, convertBase64ToBytesType));
+            }
+
+            return collectionList;
+        }
+
+        /// <summary>
         /// Convert the ParameterCollection to json in the form of { "key": "value" }. This will omit everything in additionalInfo, etc.
         /// </summary>
         /// <param name="formatting">Any special formatting?</param>
@@ -749,14 +803,14 @@ namespace YngveHestem.GenericParameterCollection
                 }
                 else if (parameter.Type == ParameterType.ParameterCollection_IEnumerable)
                 {
-                    result.Add(parameter.Key, JToken.FromObject(parameter.GetValue<IEnumerable<ParameterCollection>>(customConverters).Select(p => JToken.Parse(p.ToSimpleJson(formatting))), ParameterConverterExtensions.JsonSerializer));
+                    result.Add(parameter.Key, JToken.FromObject(parameter.GetValue<IEnumerable<ParameterCollection>>(customConverters).Select(p => JToken.Parse(p.ToSimpleJson(formatting))), ParameterCollectionExtensions.JsonSerializer));
                 }
                 else
                 {
                     result.Add(parameter.Key, parameter.GetValue<JToken>(customConverters));
                 }
             }
-            return JsonConvert.SerializeObject(result, formatting, ParameterConverterExtensions.GetJsonSerializerSettings());
+            return JsonConvert.SerializeObject(result, formatting, ParameterCollectionExtensions.GetJsonSerializerSettings());
         }
 
         /// <summary>

@@ -17,7 +17,6 @@ namespace YngveHestem.GenericParameterCollection
         /// <summary>
         /// Indicate that the given field/property can be converted to a parameter with given attributes.
         /// </summary>
-        /// <param name="key">The key the parameter should be given.</param>
         public ParameterPropertyAttribute()
         {
             Key = null;

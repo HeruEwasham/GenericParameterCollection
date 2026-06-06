@@ -1,6 +1,5 @@
 using System;
 using System.Collections.Generic;
-using System.Collections.ObjectModel;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
 
@@ -25,7 +24,7 @@ namespace YngveHestem.GenericParameterCollection.ParameterValueConverters.Custom
 
         public bool CanConvertFromValue(ParameterType targetType, Type sourceType, object value, ParameterCollection additionalInfo, IEnumerable<IParameterValueConverter> customConverters)
         {
-            return sourceType == typeof(JToken) && targetType == ParameterConverterExtensions.GuessType((JToken)value, false, _convertBase64ToBytesType);
+            return sourceType == typeof(JToken) && targetType == ParameterCollectionExtensions.GuessType((JToken)value, false, _convertBase64ToBytesType);
         }
 
         public object ConvertFromParameter(ParameterType sourceType, Type targetType, JToken rawValue, ParameterCollection additionalInfo, IEnumerable<IParameterValueConverter> customConverters, JsonSerializer jsonSerializer)
