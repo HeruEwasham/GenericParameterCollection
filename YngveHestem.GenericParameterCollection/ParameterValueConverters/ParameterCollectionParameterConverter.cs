@@ -41,6 +41,11 @@ namespace YngveHestem.GenericParameterCollection.ParameterValueConverters
 
         public object ConvertFromParameter(ParameterType sourceType, Type targetType, JToken rawValue, ParameterCollection additionalInfo, IEnumerable<IParameterValueConverter> customConverters, JsonSerializer jsonSerializer)
         {
+            if (rawValue == null || rawValue.Type == JTokenType.Null)
+            {
+                return null;
+            }
+            
             if (sourceType == ParameterType.ParameterCollection)
             {
                 try
@@ -69,6 +74,11 @@ namespace YngveHestem.GenericParameterCollection.ParameterValueConverters
 
         public JToken ConvertFromValue(ParameterType targetType, Type sourceType, object value, ParameterCollection additionalInfo, IEnumerable<IParameterValueConverter> customConverters, JsonSerializer jsonSerializer)
         {
+            if (value == null)
+            {
+                return null;
+            }
+
             if (targetType == ParameterType.ParameterCollection)
             {
                 try

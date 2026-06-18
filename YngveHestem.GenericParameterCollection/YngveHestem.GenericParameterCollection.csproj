@@ -2,7 +2,7 @@
 
   <PropertyGroup>
     <TargetFramework>netstandard2.0</TargetFramework>
-    <Version>1.1.13-beta04</Version>
+    <Version>1.1.13-beta06</Version>
     <Description>ParameterCollection is a simple to use collection for different parameters and types defined with a key. It supports many of the standard types like int, string, double, float, long, DateTime, bool, byte[], enums and more. It can also support nearly every other objects by easy converting the object to it´s own ParameterCollection, which can be nested togheter as parameters. It also supports many of the parameters as IEnumerables (List, Array, etc.). Methods to convert to and from JSON is also included.</Description>
     <PackageReleaseNotes>
         - Added the posssibillity to get values by paths.
@@ -12,6 +12,7 @@
         - Added the possibillity to convert list of ParameterCollection to simple json.
         - Added the possibillity to convert any json to a list of ParameterCollection.
         - Added AdditionalInfoParameterPropertyAttribute, so it is possible to say that property x should be gotten from the additionalInfo from another property and set in that additionalInfo.
+        - ParameterCollectionParameterConverter will now automatically return null if value is null. This so both no problem should arise and you do not need to check if a value is null if you use this abstract class. If you for some reason you still to do some custom things if value is null, you can still use IParameterValueConverter directly.
     </PackageReleaseNotes>
     <Authors>Yngve J. K. Hestem</Authors>
     <Copyright>Copyright (c) Yngve J. K. Hestem 2023</Copyright>
