@@ -100,14 +100,26 @@ public class ToSimpleJsonTests
     }
 
     [Test]
-    public void ToSimpleJson_HandlesNullValues()
+    public void ToSimpleJson_HandleEnumAsStringValue()
     {
         var collection = new ParameterCollection
         {
-            new Parameter("nullKey", null, ParameterType.String)
+            new Parameter("enum", EnumTest.Default)
         };
-        var json = collection.ToSimpleJson();
-        var expected = "{\"nullKey\":null}";
+        var json = collection.ToSimpleJson(Newtonsoft.Json.Formatting.None, EnumValueHandling.CurrentValueAsString);
+        var expected = "{\"enum\":\"Default\"}";
+        Assert.That(json, Is.EqualTo(expected));
+    }
+
+    [Test]
+    public void ToSimpleJson_HandleEnumAsIntValue()
+    {
+        var collection = new ParameterCollection
+        {
+            new Parameter("enum", EnumTest.Default)
+        };
+        var json = collection.ToSimpleJson(Newtonsoft.Json.Formatting.None, EnumValueHandling.CurrentValueAsInt);
+        var expected = "{\"enum\":2}";
         Assert.That(json, Is.EqualTo(expected));
     }
 }

@@ -930,13 +930,22 @@ namespace YngveHestem.GenericParameterCollection
 
             return ParameterType.String;
         }
-
-        public static string ToSimpleJson(this IEnumerable<ParameterCollection> parameters, Formatting formatting = Formatting.None)
+        
+        /// <summary>
+        /// Convert the ParameterCollection-list to a json-list with each ParameterCollection in the form of { "key": "value" }. This will omit everything in AdditionalInfo, etc.
+        /// </summary>
+        /// <param name="parameters">The list of ParameterCollection to convert.</param>
+        /// <param name="formatting">Any special formatting?</param>
+        /// <param name="enumValueHandling">How enums should be handdled. Should it be returned as string, int, or as an object with value and choices-parameters.</param>
+        /// <param name="enumSelectOneManyValueParameterName">The name to use for the value-parameter of SelectOne,SelectMany and evt. Enum (if EnumValueHandling is set to show this).</param>
+        /// <param name="enumSelectOneManyChoicesParameterName">The name to use for the choices-parameter of SelectOne,SelectMany and evt. Enum (if EnumValueHandling is set to show this).</param>
+        /// <returns></returns>
+        public static string ToSimpleJson(this IEnumerable<ParameterCollection> parameters, Formatting formatting = Formatting.None, EnumValueHandling enumValueHandling = EnumValueHandling.CurrentValueAsString, string enumSelectOneManyValueParameterName = "value", string enumSelectOneManyChoicesParameterName = "choices")
         {
             var jsonList = new JArray();
             foreach(var parameterCollection in parameters)
             {
-                jsonList.Add(JObject.Parse(parameterCollection.ToSimpleJson(formatting)));
+                jsonList.Add(JObject.Parse(parameterCollection.ToSimpleJson(formatting, enumValueHandling, enumSelectOneManyValueParameterName, enumSelectOneManyChoicesParameterName)));
             }
             return jsonList.ToString();
         }

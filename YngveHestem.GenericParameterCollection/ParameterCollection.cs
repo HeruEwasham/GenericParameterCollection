@@ -787,11 +787,14 @@ namespace YngveHestem.GenericParameterCollection
         }
 
         /// <summary>
-        /// Convert the ParameterCollection to json in the form of { "key": "value" }. This will omit everything in additionalInfo, etc.
+        /// Convert the ParameterCollection to json in the form of { "key": "value" }. This will omit everything in AdditionalInfo, etc.
         /// </summary>
         /// <param name="formatting">Any special formatting?</param>
+        /// <param name="enumValueHandling">How enums should be handdled. Should it be returned as string, int, or as an object with value and choices-parameters.</param>
+        /// <param name="enumSelectOneManyValueParameterName">The name to use for the value-parameter of SelectOne,SelectMany and evt. Enum (if EnumValueHandling is set to show this).</param>
+        /// <param name="enumSelectOneManyChoicesParameterName">The name to use for the choices-parameter of SelectOne,SelectMany and evt. Enum (if EnumValueHandling is set to show this).</param>
         /// <returns></returns>
-        public string ToSimpleJson(Formatting formatting = Formatting.None)
+        public string ToSimpleJson(Formatting formatting = Formatting.None, EnumValueHandling enumValueHandling = EnumValueHandling.CurrentValueAsString, string enumSelectOneManyValueParameterName = "value", string enumSelectOneManyChoicesParameterName = "choices")
         {
             var customConverters = new IParameterValueConverter[] { new JTokenParameterConverter() };
             var result = new Dictionary<string, JToken>();
@@ -799,11 +802,52 @@ namespace YngveHestem.GenericParameterCollection
             {
                 if (parameter.Type == ParameterType.ParameterCollection)
                 {
-                    result.Add(parameter.Key, JToken.Parse(parameter.GetValue<ParameterCollection>(customConverters).ToSimpleJson(formatting)));
+                    result.Add(parameter.Key, JToken.Parse(parameter.GetValue<ParameterCollection>(customConverters).ToSimpleJson(formatting, enumValueHandling, enumSelectOneManyValueParameterName, enumSelectOneManyChoicesParameterName)));
                 }
                 else if (parameter.Type == ParameterType.ParameterCollection_IEnumerable)
                 {
-                    result.Add(parameter.Key, JToken.FromObject(parameter.GetValue<IEnumerable<ParameterCollection>>(customConverters).Select(p => JToken.Parse(p.ToSimpleJson(formatting))), ParameterCollectionExtensions.JsonSerializer));
+                    result.Add(parameter.Key, JToken.FromObject(parameter.GetValue<IEnumerable<ParameterCollection>>(customConverters).Select(p => JToken.Parse(p.ToSimpleJson(formatting, enumValueHandling, enumSelectOneManyValueParameterName, enumSelectOneManyChoicesParameterName))), ParameterCollectionExtensions.JsonSerializer));
+                }
+                else if (parameter.Type == ParameterType.Enum)
+                {
+                    if (enumValueHandling == EnumValueHandling.CurrentValueAsInt)
+                    {
+                        result.Add(parameter.Key, JToken.FromObject(parameter.GetValue<int>()));
+                    }
+                    else if (enumValueHandling == EnumValueHandling.CurrentValueAsString)
+                    {
+                        result.Add(parameter.Key, JToken.FromObject(parameter.GetValue<string>()));
+                    }
+                    else if (enumValueHandling == EnumValueHandling.BothValueAndOptionsAsString)
+                    {
+                        var p = parameter.GetValue<ParameterCollection>();
+                        var dict = new Dictionary<string, JToken>
+                        {
+                            { enumSelectOneManyValueParameterName, JToken.FromObject(p.GetByKey<string>("value")) },
+                            { enumSelectOneManyChoicesParameterName, JToken.FromObject(p.GetByKey<string[]>("choices")) }
+                        };
+                        result.Add(parameter.Key, JToken.FromObject(dict));
+                    }
+                }
+                else if (parameter.Type == ParameterType.SelectOne)
+                {
+                    var p = parameter.GetValue<ParameterCollection>();
+                        var dict = new Dictionary<string, JToken>
+                        {
+                            { enumSelectOneManyValueParameterName, JToken.FromObject(p.GetByKey<string>("value")) },
+                            { enumSelectOneManyChoicesParameterName, JToken.FromObject(p.GetByKey<string[]>("choices")) }
+                        };
+                        result.Add(parameter.Key, JToken.FromObject(dict));
+                }
+                else if (parameter.Type == ParameterType.SelectMany)
+                {
+                    var p = parameter.GetValue<ParameterCollection>();
+                        var dict = new Dictionary<string, JToken>
+                        {
+                            { enumSelectOneManyValueParameterName, JToken.FromObject(p.GetByKey<string[]>("value")) },
+                            { enumSelectOneManyChoicesParameterName, JToken.FromObject(p.GetByKey<string[]>("choices")) }
+                        };
+                        result.Add(parameter.Key, JToken.FromObject(dict));
                 }
                 else
                 {
